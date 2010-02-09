@@ -12,7 +12,7 @@ using namespace Copula2D;
 
 Cop2DSample::Cop2DSample(int const nSamples, Cop2DInfo const *const p2TgCop)
 : N(nSamples), i2jC(nSamples, -1), j2iC(nSamples, -1),
-  p2prob(NULL), scenOfRow(0), //cumProb(N),
+  p2prob(NULL), scenOfCol(0), //cumProb(N),
   evalPtPos(1.0), copEvalPts(N),
   p2tgInfo(p2TgCop)
 {
@@ -30,26 +30,26 @@ Cop2DSample::Cop2DSample(int const nSamples, Cop2DInfo const *const p2TgCop)
 // --------------------------------------------------------------------------
 // PUBLIC METHODS
 
-void Cop2DSample::set_scen_of_i(IVector const &iScenVect,
+void Cop2DSample::set_scen_of_i(IVector const &scenOfColR,
 																double const *p2scProb)
 {
-	if ((int) scenOfRow.size() != N) {
-		assert ((int) scenOfRow.size() == 0
+	if ((int) scenOfCol.size() != N) {
+		assert ((int) scenOfCol.size() == 0
 						&& "number of samples should never change");
-		scenOfRow.resize(N);
+		scenOfCol.resize(N);
 	}
 	int i, s;
 	double scPr;
 
-	for (s = 0; s < N; s++) {
-		scenOfRow[iScenVect[s]] = s;
+	for (i = 0; i < N; i++) {
+		scenOfCol[i] = scenOfColR[i];
 	}
 
 	p2prob = p2scProb;
 	double cumPr = 0.0;
 	for (i = 0; i < N; i++) {
-		s = scenOfRow[i]; // scenario of row 'i'
-		// remember that copEvalPts is sorted by rows, not by scenarios
+		s = scenOfCol[i]; // scenario of col 'i'
+		// remember that copEvalPts is sorted by ranks, not by scenarios
 		scPr = (p2prob ? p2prob[s] : 1.0 / N);
 		copEvalPts[i] = cumPr + evalPtPos * scPr; // point used in the cdf
 		cumPr += scPr;
@@ -59,7 +59,7 @@ void Cop2DSample::set_scen_of_i(IVector const &iScenVect,
 }
 
 
-double Cop2DSample::cdf(int const i, int const j) const
+double Cop2DSample::cdfOfR(int const i, int const j) const
 {
 	return prob_in_box(0, 0, i, j);
 }
@@ -72,9 +72,9 @@ void Cop2DSample::print_as_txt(string const fName, bool const sortByScen)
 	if (!oFile) {
 		cerr << "WARNING: could not open output file " << fName << "!" << endl;
 	} else {
-		int i, s;
-		for (s = 0; s < N; s++) {
-			i = (sortByScen ? scenOfRow[s] : s);
+		int i, r;
+		for (r = 0; r < N; r++) {
+			i = (sortByScen ? scenOfCol[r] : r);
 			oFile << i << "\t" << i2jC[i] << endl;
 		}
 	}
@@ -164,7 +164,7 @@ double Cop2DSample::prob_in_box(int const i0, int const j0,
 
 /*
 	If one wants a direct comparison to the MIP method, one should probably
-	round the tgRCdf values - but it gives worse results (bigger KS-dist.)!!
+	round the tgRCdfOfR values - but it gives worse results (bigger KS-dist.)!!
 
 	\todo Deal with equal values -> choose randomly between them!
 */
@@ -175,7 +175,7 @@ double Cop2DSample::gen_heur()
 	double dist;
 	double minDist;
 
-	assert ((!p2prob || (int) scenOfRow.size() == N)
+	assert ((!p2prob || (int) scenOfCol.size() == N)
 					&& "if we have probabilities, we must have column-scens as well");
 
 	/// minimum cdf-improvement for a new best solution
@@ -192,7 +192,7 @@ double Cop2DSample::gen_heur()
 	double totDist = 0.0;
 	for (i = 0; i < N; i++) {
 		// init
-		probCol = (p2prob ? p2prob[scenOfRow[i]] : 1.0 / N);
+		probCol = (p2prob ? p2prob[scenOfCol[i]] : 1.0 / N);
 		minDist = N * cdfDist(0.0, 1.0); // we should always find something better
 		bestRows.clear();
 
@@ -218,14 +218,14 @@ double Cop2DSample::gen_heur()
 			   evalPtPos should not matter for the actual cdf - we just take the
 			   previous one and increase it by the column probability; the value
 			   is taken to be valid in the whole box. evalPtPos comes into play
-			   through tgCdf(), where it is used in computing the evaluation points.
+			   through tgCdfOfR(), where it is used in computing the evaluation points.
 			*/
 			#ifndef NDEBUG
 				cout << "Cop2DSample::gen_heur(): i=" << i << ",j=0 ; jj=" << jj
 				     << "; prevColCdf[" << jj << "]=" << prevColCdf[jj]
-				     << ", tgCdf(" << i << "," << jj << ")=" << tgCdf(i, jj) << endl;
+				     << ", tgCdfOfR(" << i << "," << jj << ")=" << tgCdfOfR(i, jj) << endl;
 			#endif
-			dist += cdfDist(prevColCdf[jj] + probCol, tgCdf(i, jj));
+			dist += cdfDist(prevColCdf[jj] + probCol, tgCdfOfR(i, jj));
 		}
 		#ifndef NDEBUG
 			cout << "Cop2DSample::gen_heur(): dist(" << i << "," << j
@@ -239,7 +239,7 @@ double Cop2DSample::gen_heur()
 
 		for (j = 1; j < N; j++) {
 			// using the recursive formula shown above
-			tgVal = tgCdf(i, j-1);
+			tgVal = tgCdfOfR(i, j-1);
 			dist += cdfDist(prevColCdf[j-1], tgVal)
 			        - cdfDist(prevColCdf[j-1] + probCol, tgVal);
 			#ifndef NDEBUG
@@ -309,7 +309,7 @@ void Cop2DSample::cdf_dist_of_col(int const i, Vector const &prevColCdf,
 {
 	assert (rowFree == NULL && "handling of rowFree is not yet implented...");
 
-	double probCol = (p2prob ? p2prob[scenOfRow[i]] : 1.0 / N);
+	double probCol = (p2prob ? p2prob[scenOfCol[i]] : 1.0 / N);
 	int j, jj;
 	double tgVal;
 
@@ -320,17 +320,17 @@ void Cop2DSample::cdf_dist_of_col(int const i, Vector const &prevColCdf,
 		if (j == 0) {
 			for (jj = 0; jj < N; jj++) {
 				// point/link (i, 0) -> Cdf(i,jj) = prevColRCdf(jj) + prob[i]
-				dist += cdfDist(prevColCdf[jj] + probCol, tgCdf(i, jj));
+				dist += cdfDist(prevColCdf[jj] + probCol, tgCdfOfR(i, jj));
 				#ifndef NDEBUG
 					cout << "Cop2DSample::cdf_dist_of_col(" << i << "): j=0; jj=" << jj
 							 << "; prevColCdf[" << jj << "]=" << prevColCdf[jj]
-							 << ", tgCdf(" << i << "," << jj << ")=" << tgCdf(i, jj) << endl;
+							 << ", tgCdfOfR(" << i << "," << jj << ")=" << tgCdfOfR(i, jj) << endl;
 				#endif
 			}
 		} else {
 			// using the recursive formula shown above
 			// -> have to evaluate all j's, even if they won't be stored!
-			tgVal = tgCdf(i, j-1);
+			tgVal = tgCdfOfR(i, j-1);
 			dist += cdfDist(prevColCdf[j-1], tgVal)
 							- cdfDist(prevColCdf[j-1] + probCol, tgVal);
 		}
@@ -353,7 +353,7 @@ void Cop2DSample::cdf_dist_of_row(int const j, Vector const &prevRowCdf,
 {
 	assert (colFree == NULL && "handling of colFree is not yet implented...");
 
-	double probRow = (p2prob ? p2prob[scenOfRow[j]] : 1.0 / N); /// \todo CHECK !
+	double probRow = (p2prob ? p2prob[scenOfCol[j]] : 1.0 / N); /// \todo CHECK !
 	int i, ii;
 	double tgVal;
 
@@ -364,17 +364,17 @@ void Cop2DSample::cdf_dist_of_row(int const j, Vector const &prevRowCdf,
 		if (i == 0) {
 			for (ii = 0; ii < N; ii++) {
 				// point/link (0, j) -> Cdf(ii,j) = prevRowRCdf(ii) + prob[j]
-				dist += cdfDist(prevRowCdf[ii] + probRow, tgCdf(ii, j));
+				dist += cdfDist(prevRowCdf[ii] + probRow, tgCdfOfR(ii, j));
 				#ifndef NDEBUG
 					cout << "Cop2DSample::cdf_dist_of_row(" << j << "): i=0; ii=" << ii
 							 << "; prevRowCdf[" << ii << "]=" << prevRowCdf[ii]
-							 << ", tgCdf(" << ii << "," << j << ")=" << tgCdf(ii, j) << endl;
+							 << ", tgCdfOfR(" << ii << "," << j << ")=" << tgCdfOfR(ii, j) << endl;
 				#endif
 			}
 		} else {
 			// using the recursive formula shown above
 			// -> have to evaluate all i's, even if they won't be stored!
-			tgVal = tgCdf(i-1, j);
+			tgVal = tgCdfOfR(i-1, j);
 			dist += cdfDist(prevRowCdf[i-1], tgVal)
 							- cdfDist(prevRowCdf[i-1] + probRow, tgVal);
 		}

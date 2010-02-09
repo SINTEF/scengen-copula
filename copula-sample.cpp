@@ -105,7 +105,8 @@ double CopulaSample::gen_new_margin(int const marg)
 			if (!scenUsed[s]) {
 				dist = 0;
 				for (tg = 0; tg < nTg2Dcops; tg++) {
-					dist += rowCdfDist[tg][s];
+					int rankInTgMargin = sample[oldMargins[tg]][s]; // CHECK!
+					dist += rowCdfDist[tg][rankInTgMargin];
 				}
 
 				if (dist < minDist - CdfDistEps) {
@@ -160,7 +161,7 @@ double CopulaSample::gen_new_margin(int const marg)
 			}
 
 			// update p2sample2D
-			bool linkAdded = p2sample2D[i][marg]->add_link(i, iR);
+			bool linkAdded = p2sample2D[i][marg]->add_link(j, iR);
 			// temp -> activate the check!
 			//assert (linkAdded && "This should always succeed...");
 
@@ -221,10 +222,10 @@ void CopulaSample::print_as_txt(string const fName, int const sortByMarg)
 			cerr << "Sorting of output by margins si not implemented yet!" << endl;
 		}
 		for (s = 0; s < nSc; s++) {
-			for (marg = 0; marg < nVar; marg++) {
+			for (marg = 0; marg < nVar - 1; marg++) {
 				oFile << sample[marg][s] << "\t";
 			}
-			oFile << endl;
+			oFile << sample[nVar - 1][s] << endl;
 		}
 	}
 }

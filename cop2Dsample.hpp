@@ -44,8 +44,7 @@ private:
 	/// \name connection to scenarios of the main alg.
 	//@{
 		double const *p2prob; ///< pointer to scen. probabilities (can be NULL)
-		IVector scenOfRow;    ///< scenarios of the i's -> use p2prob[scenOfRow[i]]
-													/// \todo is it row or column????
+		IVector scenOfCol;    ///< scenarios of the i's -> use p2prob[scenOfCol[i]]
 		//Vector cumProb;     ///< cummulative probabilities
 
 		/// position of the cdf evaluation point in the discretization intervals.
@@ -64,6 +63,14 @@ private:
 		double prob_in_box(int const i0, int const j0,
 										   int const i1, int const j1) const;
 
+		/// convert ranks to the unif[0,1) values
+		inline double rank2U01(int const r) const {
+			return static_cast<double>(r) / N;
+		}
+
+		/// convert unif[0,1) values to ranks
+		inline int u01ToRank(double const z) const { return lround(N * z); }
+
 		/// convert ranks to the copula margins, i.e. val in (0,1)
 		//inline double rank2cop(int const i) const { return (i + 0.5) / N; }
 
@@ -71,13 +78,13 @@ private:
 		//inline int cop2rank(double const z) const { return lround(N * z - 0.5); }
 
 		/// shortcut to the target cdf, with margins given as ranks
-		inline double tgCdf(int const i, int const j) const {
+		inline double tgCdfOfR(int const i, int const j) const {
 			return p2tgInfo->cdf(copEvalPts[i], copEvalPts[j]);
 		}
 
 		/// shortcut to the target rank-cdf, with margins given as ranks
-		inline double tgRCdf(int const i, int const j) const {
-			return N * tgCdf(i, j);
+		inline double tgRCdfOfR(int const i, int const j) const {
+			return N * tgCdfOfR(i, j);
 		}
 
 		void gen_random();
@@ -94,8 +101,8 @@ private:
 
 	/// distance used when comparing rank-cdf to the target (point-wise).
 	/// x and y should be from (0, N)
-	inline double rCdfDist(double const uR, double const vR) const {
-		return cdfDist(uR / N, vR / N);
+	inline double cdfDistOfR(int const uR, int const vR) const {
+		return cdfDist(rank2U01(uR), rank2U01(vR));
 	}
 
 protected:
@@ -107,25 +114,25 @@ public:
 
 	/// set the scenarios for the 'i' variable
 	/**
-		\param[in] iScenVect vector of scenarios for the ranks of column \c i
-		           - \code iScenVect[i] = s \endcode means that scenario \c s
-		             includes (consists of) rank \c i of the first variable
-		             of the copula (i.e. column \c i).
+		\param[in] scenOfColR vector of scenarios for the ranks of column \c i
+		           - \code scenOfColR[i] = s \endcode means that scenario \c s
+		             includes (consists of) rank \c i in the first variable
+		             of the bivariate sample (i.e. column \c i).
 		\param[in] p2scProb pointer to scenario probabilities;
 		           NULL means equiprobable scenarios
 	**/
-	void set_scen_of_i(IVector const &iScenVect, double const *p2scProb = NULL);
+	void set_scen_of_i(IVector const &scenOfColR, double const *p2scProb = NULL);
 
 	/// the main heuristics
 	double gen_heur();
 
 	/// cdf -> returns values between 0 and 1
-	double cdf(int const i, int const j) const;
+	double cdfOfR(int const i, int const j) const;
 
 	/// rank cdf -> returns integral values between 0 and N-1
 	/// makes sense only in the equiprobable case!
-	double rankCdf(int const i, int const j) const {
-		return lround(N * cdf(i, j));
+	int rCdfOfR(int const i, int const j) const {
+		return u01ToRank(cdfOfR(i, j));
 	}
 
 	void print_as_txt(string const fName, bool const sortByScen = false);

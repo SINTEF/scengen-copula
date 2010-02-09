@@ -18,8 +18,8 @@ int main(int argc, char *argv[]) {
 
 	//Cop2DClayton tgCop(-0.75);
 	//Cop2DIndep tgCop;
-	Cop2DNelsen18 tgCop(5.0);
-	//Cop2DMarshallOlkin tgCop(0.5, 0.75);
+	//Cop2DNelsen18 tgCop(5.0);
+	Cop2DMarshallOlkin tgCop(0.5, 0.75);
 
 	// using the bivariate code directly
 	Cop2DSample bivarCopSc(nS, &tgCop);
