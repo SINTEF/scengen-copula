@@ -8,7 +8,15 @@
 
 using std::string;
 
-namespace Copula2D{
+
+// forward declarations
+// needed to make CopulaSample friend of Cop2DSample
+namespace CopulaScen {
+	class CopulaSample;
+}
+
+
+namespace Copula2D {
 
 
 /// sample from a bivariate copula in terms of ranks
@@ -18,6 +26,7 @@ namespace Copula2D{
 	vector indices to scenario numbers.
 **/
 class Cop2DSample {
+	friend class CopulaScen::CopulaSample;
 private:
 	/// \name main parameters defining the copula
 	//@{
@@ -39,10 +48,10 @@ private:
 													/// \todo is it row or column????
 		//Vector cumProb;     ///< cummulative probabilities
 
-		/// position of the cdf evaluation point in the discretization intervals
+		/// position of the cdf evaluation point in the discretization intervals.
 		/// reasonable values are 0.5 (cond. mean) or 1.0 (standard emp. cdf)
 		double evalPtPos;
-		/// discretization points of the copula marginals
+		/// discretization points of the copula marginals.
 		/// these are sorted as 'i', use scenOfRow[] to get scenario values
 		Vector copEvalPts;
 	//@}
@@ -74,7 +83,7 @@ private:
 		void gen_random();
 	//@}
 
-	/// distance used when comparing cdf to the target (point-wise)
+	/// distance used when comparing cdf to the target (point-wise).
 	/// we can use for ex. square to get a bigger penalty on big deviations
 	/// x and y should be from (0, 1)
 	inline double cdfDist(double const u, double const v) const {
@@ -83,7 +92,7 @@ private:
 		return fabs(u - v);
 	}
 
-	/// distance used when comparing rank-cdf to the target (point-wise)
+	/// distance used when comparing rank-cdf to the target (point-wise).
 	/// x and y should be from (0, N)
 	inline double rCdfDist(double const uR, double const vR) const {
 		return cdfDist(uR / N, vR / N);
@@ -130,8 +139,20 @@ public:
 		            rows are available or not; in this case, the rowCdfDist for
 		            the rows with 'false' need not be defined.
 	**/
-	void cdf_dist_of_col(int const i, Vector const prevColCdf,
-											 Vector rowCdfDist, bool rowFree[] = NULL);
+	void cdf_dist_of_col(int const i, Vector const &prevColCdf,
+											 Vector &rowCdfDist, bool rowFree[] = NULL);
+
+	/// Compute the cdf-distance of for a whole row, given Cdf of prev. row.
+	/**
+		\param[in]  j index of the column, i.e. the rank \c j
+		\param[in]  prevRowCdf vector of \f$ F(\cdot,j-1) \f$ values
+		\param[out] colCdfDist cdf-distance for putting the link to different cols
+		\param[out] colFree if given, will be filled by indicators whether the
+		            columnss are available or not; in this case, the colCdfDist for
+		            the columns with 'false' need not be defined.
+	**/
+	void cdf_dist_of_row(int const j, Vector const &prevRowCdf,
+											 Vector &colCdfDist, bool colFree[] = NULL);
 
 	/// \todo do this; return false if this breaks another link
 	bool add_link(int const colR, int const rowR);

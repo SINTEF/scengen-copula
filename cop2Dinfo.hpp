@@ -72,6 +72,29 @@ public:
 };
 
 
+/// Marshall-Olkin copula from Nelsen, pp. 53
+/**
+	Example of a non-exchangeable copula with singular component.
+	The book includes scatter plots for cases (alpha, beta) = (1/2, 3/4) and
+	(alpha, beta) = (1/3, 1/4).
+
+	Special cases:
+	- alpha = beta -> Caudras-Augé family
+	- alpha = 0 or beta = 0 -> product (independence) copula
+	- alpha = beta = 1 -> Fréchet-Hoeffding upper bound copula M(u,v) = min(u,v)
+**/
+class Cop2DMarshallOlkin : public Cop2DInfo {
+private:
+	double alpha; ///< parameter alpha of the copula; alpha in [0, 1]
+	double beta;  ///< parameter beta of the copula; beta in [0, 1]
+
+public:
+	Cop2DMarshallOlkin(double const alpha_, double const beta_);
+
+	virtual double cdf(const double u, const double v) const;
+};
+
+
 } // namespace
 
 #endif

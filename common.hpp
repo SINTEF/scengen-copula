@@ -31,6 +31,8 @@ typedef boost::multi_array_types::extent_range Range;
 #define frand() ((double) rand() / ((double) RAND_MAX + 1))
 
 const double DblEps = 1e-8; // for comparing doubles
+#include <limits>
+const double DblInf = sqrt(std::numeric_limits<double>::max());
 
 #define ECHO(message) (cout << "TEST MESSAGE: " << message << endl)
 

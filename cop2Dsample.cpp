@@ -20,6 +20,10 @@ Cop2DSample::Cop2DSample(int const nSamples, Cop2DInfo const *const p2TgCop)
 		copEvalPts[i] = (i + evalPtPos) / N; // discretization points
 		//cumProb[i] = (i + 1.0) / N;          // cummulative probabilities
 	}
+	// avoiding numerical issues:
+	if (evalPtPos >= 1.0 - DblEps) {
+		copEvalPts[N-1] = 1.0;
+	}
 }
 
 
@@ -35,6 +39,7 @@ void Cop2DSample::set_scen_of_i(IVector const &iScenVect,
 		scenOfRow.resize(N);
 	}
 	int i, s;
+	double scPr;
 
 	for (s = 0; s < N; s++) {
 		scenOfRow[iScenVect[s]] = s;
@@ -45,8 +50,9 @@ void Cop2DSample::set_scen_of_i(IVector const &iScenVect,
 	for (i = 0; i < N; i++) {
 		s = scenOfRow[i]; // scenario of row 'i'
 		// remember that copEvalPts is sorted by rows, not by scenarios
-		copEvalPts[i] = cumPr + evalPtPos * p2prob[s]; // point used in the cdf
-		cumPr += p2prob[s];
+		scPr = (p2prob ? p2prob[s] : 1.0 / N);
+		copEvalPts[i] = cumPr + evalPtPos * scPr; // point used in the cdf
+		cumPr += scPr;
 		//cumProb[i] = cumPr;
 	}
 	assert (fabs(cumPr - 1.0) < DblEps && "probabilities must sum up to 1!");
@@ -192,14 +198,15 @@ double Cop2DSample::gen_heur()
 
 		/*
 			The error/distance of putting the point at (i,j) is
-			dist(i,j) = sum_k^{j-1} d(F(i-1,k), T(i,k))
-			            + sum_j^{n-1} d(F(i-1,k) + 1, T(i,k))
+			dist(i,j) = sum_{k=0}^{j-1} d(F(i-1,k), T(i,k))
+			            + sum_{k=j}^{n-1} d(F(i-1,k) + 1/n, T(i,k))
 			where: d() is the distance measure  = cdfDist()
-			       F() is the sample (rank) Cdf -> prevColRCdf[] is F(i-1,*)
-			       T() is the target (rank) Cdf = tgRankCdf[][]
+			     : F() is the sample (rank) Cdf -> prevColRCdf[] is F(i-1,*)
+			     : T() is the target (rank) Cdf = tgRankCdf[][]
+			     : all scenarios have prob. 1/n
 			We use the fact that for j>0 we have the following:
 			dist(i,j) = dist(i,j-1) + d(F(i-1,j-1), T(i,j-1))
-			                        - d(F(i-1,j-1) + 1, T(i,j-1))
+			                        - d(F(i-1,j-1) + 1/n, T(i,j-1))
 			It means that we have to treat j=0 separately to get dist(i,0)
 		*/
 		j = 0;
@@ -207,8 +214,23 @@ double Cop2DSample::gen_heur()
 		dist = 0;
 		for (jj = 0; jj < N; jj++) {
 			// RCdf(i,jj) = prevColRCdf(jj) + 1 for all jj - we have point (i, 0)
-			dist += cdfDist(prevColCdf[jj] + evalPtPos * probCol, tgCdf(i, jj));
+			/* comment and edit 2010-01-26:
+			   evalPtPos should not matter for the actual cdf - we just take the
+			   previous one and increase it by the column probability; the value
+			   is taken to be valid in the whole box. evalPtPos comes into play
+			   through tgCdf(), where it is used in computing the evaluation points.
+			*/
+			#ifndef NDEBUG
+				cout << "Cop2DSample::gen_heur(): i=" << i << ",j=0 ; jj=" << jj
+				     << "; prevColCdf[" << jj << "]=" << prevColCdf[jj]
+				     << ", tgCdf(" << i << "," << jj << ")=" << tgCdf(i, jj) << endl;
+			#endif
+			dist += cdfDist(prevColCdf[jj] + probCol, tgCdf(i, jj));
 		}
+		#ifndef NDEBUG
+			cout << "Cop2DSample::gen_heur(): dist(" << i << "," << j
+					 << ") = " << dist << endl;
+		#endif
 		if (j2iC[j] < 0) {
 			// j=0 is available, i.e. it is a valid choice
 			bestRows.push_back(j);
@@ -219,7 +241,11 @@ double Cop2DSample::gen_heur()
 			// using the recursive formula shown above
 			tgVal = tgCdf(i, j-1);
 			dist += cdfDist(prevColCdf[j-1], tgVal)
-			        - cdfDist(prevColCdf[j-1] + evalPtPos * probCol, tgVal);
+			        - cdfDist(prevColCdf[j-1] + probCol, tgVal);
+			#ifndef NDEBUG
+				cout << "Cop2DSample::gen_heur(): dist(" << i << "," << j
+						 << ") = " << dist << endl;
+			#endif
 			if (j2iC[j] < 0) {
 				// j is an available row
 				if (dist < minDist - CdfDistEps) {
@@ -255,6 +281,10 @@ double Cop2DSample::gen_heur()
 		totDist += probCol * minDist;
 		i2jC[i] = j;
 		j2iC[j] = i;
+		#ifndef NDEBUG
+			cout << "Cop2DSample::gen_heur(): new link: (" << i << ", " << j
+					 << "); dist = " << minDist << endl << endl;
+		#endif
 
 		// update prevColCdf:
 		for (jj = j; jj < N; jj++) {
@@ -274,27 +304,103 @@ double Cop2DSample::gen_heur()
 
 /// \todo make this into a private method and call it also from the
 ///       \a gen_heur() method !!!
-void Cop2DSample::cdf_dist_of_col(int const i, Vector const prevColCdf,
-											            Vector rowCdfDist, bool rowFree[])
+void Cop2DSample::cdf_dist_of_col(int const i, Vector const &prevColCdf,
+											            Vector &rowCdfDist, bool rowFree[])
 {
 	assert (rowFree == NULL && "handling of rowFree is not yet implented...");
 
 	double probCol = (p2prob ? p2prob[scenOfRow[i]] : 1.0 / N);
+	int j, jj;
+	double tgVal;
 
-	int j = 0;
-	// compute dist(i, 0):
+	// Using the recursive formula
+	// -> have to treat (i,0) separately to start the recursion
 	double dist = 0;
-	for (jj = 0; jj < N; jj++) {
-		// RCdf(i,jj) = prevColRCdf(jj) + 1 for all jj - we have point (i, 0)
-		dist += cdfDist(prevColCdf[jj] + evalPtPos * probCol, tgCdf(i, jj));
+	for (j = 0; j < N; j++) {
+		if (j == 0) {
+			for (jj = 0; jj < N; jj++) {
+				// point/link (i, 0) -> Cdf(i,jj) = prevColRCdf(jj) + prob[i]
+				dist += cdfDist(prevColCdf[jj] + probCol, tgCdf(i, jj));
+				#ifndef NDEBUG
+					cout << "Cop2DSample::cdf_dist_of_col(" << i << "): j=0; jj=" << jj
+							 << "; prevColCdf[" << jj << "]=" << prevColCdf[jj]
+							 << ", tgCdf(" << i << "," << jj << ")=" << tgCdf(i, jj) << endl;
+				#endif
+			}
+		} else {
+			// using the recursive formula shown above
+			// -> have to evaluate all j's, even if they won't be stored!
+			tgVal = tgCdf(i, j-1);
+			dist += cdfDist(prevColCdf[j-1], tgVal)
+							- cdfDist(prevColCdf[j-1] + probCol, tgVal);
+		}
+		#ifndef NDEBUG
+			cout << "Cop2DSample::cdf_dist_of_col(" << i
+					 << "): dist(" << i << "," << j << ") = " << dist << endl;
+		#endif
+		if (rowFree == NULL || rowFree[j])
+			rowCdfDist[j] = dist;
+		else
+			rowCdfDist[j] = DblInf;
 	}
-	rowCdfDist[0] = dist;
+}
 
-	for (j = 1; j < N; j++) {
-		// using the recursive formula shown above
-		tgVal = tgCdf(i, j-1);
-		dist += cdfDist(prevColCdf[j-1], tgVal)
-						- cdfDist(prevColCdf[j-1] + evalPtPos * probCol, tgVal);
-		rowCdfDist[j] = dist;
+
+/// \todo make this into a private method and call it also from the
+///       \a gen_heur() method ???
+void Cop2DSample::cdf_dist_of_row(int const j, Vector const &prevRowCdf,
+											            Vector &colCdfDist, bool colFree[])
+{
+	assert (colFree == NULL && "handling of colFree is not yet implented...");
+
+	double probRow = (p2prob ? p2prob[scenOfRow[j]] : 1.0 / N); /// \todo CHECK !
+	int i, ii;
+	double tgVal;
+
+	// Using the recursive formula
+	// -> have to treat (i,0) separately to start the recursion
+	double dist = 0;
+	for (i = 0; i < N; i++) {
+		if (i == 0) {
+			for (ii = 0; ii < N; ii++) {
+				// point/link (0, j) -> Cdf(ii,j) = prevRowRCdf(ii) + prob[j]
+				dist += cdfDist(prevRowCdf[ii] + probRow, tgCdf(ii, j));
+				#ifndef NDEBUG
+					cout << "Cop2DSample::cdf_dist_of_row(" << j << "): i=0; ii=" << ii
+							 << "; prevRowCdf[" << ii << "]=" << prevRowCdf[ii]
+							 << ", tgCdf(" << ii << "," << j << ")=" << tgCdf(ii, j) << endl;
+				#endif
+			}
+		} else {
+			// using the recursive formula shown above
+			// -> have to evaluate all i's, even if they won't be stored!
+			tgVal = tgCdf(i-1, j);
+			dist += cdfDist(prevRowCdf[i-1], tgVal)
+							- cdfDist(prevRowCdf[i-1] + probRow, tgVal);
+		}
+		#ifndef NDEBUG
+			cout << "Cop2DSample::cdf_dist_of_row(" << j
+					 << "): dist(" << i << "," << j << ") = " << dist << endl;
+		#endif
+		if (colFree == NULL || colFree[i])
+			colCdfDist[i] = dist;
+		else
+			colCdfDist[i] = DblInf;
 	}
+}
+
+
+/// \todo do this; return false if this breaks another link
+bool Cop2DSample::add_link(int const colR, int const rowR)
+{
+	if (i2jC[colR] >= 0 || j2iC[rowR] >= 0) {
+		cerr << "Error in add_link(" << colR << "," << rowR
+		     << ") - link already exists!" << endl;
+		return false;
+	}
+
+	i2jC[colR] = rowR;
+	j2iC[rowR] = colR;
+
+	return true;
 }

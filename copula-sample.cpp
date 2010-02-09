@@ -4,28 +4,39 @@
 #include "copula-sample.hpp"
 
 using namespace std;
-using namespace Copula2D;
+using namespace CopulaScen;
 
 
 // --------------------------------------------------------------------------
 // CONSTRUCTORS AND DESTRUCTORS
-CopulaSample::CopulaSample(int const dim)
-: haveSc4Marg(dim, false), nVar(dim), p2tgInfo(boost::extents[dim][dim])
+CopulaSample::CopulaSample(int const dim, int const S)
+: haveSc4Marg(dim, false),
+  p2tgInfo(boost::extents[dim][dim]), p2sample2D(boost::extents[dim][dim]),
+  p2prob(NULL), sample(dim),
+  nVar(dim), nSc(S)
 {
 	int i, j;
 	for (i = 0; i < nVar; i++) {
 		for (j = 0; j < nVar; j++) {
 			p2tgInfo[i][j] = NULL;
+			p2sample2D[i][j] = NULL;
 		}
+		sample[i].resize(nSc);
 	}
 }
 
 double CopulaSample::gen_new_margin(int const marg)
 {
 	int i, j, s;
+	int tg, iR;
 
+	/// vector of target specifications for all the involved 2D copulas
 	std::vector<Cop2DInfo const*> tg2Dcopulas;
 	tg2Dcopulas.reserve(nVar);
+
+	/// list of already existing margins that are being matched
+	std::vector<int> oldMargins;
+	oldMargins.reserve(nVar);
 
 	double CdfDistEps = DblEps; // DblEps should give 'optimal' discretization
 
@@ -34,21 +45,35 @@ double CopulaSample::gen_new_margin(int const marg)
 	for (i = 0; i < nVar; i++) {
 		if (i != marg && haveSc4Marg[i] && p2tgInfo[i][marg]) {
 			// store the margin in the list of copulas (i, marg) to match
-			tg2Dcopulas.push_back(i);
+			oldMargins.push_back(i);
+			tg2Dcopulas.push_back(p2tgInfo[i][marg]);
 			// initialize the 2D-sample generator with scenarios of the known margin
-			p2sample2D->set_scen_of_i(sample[i], p2prob);
+			p2sample2D[i][marg] = new Cop2DSample(nSc, p2tgInfo[i][marg]);
+			p2sample2D[i][marg]->set_scen_of_i(sample[i], p2prob);
 		}
 	}
 	int nTg2Dcops = tg2Dcopulas.size();
 
 	double dist;
 	double minDist;
+	double totDist = 0.0;
+	double scProb;
 
 	/// \todo rename bestRows to bestScen
 	/// \todo fix the numbering: rows OR scens !!!!
 
-	IVector bestRows;     ///< all rows ('j') that minimize the distance
-	bestRows.reserve(10); // this should be enough to prevent reallocations(?)
+	/**
+		The logic in the following is as follows:
+		- loop through the ranks of the new margin (sequentially)
+		- for each rank, loop through all scenarios and compute the distance
+		  (error) of putting the rank to the given scenario,
+		  based on the values of already assigned margins
+		- store the best scenarios
+		- after the loop, chose one of the candidates
+	**/
+
+	IVector bestScens;     ///< list of scenarios that minimize the distance
+	bestScens.reserve(10); // this should be enough to prevent reallocations(?)
 	std::vector<bool> scenUsed(nSc, false);
 
 	std::vector<Vector> prevColCdf(nTg2Dcops);
@@ -58,19 +83,26 @@ double CopulaSample::gen_new_margin(int const marg)
 		rowCdfDist[tg] = Vector(nSc);
 	}
 
+	// loop over ranks of the newly added margin
 	for (iR = 0; iR < nSc; iR++) {
-		minDist = N * cdfDist(0.0, 1.0); // we should always find something better
-		bestRows.clear();
+		// init minDist with a safe upperbounds + clean the bestRows array
+		for (tg = 0; tg < nTg2Dcops; tg++) {
+			minDist = p2sample2D[oldMargins[tg]][marg]->cdfDist(0.0, 1.0);
+		}
+		minDist *= nSc;
+		bestScens.clear();
 
 		for (tg = 0; tg < nTg2Dcops; tg++) {
 			// get the dist for the rows
-			tg2Dcopulas->cdf_dist_of_col(i, prevColCdf[tg], rowCdfDist[tg]);
+			/// \todo check this!
+			//p2sample2D[oldMargins[tg]][marg]->cdf_dist_of_col(iR, prevColCdf[tg], rowCdfDist[tg]);
+			p2sample2D[oldMargins[tg]][marg]->cdf_dist_of_row(iR, prevColCdf[tg], rowCdfDist[tg]);
 		}
 
 		// brute-force approach - this will be SLOW
 		for (s = 0; s < nSc; s++) {
 			// compute the distance for putting rank iR into scenario s
-			if (!scenUsed) {
+			if (!scenUsed[s]) {
 				dist = 0;
 				for (tg = 0; tg < nTg2Dcops; tg++) {
 					dist += rowCdfDist[tg][s];
@@ -78,13 +110,13 @@ double CopulaSample::gen_new_margin(int const marg)
 
 				if (dist < minDist - CdfDistEps) {
 					// j is a new best row -> delete current candidates and store j
-					bestRows.clear();
-					bestRows.push_back(s);
+					bestScens.clear();
+					bestScens.push_back(s);
 					minDist = dist;
 				} else {
 					if (dist < minDist + CdfDistEps)  {
 						// j is just as good as the best known value -> add to list
-						bestRows.push_back(j);
+						bestScens.push_back(j);
 						// We could update the minDist here, but that could cause the
 						// list to 'slide' downwards, so we end-up with bad solutions
 						// On the other hand, if we do not update, then we on the next
@@ -97,25 +129,102 @@ double CopulaSample::gen_new_margin(int const marg)
 			}
 		}
 		// now we should have a couple..
-		assert (bestRows.size() > 0 && "we should have found something...");
+		assert (bestScens.size() > 0 && "we should have found something...");
 
-		/// \todo adapt this for the CopulaSample class
-		/*
-		if (bestRows.size() == 1) {
+		/// \todo Check!
+		if (bestScens.size() == 1) {
 			// only have one candidate row -> easy
-			j = bestRows[0];
+			s = bestScens[0];
 		} else {
 			// more candidates -> choose randomly, using my macro for random int
-			j = bestRows[irand(bestRows.size())];
+			s = bestScens[irand(bestScens.size())];
 		}
-		totDist += probCol * minDist;
-		i2jC[i] = j;
-		j2iC[j] = i;
+		#ifndef NDEBUG
+			cout << "CopulaSample::gen_new_margin(" << marg
+			     << "): new link: iR=" << iR << ", s=" << s
+			     << "; dist = " << minDist << endl << endl;
+		#endif
+		scProb = (p2prob == NULL ? 1.0 / nSc : p2prob[s]);
+		totDist += scProb * minDist;
+		sample[marg][s] = iR;
+		scenUsed[s] = true;
 
-		// update prevColCdf:
-		for (jj = j; jj < N; jj++) {
-			prevColCdf[jj] += probCol;
+		/// \todo Check!
+		for (tg = 0; tg < nTg2Dcops; tg++) {
+			i = oldMargins[tg];
+			j = sample[i][s]; // the row-rank for the given target copula
+
+			// update prevColCdf:
+			for (int jj = j; jj < nSc; jj++) {
+				prevColCdf[tg][jj] += scProb;
+			}
+
+			// update p2sample2D
+			bool linkAdded = p2sample2D[i][marg]->add_link(i, iR);
+			// temp -> activate the check!
+			//assert (linkAdded && "This should always succeed...");
+
+			// update also the [marg][i] copula sample? !!!
 		}
-		*/
+	}
+
+	return dist;
+}
+
+
+/// \todo Write something here!!!
+void CopulaSample::attach_tg_2Dcop(Cop2DInfo const* p2cop,
+																	 int const i, int const j,
+																	 bool makeTranspTg)
+{
+	p2tgInfo[i][j] = p2cop;
+	if (makeTranspTg) {
+		p2tgInfo[j][i] = new Copula2D::Cop2DInfTr(p2cop);
+	}
+}
+
+
+
+/// the main routine; returns the KS-distance
+/// \todo Do something here!
+double CopulaSample::gen_sample()
+{
+	int marg;
+	int s;
+	double totDist = 0.0;
+
+	// initialize the first margin
+	marg = 0;
+	for (s = 0; s < nSc; s++) {
+		/// \todo Once this works, test it with $nSc - s$ or random numbers
+		sample[marg][s] = s; // alternative is to use random numbers
+	}
+	haveSc4Marg[marg] = true;
+
+	for (marg = 1; marg < nVar; marg++) {
+		totDist += gen_new_margin(marg);
+	}
+
+	return totDist;
+}
+
+
+void CopulaSample::print_as_txt(string const fName, int const sortByMarg)
+{
+	std::ofstream oFile;
+	oFile.open(fName.c_str(), std::ios::out);
+	if (!oFile) {
+		cerr << "WARNING: could not open output file " << fName << "!" << endl;
+	} else {
+		int marg, s;
+		if (sortByMarg >= 0) {
+			cerr << "Sorting of output by margins si not implemented yet!" << endl;
+		}
+		for (s = 0; s < nSc; s++) {
+			for (marg = 0; marg < nVar; marg++) {
+				oFile << sample[marg][s] << "\t";
+			}
+			oFile << endl;
+		}
 	}
 }
