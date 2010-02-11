@@ -10,10 +10,12 @@ using namespace Copula2D;
 // --------------------------------------------------------------------------
 // CONSTRUCTORS AND DESTRUCTORS
 
-Cop2DSample::Cop2DSample(int const nSamples, Cop2DInfo const *const p2TgCop)
+Cop2DSample::Cop2DSample(int const nSamples, Cop2DInfo const *const p2TgCop,
+												 string const id)
 : N(nSamples), i2jC(nSamples, -1), j2iC(nSamples, -1),
-  p2prob(NULL), scenOfCol(0), //cumProb(N),
+  p2prob(NULL), scenOfMarg1R(0), //cumProb(N),
   evalPtPos(1.0), copEvalPts(N),
+  sampleId(id),
   p2tgInfo(p2TgCop)
 {
 	for (int i = 0; i < N; i++) {
@@ -30,25 +32,26 @@ Cop2DSample::Cop2DSample(int const nSamples, Cop2DInfo const *const p2TgCop)
 // --------------------------------------------------------------------------
 // PUBLIC METHODS
 
+/*
 void Cop2DSample::set_scen_of_i(IVector const &scenOfColR,
 																double const *p2scProb)
 {
-	if ((int) scenOfCol.size() != N) {
-		assert ((int) scenOfCol.size() == 0
+	if ((int) scenOfMarg1R.size() != N) {
+		assert ((int) scenOfMarg1R.size() == 0
 						&& "number of samples should never change");
-		scenOfCol.resize(N);
+		scenOfMarg1R.resize(N);
 	}
 	int i, s;
 	double scPr;
 
 	for (i = 0; i < N; i++) {
-		scenOfCol[i] = scenOfColR[i];
+		scenOfMarg1R[i] = scenOfColR[i];
 	}
 
 	p2prob = p2scProb;
 	double cumPr = 0.0;
 	for (i = 0; i < N; i++) {
-		s = scenOfCol[i]; // scenario of col 'i'
+		s = scenOfMarg1R[i]; // scenario of col 'i'
 		// remember that copEvalPts is sorted by ranks, not by scenarios
 		scPr = (p2prob ? p2prob[s] : 1.0 / N);
 		copEvalPts[i] = cumPr + evalPtPos * scPr; // point used in the cdf
@@ -57,6 +60,45 @@ void Cop2DSample::set_scen_of_i(IVector const &scenOfColR,
 	}
 	assert (fabs(cumPr - 1.0) < DblEps && "probabilities must sum up to 1!");
 }
+*/
+
+void Cop2DSample::set_scen_of_marg_1(IVector const &margScen,
+																		 double const *p2scProb)
+{
+	if ((int) scenOfMarg1R.size() != N) {
+		assert ((int) scenOfMarg1R.size() == 0
+						&& "number of samples should never change");
+		scenOfMarg1R.resize(N);
+	}
+	int i, s;
+	double scPr;
+
+	#ifndef NDEBUG
+		// extra checks - see the assert below
+		for (i = 0; i < N; i++) {
+			scenOfMarg1R[i] = -1;
+		}
+	#endif
+
+	for (s = 0; s < N; s++) {
+		i = margScen[s]; // scenario s includes rank i
+		assert (scenOfMarg1R[i] < 0 && "each rank should be set only once!");
+		scenOfMarg1R[i] = s;
+	}
+
+	p2prob = p2scProb;
+	double cumPr = 0.0;
+	for (i = 0; i < N; i++) {
+		s = scenOfMarg1R[i]; // scenario of col 'i'
+		scPr = (p2prob ? p2prob[s] : 1.0 / N);
+		// remember that copEvalPts is sorted by ranks, not by scenarios
+		copEvalPts[i] = cumPr + evalPtPos * scPr; // point used in the cdf
+		cumPr += scPr;
+		//cumProb[i] = cumPr;
+	}
+	assert (fabs(cumPr - 1.0) < DblEps && "probabilities must sum up to 1!");
+}
+
 
 
 double Cop2DSample::cdfOfR(int const i, int const j) const
@@ -72,9 +114,9 @@ void Cop2DSample::print_as_txt(string const fName, bool const sortByScen)
 	if (!oFile) {
 		cerr << "WARNING: could not open output file " << fName << "!" << endl;
 	} else {
-		int i, r;
-		for (r = 0; r < N; r++) {
-			i = (sortByScen ? scenOfCol[r] : r);
+		int i, r1;
+		for (r1 = 0; r1 < N; r1++) {
+			i = (sortByScen ? scenOfMarg1R[r1] : r1);
 			oFile << i << "\t" << i2jC[i] << endl;
 		}
 	}
@@ -175,7 +217,7 @@ double Cop2DSample::gen_heur()
 	double dist;
 	double minDist;
 
-	assert ((!p2prob || (int) scenOfCol.size() == N)
+	assert ((!p2prob || (int) scenOfMarg1R.size() == N)
 					&& "if we have probabilities, we must have column-scens as well");
 
 	/// minimum cdf-improvement for a new best solution
@@ -192,7 +234,7 @@ double Cop2DSample::gen_heur()
 	double totDist = 0.0;
 	for (i = 0; i < N; i++) {
 		// init
-		probCol = (p2prob ? p2prob[scenOfCol[i]] : 1.0 / N);
+		probCol = (p2prob ? p2prob[scenOfMarg1R[i]] : 1.0 / N);
 		minDist = N * cdfDist(0.0, 1.0); // we should always find something better
 		bestRows.clear();
 
@@ -309,7 +351,7 @@ void Cop2DSample::cdf_dist_of_col(int const i, Vector const &prevColCdf,
 {
 	assert (rowFree == NULL && "handling of rowFree is not yet implented...");
 
-	double probCol = (p2prob ? p2prob[scenOfCol[i]] : 1.0 / N);
+	double probCol = (p2prob ? p2prob[scenOfMarg1R[i]] : 1.0 / N);
 	int j, jj;
 	double tgVal;
 
@@ -353,7 +395,7 @@ void Cop2DSample::cdf_dist_of_row(int const j, Vector const &prevRowCdf,
 {
 	assert (colFree == NULL && "handling of colFree is not yet implented...");
 
-	double probRow = (p2prob ? p2prob[scenOfCol[j]] : 1.0 / N); /// \todo CHECK !
+	double probRow = (p2prob ? p2prob[scenOfMarg1R[j]] : 1.0 / N); /// \todo CHECK !
 	int i, ii;
 	double tgVal;
 
@@ -394,10 +436,14 @@ void Cop2DSample::cdf_dist_of_row(int const j, Vector const &prevRowCdf,
 bool Cop2DSample::add_link(int const colR, int const rowR)
 {
 	if (i2jC[colR] >= 0 || j2iC[rowR] >= 0) {
+		cout.flush();
 		cerr << "Error in add_link(" << colR << "," << rowR
 		     << ") - link already exists!" << endl;
+		cerr.flush();
 		return false;
 	}
+
+	cout << sampleId << " : new link (" << colR << "," << rowR << ")" << endl;
 
 	i2jC[colR] = rowR;
 	j2iC[rowR] = colR;

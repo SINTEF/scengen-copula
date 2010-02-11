@@ -43,16 +43,25 @@ private:
 
 	/// \name connection to scenarios of the main alg.
 	//@{
-		double const *p2prob; ///< pointer to scen. probabilities (can be NULL)
-		IVector scenOfCol;    ///< scenarios of the i's -> use p2prob[scenOfCol[i]]
+		/// pointer to scenario probabilities.
+		/// can be NULL, implying equiprobable scenarios/samples
+		double const *p2prob;
+
+		/// scenarios of ranks of the 1st margin.
+		/// use \c p2prob[scenOfMarg1R[i]] to get probability of rank \c i
+		IVector scenOfMarg1R;
+
 		//Vector cumProb;     ///< cummulative probabilities
 
 		/// position of the cdf evaluation point in the discretization intervals.
 		/// reasonable values are 0.5 (cond. mean) or 1.0 (standard emp. cdf)
 		double evalPtPos;
+
 		/// discretization points of the copula marginals.
 		/// these are sorted as 'i', use scenOfRow[] to get scenario values
 		Vector copEvalPts;
+
+		string sampleId; ///< string to identify the sample (for reporting)
 	//@}
 
 	Cop2DInfo const *p2tgInfo; ///< pointer to the target specification (can be 0)
@@ -108,7 +117,8 @@ private:
 protected:
 
 public:
-	Cop2DSample(int const nSamples, Cop2DInfo const *const p2TgCop);
+	Cop2DSample(int const nSamples, Cop2DInfo const *const p2TgCop,
+							string const id = "");
 
 	~Cop2DSample() {};
 
@@ -121,7 +131,19 @@ public:
 		\param[in] p2scProb pointer to scenario probabilities;
 		           NULL means equiprobable scenarios
 	**/
-	void set_scen_of_i(IVector const &scenOfColR, double const *p2scProb = NULL);
+	//void set_scen_of_i(IVector const &scenOfColR, double const *p2scProb = NULL);
+
+	/// set the scenarios for the the first margin
+	/**
+		\param[in] margScen vector of scenarios for the margin
+		           - ordered by scenarios, i.e. \code margScen[s] = i \endcode
+		           means that scenario \c s includes (consists of) rank \c i in
+		           the first variable of the bivariate sample.
+		\param[in] p2scProb pointer to scenario probabilities;
+		           NULL means equiprobable scenarios
+	**/
+	void set_scen_of_marg_1(IVector const &margScen,
+													double const *p2scProb = NULL);
 
 	/// the main heuristics
 	double gen_heur();

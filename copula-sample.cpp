@@ -47,9 +47,16 @@ double CopulaSample::gen_new_margin(int const marg)
 			// store the margin in the list of copulas (i, marg) to match
 			oldMargins.push_back(i);
 			tg2Dcopulas.push_back(p2tgInfo[i][marg]);
+			// create a new copula-2D-sample object
+			stringstream cop2DId; // using stringstream to get simple conversions
+			cop2DId << "sample_" << i << "_" << marg;
+			p2sample2D[i][marg] = new Cop2DSample(nSc, p2tgInfo[i][marg],
+																						cop2DId.str());
+			#ifndef NDEBUG
+				cout << "Created new Cop2DSample with id = " << cop2DId.str() << endl;
+			#endif
 			// initialize the 2D-sample generator with scenarios of the known margin
-			p2sample2D[i][marg] = new Cop2DSample(nSc, p2tgInfo[i][marg]);
-			p2sample2D[i][marg]->set_scen_of_i(sample[i], p2prob);
+			p2sample2D[i][marg]->set_scen_of_marg_1(sample[i], p2prob);
 		}
 	}
 	int nTg2Dcops = tg2Dcopulas.size();
@@ -96,7 +103,8 @@ double CopulaSample::gen_new_margin(int const marg)
 			// get the dist for the rows
 			/// \todo check this!
 			//p2sample2D[oldMargins[tg]][marg]->cdf_dist_of_col(iR, prevColCdf[tg], rowCdfDist[tg]);
-			p2sample2D[oldMargins[tg]][marg]->cdf_dist_of_row(iR, prevColCdf[tg], rowCdfDist[tg]);
+			p2sample2D[oldMargins[tg]][marg]->cdf_dist_of_row(iR, prevColCdf[tg],
+																												rowCdfDist[tg]);
 		}
 
 		// brute-force approach - this will be SLOW
@@ -117,7 +125,7 @@ double CopulaSample::gen_new_margin(int const marg)
 				} else {
 					if (dist < minDist + CdfDistEps)  {
 						// j is just as good as the best known value -> add to list
-						bestScens.push_back(j);
+						bestScens.push_back(s);
 						// We could update the minDist here, but that could cause the
 						// list to 'slide' downwards, so we end-up with bad solutions
 						// On the other hand, if we do not update, then we on the next
@@ -144,6 +152,7 @@ double CopulaSample::gen_new_margin(int const marg)
 			cout << "CopulaSample::gen_new_margin(" << marg
 			     << "): new link: iR=" << iR << ", s=" << s
 			     << "; dist = " << minDist << endl << endl;
+			cout.flush();
 		#endif
 		scProb = (p2prob == NULL ? 1.0 / nSc : p2prob[s]);
 		totDist += scProb * minDist;
@@ -168,6 +177,7 @@ double CopulaSample::gen_new_margin(int const marg)
 			// update also the [marg][i] copula sample? !!!
 		}
 	}
+	haveSc4Marg[marg] = true;
 
 	return dist;
 }
