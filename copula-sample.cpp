@@ -61,7 +61,7 @@ double CopulaSample::gen_new_margin(int const marg)
 	}
 	int nTg2Dcops = tg2Dcopulas.size();
 
-	double dist;
+	double dist = 0.0; // init not really needed - just to avoid a gcc warning..
 	double minDist;
 	double totDist = 0.0;
 	double scProb;
@@ -83,38 +83,41 @@ double CopulaSample::gen_new_margin(int const marg)
 	bestScens.reserve(10); // this should be enough to prevent reallocations(?)
 	std::vector<bool> scenUsed(nSc, false);
 
-	std::vector<Vector> prevColCdf(nTg2Dcops);
-	std::vector<Vector> rowCdfDist(nTg2Dcops);
+	std::vector<Vector> prevRowCdf(nTg2Dcops); // cdf of the previous row
+	std::vector<Vector> colCdfDist(nTg2Dcops); // dist. of using the columns
 	for (tg = 0; tg < nTg2Dcops; tg++) {
-		prevColCdf[tg] = Vector(nSc, 0);
-		rowCdfDist[tg] = Vector(nSc);
+		prevRowCdf[tg] = Vector(nSc, 0);
+		colCdfDist[tg] = Vector(nSc);
 	}
+
+	// compute a safe upper bound for the distance:
+	double maxMinDist = 0.0;
+	for (tg = 0; tg < nTg2Dcops; tg++) {
+		maxMinDist += p2sample2D[oldMargins[tg]][marg]->cdfDist(0.0, 1.0);
+	}
+	maxMinDist *= nSc;
 
 	// loop over ranks of the newly added margin
 	for (iR = 0; iR < nSc; iR++) {
-		// init minDist with a safe upperbounds + clean the bestRows array
-		for (tg = 0; tg < nTg2Dcops; tg++) {
-			minDist = p2sample2D[oldMargins[tg]][marg]->cdfDist(0.0, 1.0);
-		}
-		minDist *= nSc;
+		// init minDist & clean the bestRows array
+		minDist = maxMinDist;
 		bestScens.clear();
 
 		for (tg = 0; tg < nTg2Dcops; tg++) {
 			// get the dist for the rows
 			/// \todo check this!
-			//p2sample2D[oldMargins[tg]][marg]->cdf_dist_of_col(iR, prevColCdf[tg], rowCdfDist[tg]);
-			p2sample2D[oldMargins[tg]][marg]->cdf_dist_of_row(iR, prevColCdf[tg],
-																												rowCdfDist[tg]);
+			p2sample2D[oldMargins[tg]][marg]->cdf_dist_of_row(iR, prevRowCdf[tg],
+																												colCdfDist[tg]);
 		}
 
 		// brute-force approach - this will be SLOW
 		for (s = 0; s < nSc; s++) {
 			// compute the distance for putting rank iR into scenario s
 			if (!scenUsed[s]) {
-				dist = 0;
+				dist = 0.0;
 				for (tg = 0; tg < nTg2Dcops; tg++) {
 					int rankInTgMargin = sample[oldMargins[tg]][s]; // CHECK!
-					dist += rowCdfDist[tg][rankInTgMargin];
+					dist += colCdfDist[tg][rankInTgMargin];
 				}
 
 				if (dist < minDist - CdfDistEps) {
@@ -164,15 +167,14 @@ double CopulaSample::gen_new_margin(int const marg)
 			i = oldMargins[tg];
 			j = sample[i][s]; // the row-rank for the given target copula
 
-			// update prevColCdf:
+			// update prevRowCdf:
 			for (int jj = j; jj < nSc; jj++) {
-				prevColCdf[tg][jj] += scProb;
+				prevRowCdf[tg][jj] += scProb;
 			}
 
 			// update p2sample2D
 			bool linkAdded = p2sample2D[i][marg]->add_link(j, iR);
-			// temp -> activate the check!
-			//assert (linkAdded && "This should always succeed...");
+			assert (linkAdded && "This should always succeed...");
 
 			// update also the [marg][i] copula sample? !!!
 		}

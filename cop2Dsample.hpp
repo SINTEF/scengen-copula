@@ -101,7 +101,7 @@ private:
 
 	/// distance used when comparing cdf to the target (point-wise).
 	/// we can use for ex. square to get a bigger penalty on big deviations
-	/// x and y should be from (0, 1)
+	/// u and v should be from (0, 1)
 	inline double cdfDist(double const u, double const v) const {
 		assert (u >= 0.0 && u <= 1.0 + DblEps && v >= 0.0 && v <= 1.0 + DblEps
 						&& "bound check");
@@ -109,7 +109,7 @@ private:
 	}
 
 	/// distance used when comparing rank-cdf to the target (point-wise).
-	/// x and y should be from (0, N)
+	/// uR and vR should be from (0, N)
 	inline double cdfDistOfR(int const uR, int const vR) const {
 		return cdfDist(rank2U01(uR), rank2U01(vR));
 	}
@@ -173,11 +173,11 @@ public:
 
 	/// Compute the cdf-distance of for a whole row, given Cdf of prev. row.
 	/**
-		\param[in]  j index of the column, i.e. the rank \c j
+		\param[in]  j index of the row, i.e. the rank \c j
 		\param[in]  prevRowCdf vector of \f$ F(\cdot,j-1) \f$ values
 		\param[out] colCdfDist cdf-distance for putting the link to different cols
 		\param[out] colFree if given, will be filled by indicators whether the
-		            columnss are available or not; in this case, the colCdfDist for
+		            columns are available or not; in this case, the colCdfDist for
 		            the columns with 'false' need not be defined.
 	**/
 	void cdf_dist_of_row(int const j, Vector const &prevRowCdf,
