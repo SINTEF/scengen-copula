@@ -34,6 +34,22 @@ const double DblEps = 1e-8; // for comparing doubles
 #include <limits>
 const double DblInf = sqrt(std::numeric_limits<double>::max());
 
-#define ECHO(message) (cout << "TEST MESSAGE: " << message << endl)
+// Debug messages
+// Note that the definition does not end with ";", so we need one when used!
+#ifndef NDEBUG
+	#define ECHO(message) cout << "DEBUG: " << message << endl; cout.flush()
+#else
+	#define ECHO(message)
+#endif
 
+#include "ranker.h"
+void get_ranks(const std::vector<double> &inputVect, std::vector<int> &ranks);/* {
+	rank(inputVect, ranks);
+}
+*/
+void get_ranks(double const inputVect[], std::vector<int> ranks);/* {
+	size_t len = sizeof(inputVect) / sizeof(double);
+	rank(inputVect, len, ranks);
+}
+*/
 #endif

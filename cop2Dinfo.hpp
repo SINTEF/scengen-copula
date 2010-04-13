@@ -2,12 +2,14 @@
 #define COP_2D_INFO_HPP
 
 #include "common.hpp"
+#include "cassert"
 
 namespace Copula2D{
 
 /// specifications of a bivariate copula, used as targets
 class Cop2DInfo {
 private:
+	Matrix cdfGrid; ///< matrix of cdf values on a grid
 
 protected:
 
@@ -16,6 +18,18 @@ public:
 
 	virtual ~Cop2DInfo() {}
 
+	/// creates the grid with cdf values at specified positions
+	void make_cdf_grid(Vector const &gridPtsX, Vector const &gridPtsY);
+
+	/// cdf evaluated on the grid
+	double grid_cdf(int const i, int const j) const {
+		assert (cdfGrid.shape()[0] > 0 && cdfGrid.shape()[1] > 0
+						&& &(cdfGrid.end()) >= 1.0 - DblEps
+						&& "checks: matrix has correct size and cdf(1,1) = 1");
+		return cdfGrid[i][j];
+	}
+
+	/// cdf - calculated, so slower than the grid-based version
 	virtual double cdf(double const u, double const v) const = 0;
 };
 
@@ -94,6 +108,31 @@ public:
 	virtual double cdf(const double u, const double v) const;
 };
 
+
+/// Copula given by a 2D sample
+/**
+	T is the type of the margin vector (double * or std::vector<double>)
+**/
+template <class T>
+class Cop2DData : public Cop2DInfo {
+private:
+	int gridN;       ///< size of the grid on which we compute the pdf and cdf
+	IMatrix gridRCdf; ///< sample cdf evaluated on the grid
+
+protected:
+	T const * margins[2];  ///< the two vectors of margins
+	int nPts; ///< number of the sample/data points
+
+	int init_grid();
+
+public:
+	Cop2DData(T const * marg1, T const * marg2, int const nSamplPts,
+						int const gridSize = 0);
+
+	int set_grid_size(int const N) { gridN = N; return init_grid(); }
+
+	virtual double cdf(const double u, const double v) const;
+};
 
 } // namespace
 

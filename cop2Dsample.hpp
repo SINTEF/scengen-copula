@@ -2,6 +2,7 @@
 #define COP_2D_SAMPLE_HPP
 
 #include <string>
+//#include <cassert>
 
 #include "common.hpp"
 #include "cop2Dinfo.hpp"

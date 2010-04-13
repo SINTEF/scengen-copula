@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream> // TEMP!
 //#include <ctime>
 
 #include "cop2Dsample.hpp"
@@ -16,6 +17,29 @@ int main(int argc, char *argv[]) {
 	const int defaultNmbSamples = 10;
 	int nS = (argc > 1 ? atoi(argv[1]) : defaultNmbSamples);
 
+	// ------------- TEST -----------------------------
+	ifstream testFile("Dorey_cop_2D.txt");
+	if (!testFile) {
+		cerr << "Problem with the input file!" << endl;
+		exit(1);
+	}
+	int nRows, nCols;
+	testFile >> nRows >> nCols;
+	std::vector<double> margin[2];
+	int i, j;
+	for (i = 0; i < 2; i++)
+		margin[i].resize(nRows);
+	for (i = 0; i < nRows; i++)
+		for (j = 0; j < nCols; j++)
+			testFile >> margin[j][i];
+	Cop2DData< std::vector<double> > tgCopData(&margin[0], &margin[1], nRows, nS);
+	CopulaSample testCopSc(2, nS);
+	testCopSc.attach_tg_2Dcop(&tgCopData, 0, 1);
+	testCopSc.gen_sample();
+	testCopSc.print_as_txt("test_out_cop.txt");
+	exit(0);
+	// -------------------------------------------------
+
 	Cop2DClayton tgCopCl(-0.75);
 	Cop2DIndep tgCopInd;
 	Cop2DNelsen18 tgCopN18(5.0);
@@ -26,11 +50,11 @@ int main(int argc, char *argv[]) {
 	/*
 		NB: This gives different results, since this codes generates the copula
 		    by columns, while the general one does it by columns!
-	*/
+	*//*
 	Cop2DSample bivarCopSc(nS, &tgCopMO);
 	bivarCopSc.gen_heur();
 	bivarCopSc.print_as_txt("test.txt");
-
+	*/
 
 	// using the new multivariate code
 	/*

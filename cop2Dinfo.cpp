@@ -4,11 +4,29 @@
 //#include <algorithm>
 //#include <deque>
 //#include <vector>
+//#include <cassert>
 
 #include "cop2Dinfo.hpp"
 
 using namespace std;
 using namespace Copula2D;
+
+
+void Cop2DInfo::grid_setup(Vector const &gridPtsX, Vector const &gridPtsY)
+{
+	unsigned i, j;
+	unsigned N = gridPtsX.size();
+	assert (gridPtsY.size() == N && "sanity check");
+
+	cdfGrid.resize(boost::extents[N][N]);
+	for (i = 0; i < N; i++) {
+		double u = gridPtsX[i];
+		for (j = 0; j < N; j++) {
+			cdfGrid[i][j] = cdf(u, gridPtsY[j]);
+		}
+	}
+}
+
 
 // -------------------------------------------------------------
 // Clayton copula
@@ -82,5 +100,81 @@ double Cop2DMarshallOlkin::cdf(const double u, const double v) const
 	} else {
 		return u * pow(v, 1.0 - beta);
 	}
+}
+
+
+// -------------------------------------------------------------
+// Copula given by a 2D sample
+template <class T>
+Cop2DData<T>::Cop2DData(T const * marg1, T const * marg2, int const nSamplPts,
+												int const gridSize)
+: Cop2DInfo(),
+  gridN(gridSize), nPts(nSamplPts)
+{
+	margins[0] = marg1;
+	margins[1] = marg2;
+	if (gridN > 0) {
+		init_grid();
+	}
+}
+
+template <class T>
+int Cop2DData<T>::init_grid()
+{
+	int i, j, s;
+	assert (gridN > 0 && "Have to set grid size before calling init_grid()!");
+	// add -1 so we can use the recursive formula!
+	gridRCdf.resize(boost::extents[Range(-1,gridN)][Range(-1,gridN)]);
+	for (i = -1; i < gridN; i++) {
+		for (j = -1; j < gridN; j++) {
+			gridRCdf[i][j] = 0; // initialization .. should NOT be necessary!
+		}
+	}
+
+	// get the vectors of ranks
+	std::vector<int> margRanks[2];
+	for (int marg = 0; marg < 2; marg++) {
+		//std::vector<int> ranks;
+		margRanks[marg].resize(nPts);
+		get_ranks(*(margins[marg]), margRanks[marg]); // ranks start from one!
+	}
+
+	// compute the grid-pdf, store it to gridRCdf
+	double tmpF = (double) gridN / (double) nPts;
+	for (s = 0; s < nPts; s++) {
+		i = floor((margRanks[0][s] - 1) * tmpF);
+		j = floor((margRanks[1][s] - 1) * tmpF);
+		gridRCdf[i][j] ++;
+	}
+
+	// compute the grid-cdf
+	for (i = 0; i < gridN; i++) {
+		int colCount = 0;
+		for (j = 0; j < gridN; j++) {
+			// at this point, gridRCdf[i][j] includes the rank pdf from above
+			colCount += gridRCdf[i][j];
+			gridRCdf[i][j] = gridRCdf[i-1][j] + colCount;
+			// at this point, gridRCdf[i][j] includes the rank cdf!
+		}
+	}
+
+	return 0;
+}
+
+template <class T>
+double Cop2DData<T>::cdf(const double u, const double v) const
+{
+	int i = min((int) floor(u * gridN), gridN - 1);
+	int j = min((int) floor(v * gridN), gridN - 1);
+	//cerr << "TMP: Cop2DData::cdf(): i = " << i << "; j = " << j << endl;
+	//cerr << "TMP: gridRCdf[i][j] = " << gridRCdf[i][j] << endl;
+	return (double) gridRCdf[i][j] / (double) nPts;
+}
+
+// explicit instantiation - tell the compiler which instances to compile
+template class Cop2DData<Vector>;
+//template class Cop2DData< std::vector<double> >; // the same as above
+void get_ranks(const std::vector<double> &inputVect, std::vector<int> &ranks) {
+	rank(inputVect, ranks);
 }
 
