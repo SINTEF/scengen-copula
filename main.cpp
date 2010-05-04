@@ -37,7 +37,8 @@ int main(int argc, char *argv[]) {
 	testCopSc.attach_tg_2Dcop(&tgCopData, 0, 1);
 	testCopSc.gen_sample();
 	testCopSc.print_as_txt("test_out_cop.txt");
-	exit(0);
+	cout << "target Dorey_cop_2D.txt - finished." << endl;
+	//exit(0);
 	// -------------------------------------------------
 
 	Cop2DClayton tgCopCl(-0.75);
@@ -57,15 +58,15 @@ int main(int argc, char *argv[]) {
 	*/
 
 	// using the new multivariate code
-	/*
+
 	CopulaSample copSc(2, nS);
 	copSc.attach_tg_2Dcop(&tgCopTr, 0, 1);
 	copSc.gen_sample();
 	copSc.print_as_txt("out_cop.txt");
 	copSc.print_2D_as_txt(0, 1, "out_2D-cop_0-1.txt");
-	*/
 
 
+	/*
 	// using the new multivariate code - 3D
 	CopulaSample copSc(3, nS);
 	copSc.attach_tg_2Dcop(&tgCopTr, 0, 1);
@@ -78,7 +79,7 @@ int main(int argc, char *argv[]) {
 	copSc.print_2D_as_txt(0, 1, "out_2D-cop_0-1.txt");
 	copSc.print_2D_as_txt(0, 2, "out_2D-cop_0-2.txt");
 	copSc.print_2D_as_txt(1, 2, "out_2D-cop_1-2.txt");
-
+	*/
 
 	return 0;
 }

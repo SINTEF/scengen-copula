@@ -69,7 +69,7 @@ double CopulaSample::gen_new_margin(int const marg)
 	/// \todo rename bestRows to bestScen
 	/// \todo fix the numbering: rows OR scens !!!!
 
-	/**
+	/*
 		The logic in the following is as follows:
 		- loop through the ranks of the new margin (sequentially)
 		- for each rank, loop through all scenarios and compute the distance
@@ -77,7 +77,7 @@ double CopulaSample::gen_new_margin(int const marg)
 		  based on the values of already assigned margins
 		- store the best scenarios
 		- after the loop, chose one of the candidates
-	**/
+	*/
 
 	IVector bestScens;     ///< list of scenarios that minimize the distance
 	bestScens.reserve(10); // this should be enough to prevent reallocations(?)

@@ -12,20 +12,8 @@ using namespace std;
 using namespace Copula2D;
 
 
-void Cop2DInfo::grid_setup(Vector const &gridPtsX, Vector const &gridPtsY)
-{
-	unsigned i, j;
-	unsigned N = gridPtsX.size();
-	assert (gridPtsY.size() == N && "sanity check");
-
-	cdfGrid.resize(boost::extents[N][N]);
-	for (i = 0; i < N; i++) {
-		double u = gridPtsX[i];
-		for (j = 0; j < N; j++) {
-			cdfGrid[i][j] = cdf(u, gridPtsY[j]);
-		}
-	}
-}
+// -------------------------------------------------------------
+// Cop2DInfo base class
 
 
 // -------------------------------------------------------------
@@ -136,14 +124,14 @@ int Cop2DData<T>::init_grid()
 	for (int marg = 0; marg < 2; marg++) {
 		//std::vector<int> ranks;
 		margRanks[marg].resize(nPts);
-		get_ranks(*(margins[marg]), margRanks[marg]); // ranks start from one!
+		get_ranks(*(margins[marg]), margRanks[marg]);
 	}
 
 	// compute the grid-pdf, store it to gridRCdf
 	double tmpF = (double) gridN / (double) nPts;
 	for (s = 0; s < nPts; s++) {
-		i = floor((margRanks[0][s] - 1) * tmpF);
-		j = floor((margRanks[1][s] - 1) * tmpF);
+		i = floor((margRanks[0][s]) * tmpF);
+		j = floor((margRanks[1][s]) * tmpF);
 		gridRCdf[i][j] ++;
 	}
 
@@ -174,7 +162,3 @@ double Cop2DData<T>::cdf(const double u, const double v) const
 // explicit instantiation - tell the compiler which instances to compile
 template class Cop2DData<Vector>;
 //template class Cop2DData< std::vector<double> >; // the same as above
-void get_ranks(const std::vector<double> &inputVect, std::vector<int> &ranks) {
-	rank(inputVect, ranks);
-}
-

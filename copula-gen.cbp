@@ -8,6 +8,7 @@
 		<Build>
 			<Target title="Debug">
 				<Option output="bin/Debug/copula-gen" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/Debug" />
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -18,12 +19,14 @@
 			</Target>
 			<Target title="Release">
 				<Option output="bin/Release/copula-gen" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/Debug" />
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
+					<Add option="-DNDEBUG" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -34,6 +37,7 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="common.cpp" />
 		<Unit filename="common.hpp" />
 		<Unit filename="cop2Dinfo.cpp" />
 		<Unit filename="cop2Dinfo.hpp" />
@@ -42,6 +46,7 @@
 		<Unit filename="copula-sample.cpp" />
 		<Unit filename="copula-sample.hpp" />
 		<Unit filename="main.cpp" />
+		<Unit filename="ranker.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />

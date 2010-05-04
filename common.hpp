@@ -42,14 +42,16 @@ const double DblInf = sqrt(std::numeric_limits<double>::max());
 	#define ECHO(message)
 #endif
 
-#include "ranker.h"
-void get_ranks(const std::vector<double> &inputVect, std::vector<int> &ranks);/* {
-	rank(inputVect, ranks);
-}
-*/
-void get_ranks(double const inputVect[], std::vector<int> ranks);/* {
-	size_t len = sizeof(inputVect) / sizeof(double);
-	rank(inputVect, len, ranks);
-}
-*/
+/// compute ranks of a given vector
+/**
+	ranks go from 0 to N-1
+**/
+void get_ranks(const std::vector<double> &inputVect, std::vector<int> &ranks);
+
+/// compute ranks of a given vector
+/**
+	ranks go from 0 to N-1
+**/
+//void get_ranks(double const inputVect[], std::vector<int> ranks);
+
 #endif

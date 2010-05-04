@@ -10,9 +10,10 @@ using namespace Copula2D;
 // --------------------------------------------------------------------------
 // CONSTRUCTORS AND DESTRUCTORS
 
-Cop2DSample::Cop2DSample(int const nSamples, Cop2DInfo const *const p2TgCop,
+Cop2DSample::Cop2DSample(int const nSamples, Cop2DInfo const * const p2TgCop,
 												 string const id)
 : N(nSamples), i2jC(nSamples, -1), j2iC(nSamples, -1),
+  tgCdfOfR(boost::extents[N][N]),
   p2prob(NULL), scenOfMarg1R(0), //cumProb(N),
   evalPtPos(1.0), copEvalPts(N),
   sampleId(id),
@@ -26,6 +27,9 @@ Cop2DSample::Cop2DSample(int const nSamples, Cop2DInfo const *const p2TgCop,
 	if (evalPtPos >= 1.0 - DblEps) {
 		copEvalPts[N-1] = 1.0;
 	}
+
+	// fill the matrix of target rank-cdf values
+	fill_tgCdfOfR();
 }
 
 
@@ -166,6 +170,18 @@ bool Cop2DSample::have_valid_cop()
 }
 
 
+void Cop2DSample::fill_tgCdfOfR()
+{
+	int i, j;
+	for (i = 0; i < N; i++) {
+		double u = copEvalPts[i];
+		for (j = 0; j < N; j++) {
+			tgCdfOfR[i][j] = p2tgInfo->cdf(u, copEvalPts[j]);
+		}
+	}
+}
+
+
 double Cop2DSample::prob_in_box(int const i0, int const j0,
 										            int const i1, int const j1) const
 {
@@ -264,8 +280,8 @@ double Cop2DSample::gen_heur()
 			*/
 			ECHO ("Cop2DSample::gen_heur(): i=" << i << ",j=0 ; jj=" << jj
 				     << "; prevColCdf[" << jj << "]=" << prevColCdf[jj]
-				     << ", tgCdfOfR(" << i << "," << jj << ")=" << tgCdfOfR(i, jj));
-			dist += cdfDist(prevColCdf[jj] + probCol, tgCdfOfR(i, jj));
+				     << ", tgCdfOfR(" << i << "," << jj << ")=" << tgCdfOfR[i][jj]);
+			dist += cdfDist(prevColCdf[jj] + probCol, tgCdfOfR[i][jj]);
 		}
 		ECHO ("Cop2DSample::gen_heur(): dist(" << i << "," << j << ") = " << dist);
 		if (j2iC[j] < 0) {
@@ -276,7 +292,7 @@ double Cop2DSample::gen_heur()
 
 		for (j = 1; j < N; j++) {
 			// using the recursive formula shown above
-			tgVal = tgCdfOfR(i, j-1);
+			tgVal = tgCdfOfR[i][j-1];
 			dist += cdfDist(prevColCdf[j-1], tgVal)
 			        - cdfDist(prevColCdf[j-1] + probCol, tgVal);
 			ECHO ("Cop2DSample::gen_heur(): dist(" << i << "," << j
@@ -351,15 +367,15 @@ void Cop2DSample::cdf_dist_of_col(int const i, Vector const &prevColCdf,
 		if (j == 0) {
 			for (jj = 0; jj < N; jj++) {
 				// point/link (i, 0) -> Cdf(i,jj) = prevColRCdf(jj) + prob[i]
-				dist += cdfDist(prevColCdf[jj] + probCol, tgCdfOfR(i, jj));
+				dist += cdfDist(prevColCdf[jj] + probCol, tgCdfOfR[i][jj]);
 				ECHO ("Cop2DSample::cdf_dist_of_col(" << i << "): j=0; jj=" << jj
 							 << "; prevColCdf[" << jj << "]=" << prevColCdf[jj]
-							 << ", tgCdfOfR(" << i << "," << jj << ")=" << tgCdfOfR(i, jj));
+							 << ", tgCdfOfR(" << i << "," << jj << ")=" << tgCdfOfR[i][jj]);
 			}
 		} else {
 			// using the recursive formula shown above
 			// -> have to evaluate all j's, even if they won't be stored!
-			tgVal = tgCdfOfR(i, j-1);
+			tgVal = tgCdfOfR[i][j-1];
 			dist += cdfDist(prevColCdf[j-1], tgVal)
 							- cdfDist(prevColCdf[j-1] + probCol, tgVal);
 		}
@@ -391,15 +407,15 @@ void Cop2DSample::cdf_dist_of_row(int const j, Vector const &prevRowCdf,
 		if (i == 0) {
 			for (ii = 0; ii < N; ii++) {
 				// point/link (0, j) -> Cdf(ii,j) = prevRowRCdf(ii) + prob[j]
-				dist += cdfDist(prevRowCdf[ii] + probRow, tgCdfOfR(ii, j));
+				dist += cdfDist(prevRowCdf[ii] + probRow, tgCdfOfR[ii][j]);
 				ECHO ("Cop2DSample::cdf_dist_of_row(" << j << "): i=0; ii=" << ii
 							 << "; prevRowCdf[" << ii << "]=" << prevRowCdf[ii]
-							 << ", tgCdfOfR(" << ii << "," << j << ")=" << tgCdfOfR(ii, j));
+							 << ", tgCdfOfR(" << ii << "," << j << ")=" << tgCdfOfR[ii][j]);
 			}
 		} else {
 			// using the recursive formula shown above
 			// -> have to evaluate all i's, even if they won't be stored!
-			tgVal = tgCdfOfR(i-1, j);
+			tgVal = tgCdfOfR[i-1][j];
 			dist += cdfDist(prevRowCdf[i-1], tgVal)
 							- cdfDist(prevRowCdf[i-1] + probRow, tgVal);
 		}

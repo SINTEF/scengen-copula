@@ -9,7 +9,6 @@ namespace Copula2D{
 /// specifications of a bivariate copula, used as targets
 class Cop2DInfo {
 private:
-	Matrix cdfGrid; ///< matrix of cdf values on a grid
 
 protected:
 
@@ -17,17 +16,6 @@ public:
 	Cop2DInfo() {}
 
 	virtual ~Cop2DInfo() {}
-
-	/// creates the grid with cdf values at specified positions
-	void make_cdf_grid(Vector const &gridPtsX, Vector const &gridPtsY);
-
-	/// cdf evaluated on the grid
-	double grid_cdf(int const i, int const j) const {
-		assert (cdfGrid.shape()[0] > 0 && cdfGrid.shape()[1] > 0
-						&& &(cdfGrid.end()) >= 1.0 - DblEps
-						&& "checks: matrix has correct size and cdf(1,1) = 1");
-		return cdfGrid[i][j];
-	}
 
 	/// cdf - calculated, so slower than the grid-based version
 	virtual double cdf(double const u, double const v) const = 0;

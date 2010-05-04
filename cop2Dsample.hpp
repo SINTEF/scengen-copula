@@ -42,6 +42,12 @@ private:
 		bool have_valid_cop();
 	//@}
 
+	/// \name matrix with the target values of the cdf - speeds things up
+	///@{
+		Matrix tgCdfOfR;      ///< pre-computed matrix of target cdf values
+		void fill_tgCdfOfR(); ///< get the matrix of target cdf values
+	///@}
+
 	/// \name connection to scenarios of the main alg.
 	//@{
 		/// pointer to scenario probabilities.
@@ -87,14 +93,9 @@ private:
 		/// convert copula margins, i.e. val in (0,1), to ranks
 		//inline int cop2rank(double const z) const { return lround(N * z - 0.5); }
 
-		/// shortcut to the target cdf, with margins given as ranks
-		inline double tgCdfOfR(int const i, int const j) const {
-			return p2tgInfo->cdf(copEvalPts[i], copEvalPts[j]);
-		}
-
 		/// shortcut to the target rank-cdf, with margins given as ranks
 		inline double tgRCdfOfR(int const i, int const j) const {
-			return N * tgCdfOfR(i, j);
+			return N * tgCdfOfR[i][j];
 		}
 
 		void gen_random();
