@@ -9,7 +9,7 @@
 			<Target title="Debug">
 				<Option output="bin/Debug/copula-gen" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="bin/Debug" />
-				<Option object_output="obj/Debug/" />
+				<Option object_output=".obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Option parameters="10" />
@@ -19,8 +19,8 @@
 			</Target>
 			<Target title="Release">
 				<Option output="bin/Release/copula-gen" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="bin/Debug" />
-				<Option object_output="obj/Release/" />
+				<Option working_dir="bin/Release" />
+				<Option object_output=".obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -32,6 +32,29 @@
 					<Add option="-s" />
 				</Linker>
 			</Target>
+			<Target title="cop-solver-rel">
+				<Option output="bin/Release/cop-gen" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/Release/" />
+				<Option object_output=".obj/Release/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-O3" />
+					<Add option="-DNDEBUG" />
+				</Compiler>
+			</Target>
+			<Target title="cop-solver-deb">
+				<Option output="bin/Debug/cop-gen" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/Debug/" />
+				<Option object_output=".obj/Debug/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option parameters="100 -r 0 -i Dorey_cop_2D.txt" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
@@ -39,13 +62,20 @@
 		</Compiler>
 		<Unit filename="common.cpp" />
 		<Unit filename="common.hpp" />
+		<Unit filename="cop-gen.cpp">
+			<Option target="cop-solver-rel" />
+			<Option target="cop-solver-deb" />
+		</Unit>
 		<Unit filename="cop2Dinfo.cpp" />
 		<Unit filename="cop2Dinfo.hpp" />
 		<Unit filename="cop2Dsample.cpp" />
 		<Unit filename="cop2Dsample.hpp" />
 		<Unit filename="copula-sample.cpp" />
 		<Unit filename="copula-sample.hpp" />
-		<Unit filename="main.cpp" />
+		<Unit filename="main.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
 		<Unit filename="ranker.h" />
 		<Extensions>
 			<envvars />
