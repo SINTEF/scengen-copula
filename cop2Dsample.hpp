@@ -147,7 +147,7 @@ public:
 	void set_scen_of_marg_1(IVector const &margScen,
 													double const *p2scProb = NULL);
 
-	/// the main heuristics
+	/// the main heuristics (not used from the multi-variate code)
 	double gen_heur();
 
 	/// cdf -> returns values between 0 and 1
