@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
 		// parse the arguments
 		cmd.parse( argc, argv );
 		nSc = argNScen.getValue();
-		srand(argRSeed.getValue()); cerr << "srand = " << argRSeed.getValue() << endl;
+		srand(argRSeed.getValue());
 		tgDistFName = argTgDistFName.getValue();
 		outputFName = argOutputFName.getValue();
 

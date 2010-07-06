@@ -11,8 +11,59 @@ using namespace CopulaScen;
 
 int main(int argc, char *argv[]) {
 	// set the random seed
-  //srand ( time(NULL) );
-  srand(0); // for debugging
+  srand ( time(NULL) );
+  //srand(0); // for debugging
+
+/*
+  Cop2DSample::CandList cList(2, 1e-4);
+	int lIdx; double lVal;
+  cout << "CandList test: list includes " << cList.get_num_cand()
+       << " items" << endl;
+	//
+	lIdx = 1; lVal = 0.2;
+	cList.insert_cand(lIdx, lVal);
+	cout << "CandList test: added cand (" << lIdx << ", " << lVal << ")" << endl;
+  cout << "CandList test: list includes " << cList.get_num_cand()
+       << " items; the best one is (" << cList.get_best_cand_index()
+       << ", " << cList.get_best_cand_value() << ")" << endl;
+	//
+	lIdx = 2; lVal = 0.1;
+	cList.insert_cand(lIdx, lVal);
+	cout << "CandList test: added cand (" << lIdx << ", " << lVal << ")" << endl;
+  cout << "CandList test: list includes " << cList.get_num_cand()
+       << " items; the best one is (" << cList.get_best_cand_index()
+       << ", " << cList.get_best_cand_value() << ")" << endl;
+	//
+	lIdx = 3; lVal = 0.0;
+	cList.insert_cand(lIdx, lVal);
+	cout << "CandList test: added cand (" << lIdx << ", " << lVal << ")" << endl;
+  cout << "CandList test: list includes " << cList.get_num_cand()
+       << " items; the best one is (" << cList.get_best_cand_index()
+       << ", " << cList.get_best_cand_value() << ")" << endl;
+	//
+	lIdx = 4; lVal = 7.0;
+	cList.insert_cand(lIdx, lVal);
+	cout << "CandList test: added cand (" << lIdx << ", " << lVal << ")" << endl;
+  cout << "CandList test: list includes " << cList.get_num_cand()
+       << " items; the best one is (" << cList.get_best_cand_index()
+       << ", " << cList.get_best_cand_value() << ")" << endl;
+	//
+	lIdx = 5; lVal = 6.0;
+	cList.insert_cand(lIdx, lVal);
+	cout << "CandList test: added cand (" << lIdx << ", " << lVal << ")" << endl;
+  cout << "CandList test: list includes " << cList.get_num_cand()
+       << " items; the best one is (" << cList.get_best_cand_index()
+       << ", " << cList.get_best_cand_value() << ")" << endl;
+
+	//
+	lIdx = 13; lVal = 2.0;
+	cList.insert_cand(lIdx, lVal);
+	cout << "CandList test: added cand (" << lIdx << ", " << lVal << ")" << endl;
+  cout << "CandList test: list includes " << cList.get_num_cand()
+       << " items; the best one is (" << cList.get_best_cand_index()
+       << ", " << cList.get_best_cand_value() << ")" << endl;
+	return 0;
+*/
 
 	const int defaultNmbSamples = 10;
 	int nS = (argc > 1 ? atoi(argv[1]) : defaultNmbSamples);

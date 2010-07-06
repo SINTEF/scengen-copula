@@ -79,8 +79,10 @@ double CopulaSample::gen_new_margin(int const marg)
 		- after the loop, chose one of the candidates
 	*/
 
-	IVector bestScens;     ///< list of scenarios that minimize the distance
-	bestScens.reserve(10); // this should be enough to prevent reallocations(?)
+	unsigned minNumCandScens = static_cast<unsigned>(ceil(0.3 * nSc)) + 1;
+	Copula2D::Cop2DSample::CandList candScens(minNumCandScens, CdfDistEps);
+	//IVector bestScens;     ///< list of scenarios that minimize the distance
+	//bestScens.reserve(10); // this should be enough to prevent reallocations(?)
 	std::vector<bool> scenUsed(nSc, false);
 
 	std::vector<Vector> prevRowCdf(nTg2Dcops); // cdf of the previous row
@@ -101,7 +103,8 @@ double CopulaSample::gen_new_margin(int const marg)
 	for (iR = 0; iR < nSc; iR++) {
 		// init minDist & clean the bestRows array
 		minDist = maxMinDist;
-		bestScens.clear();
+		//bestScens.clear();
+		candScens.clear();
 
 		for (tg = 0; tg < nTg2Dcops; tg++) {
 			// get the dist for the rows
@@ -120,6 +123,8 @@ double CopulaSample::gen_new_margin(int const marg)
 					dist += colCdfDist[tg][rankInTgMargin];
 				}
 
+				candScens.insert_cand(s, dist);
+/*
 				if (dist < minDist - CdfDistEps) {
 					// j is a new best row -> delete current candidates and store j
 					bestScens.clear();
@@ -138,10 +143,14 @@ double CopulaSample::gen_new_margin(int const marg)
 						//minDist = min(dist, minDist); // causes problems!
 					}
 				}
+*/
 			}
 		}
 		// now we should have a couple..
-		assert (bestScens.size() > 0 && "we should have found something...");
+		assert (candScens.get_num_cand() > 0
+						&& "we should have found something...");
+		candScens.get_rand_cand(s, minDist);
+/*		assert (bestScens.size() > 0 && "we should have found something...");
 
 		/// \todo Check!
 		if (bestScens.size() == 1) {
@@ -151,10 +160,12 @@ double CopulaSample::gen_new_margin(int const marg)
 			// more candidates -> choose randomly, using my macro for random int
 			s = bestScens[irand(bestScens.size())];
 		}
+*/
 		#ifndef NDEBUG
 			cout << "CopulaSample::gen_new_margin(" << marg
 			     << "): new link: iR=" << iR << ", s=" << s
-			     << "; dist = " << minDist << endl << endl;
+			     << "; dist = " << minDist << " (min dist = "
+			     << candScens.get_best_cand_value() << ")" << endl << endl;
 			cout.flush();
 		#endif
 		scProb = (p2prob == NULL ? 1.0 / nSc : p2prob[s]);

@@ -349,6 +349,53 @@ double Cop2DSample::gen_heur()
 }
 
 
+// ------------------------------------------------------------------------
+
+void Cop2DSample::CandList::add_item_to_list(int const index,
+																						 double const error,
+																             bool const sortList)
+{
+	if (list.size() + 1 > list.capacity()) {
+		// adding a number will lead to re-allocation -> double the capacity
+		list.reserve(2 * list.capacity());
+	}
+	IdxValPair tmpPair(index, error);
+	list.push_back(tmpPair);
+	if (sortList) {
+		sort_list();
+	}
+}
+
+void Cop2DSample::CandList::insert_cand(int const index, double const error)
+{
+	if (list.size() < minNumCand) {
+		// we do not have enough candidates -> accept without conditions
+		add_item_to_list(index, error, true);
+	} else {
+		// we alsready have enough candidates
+		// -> add the new one only if it is good enough
+		if (error > list.back().value + maxDiff) {
+			return;
+		}
+		// add the new item; this also sorts the list
+		add_item_to_list(index, error, true);
+
+		// remove values from the end of the list that are no longer good enough
+		// compare to the last item on the minimal-length list
+		while (list.size() >= minNumCand
+					 && list.back().value > list[minNumCand-1].value + maxDiff) {
+			list.pop_back(); // removes the last (i.e. worst) element
+		}
+	}
+	#ifndef NDEBUG
+		cout << "DEBUG: CandList::insert_cand - added item (" << index << ", "
+		     << error << ") to the canditate list" << endl;
+	#endif
+}
+
+// ------------------------------------------------------------------------
+
+
 /// \todo make this into a private method and call it also from the
 ///       \a gen_heur() method !!!
 void Cop2DSample::cdf_dist_of_col(int const i, Vector const &prevColCdf,

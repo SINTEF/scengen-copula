@@ -3,6 +3,7 @@
 
 #include <string>
 //#include <cassert>
+#include <algorithm>
 
 #include "common.hpp"
 #include "cop2Dinfo.hpp"
@@ -149,6 +150,69 @@ public:
 
 	/// the main heuristics (not used from the multi-variate code)
 	double gen_heur();
+
+	/// \name lasses used by both the 2D and multi-var generators
+	///@{
+		/// index-value pair, with constructor and "<" op. for sorting by value
+		struct IdxValPair {
+			int index;
+			double value;
+
+			IdxValPair (int const idx, double const val): index(idx), value(val) {}
+
+			bool operator< (const IdxValPair& right) const {
+				return (this->value < right.value);
+			}
+		};
+
+		/// container for a list of candidates for pairing
+		class CandList {
+			private:
+				unsigned const minNumCand; ///< minimal number of candidates
+				double const maxDiff; ///< sols. with smaller diff. are considered equal
+
+				void sort_list() { sort(list.begin(), list.end()); }
+				void add_item_to_list(int const index, double const error,
+															bool const sortList = true);
+
+			protected:
+				std::vector<IdxValPair> list; ///< the list
+
+			public:
+				CandList (unsigned const minNumCand_, double const maxDiff_)
+				: minNumCand(minNumCand_), maxDiff(maxDiff_) {}
+
+				void clear() { list.clear(); }
+
+				void insert_cand(int const index, double const error);
+
+				int get_num_cand() const { return list.size(); }
+
+				int get_rand_cand_index() const {
+					assert (list.size() > 0 && "needs some values in the list!");
+					return list[irand(list.size())].index;
+				}
+
+				void get_rand_cand(int &idx, double &val) const {
+					assert (list.size() > 0 && "needs some values in the list!");
+					int i = irand(list.size());
+					idx = list[i].index;
+					val = list[i].value;
+				}
+
+				int get_best_cand_index() const {
+					assert (list.size() > 0 && "needs some values in the list!");
+					return list.front().index;
+				}
+				double get_best_cand_value() const {
+					assert (list.size() > 0 && "needs some values in the list!");
+					return list.front().value;
+				}
+		};
+
+
+	///@}
+
 
 	/// cdf -> returns values between 0 and 1
 	double cdfOfR(int const i, int const j) const;
