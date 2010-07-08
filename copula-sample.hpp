@@ -46,21 +46,24 @@ public:
 	virtual ~CopulaSample(void) {};
 
 	void attach_tg_2Dcop(Cop2DInfo const* p2cop, int const i, int const j,
-											 bool makeTranspTg = true);
+	                     bool makeTranspTg = true);
 
 	/// the main routine; returns the KS-distance
 	virtual double gen_sample();
 
 	/// print one 2D copula in a text format
 	void print_2D_as_txt(int const i, int const j,
-											 string const fName, bool const sortByScen = false)
+	                     string const fName, bool const sortByScen = false)
 	{ p2sample2D[i][j]->print_as_txt(fName, sortByScen); }
 
 	/// print the whole matrix as text
 	/**
+		\param[in] fName name of the output file
+		\param[in] scaleTo01 scale from 0..N-1 to (0,1)
 		\param[in] sortByMarg sort output by values of a margin; <0 means no sort
 	**/
-	void print_as_txt(string const fName, int const sortByMarg = -1);
+	void print_as_txt(string const fName, bool const scaleTo01,
+	                  int const sortByMarg = -1);
 
 };
 

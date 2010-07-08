@@ -79,7 +79,7 @@ double CopulaSample::gen_new_margin(int const marg)
 		- after the loop, chose one of the candidates
 	*/
 
-	unsigned minNumCandScens = static_cast<unsigned>(ceil(0.3 * nSc)) + 1;
+	unsigned minNumCandScens = static_cast<unsigned>(ceil(0.0 * nSc)) + 1;
 	Copula2D::Cop2DSample::CandList candScens(minNumCandScens, CdfDistEps);
 	//IVector bestScens;     ///< list of scenarios that minimize the distance
 	//bestScens.reserve(10); // this should be enough to prevent reallocations(?)
@@ -233,7 +233,8 @@ double CopulaSample::gen_sample()
 }
 
 
-void CopulaSample::print_as_txt(string const fName, int const sortByMarg)
+void CopulaSample::print_as_txt(string const fName, bool const scaleTo01,
+                                int const sortByMarg)
 {
 	std::ofstream oFile;
 	oFile.open(fName.c_str(), std::ios::out);
@@ -244,11 +245,21 @@ void CopulaSample::print_as_txt(string const fName, int const sortByMarg)
 		if (sortByMarg >= 0) {
 			cerr << "Sorting of output by margins si not implemented yet!" << endl;
 		}
-		for (s = 0; s < nSc; s++) {
-			for (marg = 0; marg < nVar - 1; marg++) {
-				oFile << sample[marg][s] << "\t";
+		if (scaleTo01) {
+			double shift = 0.5 / (double) nSc; // to avoid 0.0
+			for (s = 0; s < nSc; s++) {
+				for (marg = 0; marg < nVar - 1; marg++) {
+					oFile << sample[marg][s] / (double) nSc + shift << "\t";
+				}
+				oFile << sample[nVar - 1][s] / (double) nSc + shift << endl;
 			}
-			oFile << sample[nVar - 1][s] << endl;
+		} else {
+			for (s = 0; s < nSc; s++) {
+				for (marg = 0; marg < nVar - 1; marg++) {
+					oFile << sample[marg][s] << "\t";
+				}
+				oFile << sample[nVar - 1][s] << endl;
+			}
 		}
 	}
 }

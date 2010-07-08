@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <fstream>
-//#include <ctime>
+#include <ctime> // needed on gcc-win
 #include <tclap/CmdLine.h> // processing of command-line arguments
 
 #include "cop2Dsample.hpp"
@@ -23,25 +23,25 @@ int main(int argc, char *argv[]) {
 	std::string outputFName; // output file name
 
 	// parameters for processing of command-line arguments
+	// value-arguments are shown in the reversed order!
 	try {
 		TCLAP::CmdLine cmd("Copula-generation alg. by Michal Kaut", ' ', "0.1");
 		TCLAP::UnlabeledValueArg<int> argNScen("nscen", "number of scenarios",
 																					 true, 0, "int", cmd);
 		TCLAP::ValueArg<int> argRSeed ("r", "rseed", "random seed",
 																	 false, time(NULL), "int", cmd);
-		TCLAP::ValueArg<std::string> argTgDistFName ("i", "tgdist",
-																		             "file with target distrib.",
-																	               false, "target-dist.dat",
-																	               "file name", cmd);
-		/*
-		TCLAP::ValueArg<std::string> argTgCopFName ("d", "tgcop",
-																		            "file with target copula",
-																	              false, "target-cop.dat",
-																	              "file name", cmd); */
 		TCLAP::ValueArg<std::string> argOutputFName ("o", "outfile",
 																		             "output file name",
 																	               false, "out_cop-gen.txt",
 																	               "file name", cmd);
+		TCLAP::ValueArg<std::string> argTgDistFName ("i", "tgdist",
+																		             "file with target distrib.",
+																	               false, "target-dist.dat",
+																	               "file name", cmd);
+		//TCLAP::ValueArg<std::string> argTgCopFName ("d", "tgcop",
+		//																            "file with target copula",
+		//															              false, "target-cop.dat",
+		//															              "file name", cmd);
 
 		// parse the arguments
 		cmd.parse( argc, argv );
@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
 	assert (c == nCopulas && "sanity check");
 
 	copSc.gen_sample();
-	copSc.print_as_txt(outputFName.c_str());
+	copSc.print_as_txt(outputFName.c_str(), true);
 
 	return 0;
 }
