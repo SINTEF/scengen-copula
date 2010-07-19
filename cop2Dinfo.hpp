@@ -104,8 +104,8 @@ public:
 template <class T>
 class Cop2DData : public Cop2DInfo {
 private:
-	int gridN;       ///< size of the grid on which we compute the pdf and cdf
-	IMatrix gridRCdf; ///< sample cdf evaluated on the grid
+	int gridN;        ///< size of the grid on which we compute the pdf and cdf
+	IMatrix gridRCdf; ///< sample cdf evaluated on the grid; indexed -1 .. N-1
 
 protected:
 	T const * margins[2];  ///< the two vectors of margins
@@ -115,7 +115,7 @@ protected:
 
 public:
 	Cop2DData(T const * marg1, T const * marg2, int const nSamplPts,
-						int const gridSize = 0);
+	          int const gridSize = 0);
 
 	int set_grid_size(int const N) { gridN = N; return init_grid(); }
 

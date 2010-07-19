@@ -11,11 +11,11 @@ using namespace Copula2D;
 // CONSTRUCTORS AND DESTRUCTORS
 
 Cop2DSample::Cop2DSample(int const nSamples, Cop2DInfo const * const p2TgCop,
-												 string const id)
+                         string const id)
 : N(nSamples), i2jC(nSamples, -1), j2iC(nSamples, -1),
   tgCdfOfR(boost::extents[N][N]),
   p2prob(NULL), scenOfMarg1R(0), //cumProb(N),
-  evalPtPos(1.0), copEvalPts(N),
+  evalPtPos(0.5), copEvalPts(N),
   sampleId(id),
   p2tgInfo(p2TgCop)
 {
@@ -67,7 +67,7 @@ void Cop2DSample::set_scen_of_i(IVector const &scenOfColR,
 */
 
 void Cop2DSample::set_scen_of_marg_1(IVector const &margScen,
-																		 double const *p2scProb)
+                                     double const *p2scProb)
 {
 	if ((int) scenOfMarg1R.size() != N) {
 		assert ((int) scenOfMarg1R.size() == 0
@@ -107,7 +107,7 @@ void Cop2DSample::set_scen_of_marg_1(IVector const &margScen,
 
 double Cop2DSample::cdfOfR(int const i, int const j) const
 {
-	return prob_in_box(0, 0, i, j);
+	return grid_prob_below(i, j);
 }
 
 
@@ -182,8 +182,108 @@ void Cop2DSample::fill_tgCdfOfR()
 }
 
 
+int Cop2DSample::grid_pts_below (int const iR, int const jR) const
+{
+	assert (!p2prob && "does not make sense for non-equiprobable case!");
+	int i, j;
+
+	int n = 0;
+	if (iR <= jR) {
+		// fewer i's than j's -> do it column-wise
+		for (i = 0; i <= iR; ++i) {
+			j = i2jC[i];
+			if (j < 0 || j >= N) {
+				cout << " (i2jC[" << i << "] = " << j << ") ";
+			}
+			assert (j >= 0 && j < N && "bound check; if it fails, check i2jC");
+			if (j <= jR) {
+				//cout << " +pt_c(" << i << ", " << j << ") ";
+				n++;
+			}
+		}
+	} else {
+		// fewer j's than i's -> do it row-wise
+		for (j = 0; j <= jR; ++j) {
+			i = j2iC[j];
+			assert (i >= 0 && i < N && "bound check; if it fails, check j2iC");
+			if (i <= iR) {
+				//cout << " +pt_r(" << i << ", " << j << ") ";
+				n++;
+			}
+		}
+	}
+	return n;
+}
+
+
+double Cop2DSample::grid_prob_below (int const iR, int const jR) const
+{
+	// in the equiprobable case, it should be faster to count the points
+	// below and divide by the total number of points
+	if (!p2prob) {
+		return static_cast<double>(grid_pts_below(iR, jR)) / (double) N;
+	}
+
+	int i, j;
+
+	double p = 0.0;
+	if (iR <= jR) {
+		// fewer i's than j's -> do it column-wise
+		for (i = 0; i <= iR; ++i) {
+			j = i2jC[i];
+			assert (j >= 0 && j < N && "bound check; if it fails, check i2jC");
+			if (j <= jR) {
+				p += p2prob[scenOfMarg1R[i]];
+			}
+		}
+	} else {
+		// fewer j's than i's -> do it row-wise
+		for (j = 0; j <= jR; ++j) {
+			i = j2iC[j];
+			assert (i >= 0 && i < N && "bound check; if it fails, check j2iC");
+			if (i <= iR) {
+				p += p2prob[scenOfMarg1R[i]];
+			}
+		}
+	}
+	return p;
+}
+
+
+double Cop2DSample::grid_prob_box(int const i0, int const j0,
+                                  int const i1, int const j1) const
+{
+	int i, j;
+	double prob = 0.0;
+	const double eqPrProb = 1.0 / (double) N;
+
+	if ((i1 - i0) <= (j1 - j0)) {
+		// fewer i's than j's -> do it column-wise
+		for (i = i0; i <= i1; ++i) {
+			j = i2jC[i];
+			assert (j >= 0 && j < N && "bound check; if it fails, check i2jC");
+			if ((j >= j0) && (j <= j1)) {
+				prob += (p2prob ? p2prob[scenOfMarg1R[i]] : eqPrProb);
+			}
+		}
+	} else {
+		// fewer j's than i's -> do it row-wise
+		for (j = j0; j <= j1; j++) {
+			i = j2iC[j];
+			assert (i >= 0 && i < N && "bound check; if it fails, check j2iC");
+			if ((i >= i0) && (i <= i1)) {
+				prob += (p2prob ? p2prob[scenOfMarg1R[i]] : eqPrProb);
+			}
+		}
+	}
+
+	return prob;
+}
+
+
+/*
 double Cop2DSample::prob_in_box(int const i0, int const j0,
-										            int const i1, int const j1) const
+                                int const i1, int const j1) const
 {
 	int i, j;
 	double prob = 0.0;
@@ -218,7 +318,7 @@ double Cop2DSample::prob_in_box(int const i0, int const j0,
 
 	return prob;
 }
-
+*/
 
 /*
 	If one wants a direct comparison to the MIP method, one should probably
@@ -399,7 +499,7 @@ void Cop2DSample::CandList::insert_cand(int const index, double const error)
 /// \todo make this into a private method and call it also from the
 ///       \a gen_heur() method !!!
 void Cop2DSample::cdf_dist_of_col(int const i, Vector const &prevColCdf,
-											            Vector &rowCdfDist, bool rowFree[])
+                                  Vector &rowCdfDist, bool rowFree[])
 {
 	assert (rowFree == NULL && "handling of rowFree is not yet implented...");
 
@@ -439,7 +539,7 @@ void Cop2DSample::cdf_dist_of_col(int const i, Vector const &prevColCdf,
 /// \todo make this into a private method and call it also from the
 ///       \a gen_heur() method ???
 void Cop2DSample::cdf_dist_of_row(int const j, Vector const &prevRowCdf,
-											            Vector &colCdfDist, bool colFree[])
+                                  Vector &colCdfDist, bool colFree[])
 {
 	assert (colFree == NULL && "handling of colFree is not yet implented...");
 

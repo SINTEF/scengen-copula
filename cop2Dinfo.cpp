@@ -95,7 +95,7 @@ double Cop2DMarshallOlkin::cdf(const double u, const double v) const
 // Copula given by a 2D sample
 template <class T>
 Cop2DData<T>::Cop2DData(T const * marg1, T const * marg2, int const nSamplPts,
-												int const gridSize)
+                        int const gridSize)
 : Cop2DInfo(),
   gridN(gridSize), nPts(nSamplPts)
 {
@@ -112,7 +112,7 @@ int Cop2DData<T>::init_grid()
 	int i, j, s;
 	assert (gridN > 0 && "Have to set grid size before calling init_grid()!");
 	// add -1 so we can use the recursive formula!
-	gridRCdf.resize(boost::extents[Range(-1,gridN)][Range(-1,gridN)]);
+	gridRCdf.resize(boost::extents[ExtRange(-1,gridN)][ExtRange(-1,gridN)]);
 	for (i = -1; i < gridN; i++) {
 		for (j = -1; j < gridN; j++) {
 			gridRCdf[i][j] = 0; // initialization .. should NOT be necessary!
@@ -124,14 +124,14 @@ int Cop2DData<T>::init_grid()
 	for (int marg = 0; marg < 2; marg++) {
 		//std::vector<int> ranks;
 		margRanks[marg].resize(nPts);
+		/// \todo Use the already computed ranks!
 		get_ranks(*(margins[marg]), margRanks[marg]);
 	}
 
 	// compute the grid-pdf, store it to gridRCdf
-	double tmpF = (double) gridN / (double) nPts;
 	for (s = 0; s < nPts; s++) {
-		i = floor((margRanks[0][s]) * tmpF);
-		j = floor((margRanks[1][s]) * tmpF);
+		i = u012Rank( rank2U01(margRanks[0][s], nPts), gridN );
+		j = u012Rank( rank2U01(margRanks[1][s], nPts), gridN );
 		gridRCdf[i][j] ++;
 	}
 
@@ -152,10 +152,13 @@ int Cop2DData<T>::init_grid()
 template <class T>
 double Cop2DData<T>::cdf(const double u, const double v) const
 {
-	int i = min((int) floor(u * gridN), gridN - 1);
-	int j = min((int) floor(v * gridN), gridN - 1);
-	//cerr << "TMP: Cop2DData::cdf(): i = " << i << "; j = " << j << endl;
-	//cerr << "TMP: gridRCdf[i][j] = " << gridRCdf[i][j] << endl;
+	assert (u >= 0.0 && u <= 1.0 && v >= 0.0 && v <= 1.0 && "bounds check");
+	if (isEq(u, 0.0) || isEq(v, 0.0)) { return 0.0; }
+	if (isEq(u, 1.0)) { return v; }
+	if (isEq(v, 1.0)) { return u; }
+	int i = u012Rank(u, gridN);
+	int j = u012Rank(v, gridN);
+	assert ( i >= 0 && i < gridN && j >= 0 && j < gridN && "sanity check" );
 	return (double) gridRCdf[i][j] / (double) nPts;
 }
 

@@ -7,9 +7,9 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="bin\Debug\copula-gen" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="bin\Debug" />
-				<Option object_output=".obj\Debug\" />
+				<Option output="bin/Debug/copula-gen" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/Debug" />
+				<Option object_output=".obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Option parameters="10" />
@@ -18,9 +18,9 @@
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="bin\Release\copula-gen" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="bin\Release" />
-				<Option object_output=".obj\Release\" />
+				<Option output="bin/Release/copula-gen" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/Release" />
+				<Option object_output=".obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -33,9 +33,9 @@
 				</Linker>
 			</Target>
 			<Target title="cop-solver-rel">
-				<Option output="bin\Release\cop-gen" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="bin\Release\" />
-				<Option object_output=".obj\Release\" />
+				<Option output="bin/Release/cop-gen" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/Release/" />
+				<Option object_output=".obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -45,9 +45,9 @@
 				</Compiler>
 			</Target>
 			<Target title="cop-solver-deb">
-				<Option output="bin\Debug\cop-gen" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="bin\Debug\" />
-				<Option object_output=".obj\Debug\" />
+				<Option output="bin/Debug/cop-gen" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/Debug/" />
+				<Option object_output=".obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Option parameters="100 -r 0 -i Dorey_cop_2D.txt" />
@@ -70,6 +70,8 @@
 		<Unit filename="cop2Dinfo.hpp" />
 		<Unit filename="cop2Dsample.cpp" />
 		<Unit filename="cop2Dsample.hpp" />
+		<Unit filename="copula-info.cpp" />
+		<Unit filename="copula-info.hpp" />
 		<Unit filename="copula-sample.cpp" />
 		<Unit filename="copula-sample.hpp" />
 		<Unit filename="main.cpp">

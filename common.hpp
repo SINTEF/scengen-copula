@@ -1,6 +1,7 @@
 #ifndef COMMON_HPP
 #define COMMON_HPP
 
+#include <cassert>
 
 // matrix types definitions
 #ifdef NDEBUG
@@ -14,8 +15,146 @@ typedef std::vector<int> IVector;
 typedef boost::multi_array<double, 2> Matrix;
 typedef boost::multi_array<int, 2> IMatrix;
 
-// use this to get arrays starting at -1: boost::extents[Range(-1,N)]
-typedef boost::multi_array_types::extent_range Range;
+/// template for a vector class based on boost
+template <typename T>
+class TVectorGen : public boost::multi_array<T, 1> {
+	public:
+		TVectorGen (int const len)
+		: boost::multi_array<T, 1>(boost::extents[len])
+		{}
+
+		/// copy-constructor from the base type, using the base-type constructor
+		TVectorGen (boost::multi_array<T, 1> const &X)
+		: boost::multi_array<T, 1>(X)
+		{}
+
+		/// copy-constructor from the array view, using the base-type constructor
+		TVectorGen (boost::detail::multi_array::multi_array_view<T, 1ul> const &X)
+		: boost::multi_array<T, 1>(X)
+		{}
+
+/*
+		/// assignment using the parent boost class
+		TVectorGen & operator= (boost::multi_array<T, 1> &X) {
+			if (this != &X) {
+				this->boost::multi_array<T, 1>::operator= (X);
+			}
+			return *this;
+		}
+*/
+};
+typedef TVectorGen<double> TVectorD;
+typedef TVectorGen<int> TVectorI;
+
+
+/// matrix class using the boost libraries
+/**
+	Note that this allows to have methods for column and rows that return
+	boost vectors !
+**/
+template <typename T>
+class TMatrixGen : public boost::multi_array<T, 2> {
+	private:
+		typedef boost::multi_array_types::index_range IRange;
+		typename boost::multi_array<T, 2>::index_gen indices;
+
+	public:
+		TMatrixGen (int const nR, int const nC)
+			: boost::multi_array<T, 2>(boost::extents[nR][nC])
+			{}
+
+		/// get a vector consisting of a column of the matrix
+		/**
+			!!! This version creates a new objects, allocating new data !!!
+			An alternative is to return \c boost::multi_array<T,1>
+		*/
+		TVectorGen<T> col(int const c) const {
+			return operator[](indices[IRange()][c]);
+		}
+
+		/// get a view consisting of a column of the matrix
+		/**
+			This version does not copy data, i.e. the resulting object points
+			to the data structures of the matrix.
+			\todo Is it possible to do with a vector?
+		*/
+		boost::detail::multi_array::multi_array_view<T, 1> col(int const c) {
+			return operator[](indices[IRange()][c]);
+		}
+
+		/// get a vector consisting of a row of the matrix
+		/**
+			!!! This version creates a new objects, allocating new data !!!
+			An alternative is to return \c boost::multi_array<T,1>
+		*/
+		TVectorGen<T> row(int const r) const {
+			return operator[](indices[r][IRange()]);
+		}
+
+		/// get a view consisting of a row of the matrix
+		/**
+			This version does not copy data, i.e. the resulting object points
+			to the data structures of the matrix.
+		*/
+		boost::detail::multi_array::multi_array_view<T, 1> row(int const r) {
+			return operator[](indices[r][IRange()]);
+		}
+
+		unsigned num_rows() const { return this->shape()[0]; }
+		unsigned num_cols() const { return this->shape()[1]; }
+
+};
+typedef TMatrixGen<double> TMatrixD;
+typedef TMatrixGen<int> TMatrixI;
+typedef boost::multi_array<double, 1>::array_view<1>::type TMatSliceD;
+typedef boost::multi_array<int, 1>::array_view<1>::type TMatSliceI;
+
+/*
+typedef boost::multi_array<double, 2> TMatrixBoost;
+typedef boost::multi_array<double, 1> TVectorBoost;
+class TMatrix : public TMatrixBoost {
+	private:
+		typedef boost::multi_array_types::index_range IRange;
+		index_gen indices;
+
+	public:
+		TMatrix (int const nR, int const nC)
+			: boost::multi_array<double, 2>(boost::extents[nR][nC])
+			{}
+
+		TVectorBoost col(int const c) {
+			return operator[](indices[IRange()][c]);
+		}
+
+		TVectorBoost row(int const r) {
+			return operator[](indices[r][IRange()]);
+		}
+};
+
+typedef boost::multi_array<int, 2> TMatrixIBoost;
+typedef boost::multi_array<int, 1> TVectorIBoost;
+class TMatrixI : public boost::multi_array<int, 2> {
+	private:
+		typedef boost::multi_array_types::index_range IRange;
+		TMatrixIBoost::index_gen indices;
+
+	public:
+		TMatrixI (int const nR, int const nC)
+			: boost::multi_array<int, 2>(boost::extents[nR][nC])
+			{}
+
+		TVectorIBoost col(int const c) {
+			return operator[](indices[IRange()][c]);
+		}
+
+		TVectorIBoost row(int const r) {
+			return operator[](indices[r][IRange()]);
+		}
+};
+*/
+
+// use this to get arrays starting at -1: boost::extents[ExtRange(-1,N)]
+typedef boost::multi_array_types::extent_range ExtRange;
 
 
 /// Random number generator - integer from 0 to Max-1
@@ -30,7 +169,9 @@ typedef boost::multi_array_types::extent_range Range;
 // in case that RAND_MAX = MAXINT
 #define frand() ((double) rand() / ((double) RAND_MAX + 1))
 
-const double DblEps = 1e-8; // for comparing doubles
+const double DblEps = 1e-9; // for comparing doubles
+bool isEq(double const x, double const y);
+
 #include <limits>
 const double DblInf = sqrt(std::numeric_limits<double>::max());
 
@@ -53,5 +194,44 @@ void get_ranks(const std::vector<double> &inputVect, std::vector<int> &ranks);
 	ranks go from 0 to N-1
 **/
 //void get_ranks(double const inputVect[], std::vector<int> ranks);
+
+/// compute ranks of rows of a matrix (i.e. taking one row at a time)
+void get_ranks_or_rows(TMatrixD const & valMat, TMatrixI & rankMat);
+
+/// compute ranks of rows of a matrix (i.e. taking one row at a time)
+/// delete this version when it is no longer needed!
+void get_ranks_or_rows(std::vector< std::vector<double> > const & valMat,
+                       TMatrixI & rankMat);
+
+
+/// position of the mass inside the discretization intervals
+//double const discrPt = 0.5; // 0.5 means in the middle
+
+/// convert rank {-1,0,..,N-1} into number from [0,1]
+/**
+	This is used for computing probabilities of scenarios, so it places the
+	points in the top-right corners of the squares (to get the whole area).
+
+	For compatibility with \c u012Rank(), we allow r = -1, which returns 0.0 !
+**/
+inline double rank2U01(double const r, int const N) {
+	return (r + 1.0) / (double) N;
+}
+
+/// convert unif[0,1] values to ranks {-1,0,..,N-1}
+/**
+	With N scenarios, we have N possible ranks, which means N intervals - but
+	those intervals have N+1 border points. To deal with this, the formula
+	implies <code>u012Rank(0.0, N) = -1</code> for all N. This is also consistent
+	with the fact that z=0.0 should mean zero probability, while each rank has
+	some probability.
+	\warning Note that this means that all codes using this function must be
+	         prepared to get -1 in return!
+**/
+inline int u012Rank(double const z, int const N) {
+	// subtract epsilon, to avoid numerical issues with ceil()
+	return static_cast<int>(ceil(N * (z - DblEps))) - 1;
+}
+
 
 #endif

@@ -76,9 +76,17 @@ private:
 
 	/// \name misc. methods
 	//@{
+		/// compute the number of points below or equal to a given pair of ranks
+		int grid_pts_below (int const iR, int const jR) const;
+
+		/// return the probability below or equal to a given pair of ranks
+		double grid_prob_below (int const iR, int const jR) const;
+
 		/// compute probability (nmb. of pts) in a given box
-		double prob_in_box(int const i0, int const j0,
-										   int const i1, int const j1) const;
+		double grid_prob_box (int const i0, int const j0,
+		                      int const i1, int const j1) const;
+		//double prob_in_box(int const i0, int const j0,
+		//                   int const i1, int const j1) const;
 
 		/// convert ranks to the unif[0,1) values
 		inline double rank2U01(int const r) const {
@@ -107,7 +115,7 @@ private:
 	/// u and v should be from (0, 1)
 	inline double cdfDist(double const u, double const v) const {
 		assert (u >= 0.0 && u <= 1.0 + DblEps && v >= 0.0 && v <= 1.0 + DblEps
-						&& "bound check");
+		        && "bound check");
 		return fabs(u - v);
 	}
 
@@ -121,7 +129,7 @@ protected:
 
 public:
 	Cop2DSample(int const nSamples, Cop2DInfo const *const p2TgCop,
-							string const id = "");
+	            string const id = "");
 
 	~Cop2DSample() {};
 
@@ -146,12 +154,13 @@ public:
 		           NULL means equiprobable scenarios
 	**/
 	void set_scen_of_marg_1(IVector const &margScen,
-													double const *p2scProb = NULL);
+	                        double const *p2scProb = NULL);
 
 	/// the main heuristics (not used from the multi-variate code)
 	double gen_heur();
 
-	/// \name lasses used by both the 2D and multi-var generators
+
+	/// \name classes used by both the 2D and multi-var generators
 	///@{
 		/// index-value pair, with constructor and "<" op. for sorting by value
 		struct IdxValPair {
@@ -173,7 +182,7 @@ public:
 
 				void sort_list() { sort(list.begin(), list.end()); }
 				void add_item_to_list(int const index, double const error,
-															bool const sortList = true);
+				                      bool const sortList = true);
 
 			protected:
 				std::vector<IdxValPair> list; ///< the list
@@ -214,14 +223,17 @@ public:
 	///@}
 
 
-	/// cdf -> returns values between 0 and 1
+	/// cdf -> returns values between from [0, 1]
+	/**
+		the input values are two ranks, i.e. values from {0 .. N-1}
+	**/
 	double cdfOfR(int const i, int const j) const;
 
 	/// rank cdf -> returns integral values between 0 and N-1
 	/// makes sense only in the equiprobable case!
-	int rCdfOfR(int const i, int const j) const {
-		return u01ToRank(cdfOfR(i, j));
-	}
+	//int rCdfOfR(int const i, int const j) const {
+	//	return u01ToRank(cdfOfR(i, j));
+	//}
 
 	void print_as_txt(string const fName, bool const sortByScen = false);
 
@@ -235,7 +247,7 @@ public:
 		            the rows with 'false' need not be defined.
 	**/
 	void cdf_dist_of_col(int const i, Vector const &prevColCdf,
-											 Vector &rowCdfDist, bool rowFree[] = NULL);
+	                     Vector &rowCdfDist, bool rowFree[] = NULL);
 
 	/// Compute the cdf-distance of for a whole row, given Cdf of prev. row.
 	/**
@@ -247,7 +259,7 @@ public:
 		            the columns with 'false' need not be defined.
 	**/
 	void cdf_dist_of_row(int const j, Vector const &prevRowCdf,
-											 Vector &colCdfDist, bool colFree[] = NULL);
+	                     Vector &colCdfDist, bool colFree[] = NULL);
 
 	/// \todo do this; return false if this breaks another link
 	bool add_link(int const colR, int const rowR);

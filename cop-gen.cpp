@@ -5,6 +5,7 @@
 #include <ctime> // needed on gcc-win
 #include <tclap/CmdLine.h> // processing of command-line arguments
 
+#include "copula-info.hpp"
 #include "cop2Dsample.hpp"
 #include "copula-sample.hpp"
 
@@ -17,27 +18,51 @@ int main(int argc, char *argv[]) {
 
 	int i, j;
 
+	/*{
+		// testing the array view/slicing
+		typedef boost::multi_array_types::index_range IRange;
+
+		boost::multi_array<double, 2> A(boost::extents[2][3]);
+
+		boost::multi_array<double, 1>::array_view<1>::type Acol1
+			= A[ boost::indices[IRange()][1] ];
+		boost::multi_array<double, 1> Acol2
+			= A[ boost::indices[IRange()][1] ];
+		boost::multi_array<double, 1>::array_view<1>::type Acol3
+			= Acol2[ boost::indices[IRange()] ];
+
+		cout << "A[0,1] at addr " << &A[0][1]
+				 << "; Acol1[0] at addr. " << &Acol1[0] // same as A[0,1]
+				 << "; Acol2[0] at addr. " << &Acol2[0] // different!
+				 << "; Acol3[0] at addr. " << &Acol3[0] << endl; // same as Acol2!
+	}*/
+
 	// variables whose values is read from the command line
 	int nSc = 0;             // number of scenarios to generate
 	std::string tgDistFName; // input file name
 	std::string outputFName; // output file name
+	double numCandPtsRel = 0.0; // minimal number of candidate points (% of all)
 
 	// parameters for processing of command-line arguments
 	// value-arguments are shown in the reversed order!
 	try {
 		TCLAP::CmdLine cmd("Copula-generation alg. by Michal Kaut", ' ', "0.1");
 		TCLAP::UnlabeledValueArg<int> argNScen("nscen", "number of scenarios",
-																					 true, 0, "int", cmd);
+		                                       true, 0, "int", cmd);
 		TCLAP::ValueArg<int> argRSeed ("r", "rseed", "random seed",
-																	 false, time(NULL), "int", cmd);
+		                               false, time(NULL), "int", cmd);
 		TCLAP::ValueArg<std::string> argOutputFName ("o", "outfile",
-																		             "output file name",
-																	               false, "out_cop-gen.txt",
-																	               "file name", cmd);
+		                                             "output file name",
+		                                             false, "out_cop-gen.txt",
+		                                             "file name", cmd);
 		TCLAP::ValueArg<std::string> argTgDistFName ("i", "tgdist",
-																		             "file with target distrib.",
-																	               false, "target-dist.dat",
-																	               "file name", cmd);
+		                                             "file with target distrib.",
+		                                             false, "target-dist.dat",
+		                                             "file name", cmd);
+		TCLAP::ValueArg<double> argNumCandPtsRel ("s", "altsol",
+		                                          "min number of candidate points",
+		                                          false, 0.0, "number from [0,1)",
+		                                          cmd);
 		//TCLAP::ValueArg<std::string> argTgCopFName ("d", "tgcop",
 		//																            "file with target copula",
 		//															              false, "target-cop.dat",
@@ -49,6 +74,7 @@ int main(int argc, char *argv[]) {
 		srand(argRSeed.getValue());
 		tgDistFName = argTgDistFName.getValue();
 		outputFName = argOutputFName.getValue();
+		numCandPtsRel = argNumCandPtsRel.getValue();
 
 	} catch (TCLAP::ArgException &e) {
 		cerr << "error: " << e.error() << " for arg " << e.argId() << endl;
@@ -73,10 +99,16 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
+	TMatrixI histRanks(nVars, nSamples);
+	get_ranks_or_rows(histDist, histRanks);
+
+
+	CopulaDef::CopInfoData tgCopInfo(histRanks);
+
 	// NB: at the moment, we only have classes for 2D copulas,
 	//     so the multi-variate case has to be handled manually :-(
 	int nCopulas = nVars * (nVars - 1) / 2;
-	CopulaSample copSc(nVars, nSc);
+	CopulaSample copSc(nVars, nSc, numCandPtsRel);
 	//
 	std::vector< Cop2DData<Vector> * > p2copData(nCopulas);
 	Cop2DData<Vector> * p2cop2Ddata;
@@ -84,7 +116,7 @@ int main(int argc, char *argv[]) {
 	for (i = 0; i < nVars; i++) {
 		for (j = i+1; j < nVars; j++) {
 			p2cop2Ddata = new Cop2DData<Vector>(&histDist[i], &histDist[j],
-																					nSamples, nSc);
+			                                    nSamples, nSc);
 			assert (c < nCopulas && "sanity check");
 			p2copData[c] = p2cop2Ddata;
 			copSc.attach_tg_2Dcop(p2copData[c], i, j);
@@ -95,6 +127,19 @@ int main(int argc, char *argv[]) {
 
 	copSc.gen_sample();
 	copSc.print_as_txt(outputFName.c_str(), true);
+
+	// write the AMPL/GMP data file
+	copSc.attach_tg_cop_info(&tgCopInfo);
+	copSc.write_gmp_data();
+
+	TVectorD uV(nVars);
+	cout << endl << "the target cdf at the scenario points:" << endl;
+	for (int s = 0; s < nSc; ++s) {
+		for (i = 0; i < nVars; ++i) {
+			uV[i] = rank2U01(copSc.tmp_get_res(i, s), nSc);
+		}
+		cout << "scen " << s << ": " << tgCopInfo.cdf(uV) << endl;
+	}
 
 	return 0;
 }
