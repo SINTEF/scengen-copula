@@ -9,10 +9,13 @@ using namespace CopulaScen;
 
 // --------------------------------------------------------------------------
 // CONSTRUCTORS AND DESTRUCTORS
-CopulaSample::CopulaSample(int const dim, int const S)
+CopulaSample::CopulaSample(int const dim, int const S,
+                           double const numCandPtsRel)
 : haveSc4Marg(dim, false),
+  p2copInfo(NULL),
   p2tgInfo(boost::extents[dim][dim]), p2sample2D(boost::extents[dim][dim]),
   p2prob(NULL), sample(dim),
+  minNumCandPtsRel(minNumCandPtsRel),
   nVar(dim), nSc(S)
 {
 	int i, j;
@@ -29,6 +32,8 @@ double CopulaSample::gen_new_margin(int const marg)
 {
 	int i, j, s;
 	int tg, iR;
+
+	assert (haveSc4Marg[marg] == false && "the margin has not been generated");
 
 	/// vector of target specifications for all the involved 2D copulas
 	std::vector<Cop2DInfo const*> tg2Dcopulas;
@@ -51,7 +56,7 @@ double CopulaSample::gen_new_margin(int const marg)
 			stringstream cop2DId; // using stringstream to get simple conversions
 			cop2DId << "sample_" << i << "_" << marg;
 			p2sample2D[i][marg] = new Cop2DSample(nSc, p2tgInfo[i][marg],
-																						cop2DId.str());
+			                                      cop2DId.str());
 			#ifndef NDEBUG
 				cout << "Created new Cop2DSample with id = " << cop2DId.str() << endl;
 			#endif
@@ -79,7 +84,8 @@ double CopulaSample::gen_new_margin(int const marg)
 		- after the loop, chose one of the candidates
 	*/
 
-	unsigned minNumCandScens = static_cast<unsigned>(ceil(0.0 * nSc)) + 1;
+	unsigned minNumCandScens
+		= static_cast<unsigned>(ceil(minNumCandPtsRel * nSc)) + 1;
 	Copula2D::Cop2DSample::CandList candScens(minNumCandScens, CdfDistEps);
 	//IVector bestScens;     ///< list of scenarios that minimize the distance
 	//bestScens.reserve(10); // this should be enough to prevent reallocations(?)
@@ -110,7 +116,7 @@ double CopulaSample::gen_new_margin(int const marg)
 			// get the dist for the rows
 			/// \todo check this!
 			p2sample2D[oldMargins[tg]][marg]->cdf_dist_of_row(iR, prevRowCdf[tg],
-																												colCdfDist[tg]);
+			                                                  colCdfDist[tg]);
 		}
 
 		// brute-force approach - this will be SLOW
@@ -198,8 +204,8 @@ double CopulaSample::gen_new_margin(int const marg)
 
 /// \todo Write something here!!!
 void CopulaSample::attach_tg_2Dcop(Cop2DInfo const* p2cop,
-																	 int const i, int const j,
-																	 bool makeTranspTg)
+                                   int const i, int const j,
+                                   bool makeTranspTg)
 {
 	p2tgInfo[i][j] = p2cop;
 	if (makeTranspTg) {
@@ -246,12 +252,11 @@ void CopulaSample::print_as_txt(string const fName, bool const scaleTo01,
 			cerr << "Sorting of output by margins si not implemented yet!" << endl;
 		}
 		if (scaleTo01) {
-			double shift = 0.5 / (double) nSc; // to avoid 0.0
 			for (s = 0; s < nSc; s++) {
 				for (marg = 0; marg < nVar - 1; marg++) {
-					oFile << sample[marg][s] / (double) nSc + shift << "\t";
+					oFile << (static_cast<double>(sample[marg][s]) + 0.5) / nSc << "\t";
 				}
-				oFile << sample[nVar - 1][s] / (double) nSc + shift << endl;
+				oFile << (static_cast<double>(sample[nVar - 1][s]) + 0.5) / nSc << endl;
 			}
 		} else {
 			for (s = 0; s < nSc; s++) {
@@ -261,5 +266,135 @@ void CopulaSample::print_as_txt(string const fName, bool const scaleTo01,
 				oFile << sample[nVar - 1][s] << endl;
 			}
 		}
+		oFile.close();
+	}
+
+	/*
+	// TMP !!!
+	#ifndef NDEBUG
+	Vector iScOfR(nSc);
+	Vector jScOfR(nSc);
+	Vector tgScPr(nSc);
+	for (int j = 1; j < nVar; ++j) {
+		for (int i = 0; i < j; ++i) {
+			if (j != i && haveSc4Marg[i] && p2sample2D[i][j]) {
+				assert (p2tgInfo[i][j]);
+				cout << "summary for 2D-copula (" << i << "," << j << ")" << endl;
+
+				for (int s = 0; s < nSc; ++s) {
+					iScOfR[sample[i][s]] = s;
+					jScOfR[sample[j][s]] = s;
+					tgScPr[s] = 0.0; // init
+				}
+				double sumTgPr = 0.0;
+				for (int iR = 0; iR < nSc; ++iR) {
+					int s = iScOfR[iR];
+					int jR = sample[j][s];
+					assert (jScOfR[jR] == s && "sanity check");
+					double u = (iR + 0.5) / (double) nSc;
+					double v = (jR + 0.5) / (double) nSc;
+					double tgCdf = p2tgInfo[i][j]->cdf(u, v);
+					double tgProb = tgCdf;
+					// now have to subtract all probs included in the cdf:
+					for (int iR2 = 0; iR2 < iR; ++iR2) {
+						int s2 = iScOfR[iR2];
+						int jR2 = sample[j][s2];
+						if (jR2 < jR) {
+							//assert (tgScPr[s2] > 0.0 && "should have been assigned");
+							tgProb -= tgScPr[s2];
+							//assert (tgProb > 0.0 && "sanity check");
+						}
+					}
+					sumTgPr += tgProb;
+					tgScPr[s] = tgProb;
+				}
+				cout << "sum of prob. = " << sumTgPr << endl;
+
+				for (int s = 0; s < nSc; ++s) {
+					double scCdf = p2sample2D[i][j]->cdfOfR(sample[i][s], sample[j][s]);
+					//double u = (sample[i][s] + 0.5) / nSc;
+					//double v = (sample[j][s] + 0.5) / nSc;
+					double u = rank2U01(sample[i][s], nSc);
+					double v = rank2U01(sample[j][s], nSc);
+					double u0 = (sample[i][s] == 0 ? 0.0 : (sample[i][s] - 0.5) / nSc);
+					double v0 = (sample[j][s] == 0 ? 0.0 : (sample[j][s] - 0.5) / nSc);
+					double tgCdf = p2tgInfo[i][j]->cdf(u, v);
+					double scProb = (p2prob ? p2prob[s] : 1.0 / (double) nSc);
+					cout << "\tscen " << s << ": (" << sample[i][s] << "," << sample[j][s]
+					     << ") - sc-cdf = " << scCdf << ", tg-cdf = " << tgCdf
+					     << "; sc-prob = " << scProb << ", tg-prob = " << tgScPr[s]
+					     << " ?=? " << sqrt(p2tgInfo[i][j]->cdf(u, v) - p2tgInfo[i][j]->cdf(u0, v)
+					        - p2tgInfo[i][j]->cdf(u, v0) + p2tgInfo[i][j]->cdf(u0, v0)) << endl;
+				}
+			}
+		}
+	}
+	#endif
+*/
+
+}
+
+
+void CopulaSample::write_gmp_data(string const fName)
+{
+	int i, s;
+	std::ofstream oFile;
+	oFile.open(fName.c_str(), std::ios::out);
+	if (!oFile) {
+		cerr << "WARNING: could not open output file " << fName << "!" << endl;
+	} else {
+		oFile << "# this file was written by the copula-generation code" << endl
+		      << endl
+		      << "param nVars := " << nVar << ";" << endl
+		      << "param nScens := " << nSc << ";" << endl
+		      << endl
+		      << "param wAvgErr := " << 1.0 << ";" << endl
+		      << "param wMaxErr := " << 1.0 << ";" << endl
+		      << "param wAvgDev := " << 1.0 << ";" << endl
+		      << endl
+		      << "param rank (tr)" << endl << "\t:";
+		for (i = 0; i < nVar; ++i) {
+			oFile << "\t" << i;
+		}
+		oFile << " :=";
+		for (s = 0; s < nSc; ++s) {
+			oFile << endl << "\t" << s;
+			for (i = 0; i < nVar; ++i) {
+				oFile << "\t" << sample[i][s];
+			}
+		}
+		oFile << endl << ";" << endl
+		      << endl;
+
+		double tgScProb;
+		TVectorD uScen(nVar);
+		oFile << "param tgCdf :=";
+		for (s = 0; s < nSc; ++s) {
+			for (i = 0; i < nVar; ++i) {
+				uScen[i] = rank2U01(sample[i][s], nSc);
+			}
+			if (p2copInfo) {
+				// have the multivar target info
+				tgScProb = p2copInfo->cdf(uScen);
+			} else {
+				// no multivar target -> take the average of all the 2D copulas!
+				tgScProb = 0.0;
+				int nTgCops = 0;
+				for (i = 0; i < nVar; ++i) {
+					for (int j = 0; j < nVar; ++j) {
+						if (j != i && p2tgInfo[i][j]) {
+							tgScProb += p2tgInfo[i][j]->cdf(uScen[0], uScen[1]);
+							nTgCops ++;
+						}
+					}
+				}
+				tgScProb /= nTgCops;
+			}
+			oFile << endl << "\t" << s << "\t" << tgScProb;
+		}
+		oFile << endl << ";" << endl;
+
+		oFile << endl << "end;" << endl;
+		oFile.close();
 	}
 }
