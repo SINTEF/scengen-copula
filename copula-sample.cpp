@@ -10,12 +10,12 @@ using namespace CopulaScen;
 // --------------------------------------------------------------------------
 // CONSTRUCTORS AND DESTRUCTORS
 CopulaSample::CopulaSample(int const dim, int const S,
-                           double const numCandPtsRel)
+                           unsigned const numCandPts)
 : haveSc4Marg(dim, false),
   p2copInfo(NULL),
   p2tgInfo(boost::extents[dim][dim]), p2sample2D(boost::extents[dim][dim]),
   p2prob(NULL), sample(dim),
-  minNumCandPtsRel(minNumCandPtsRel),
+  minNumCandScens(numCandPts),
   nVar(dim), nSc(S)
 {
 	int i, j;
@@ -84,8 +84,6 @@ double CopulaSample::gen_new_margin(int const marg)
 		- after the loop, chose one of the candidates
 	*/
 
-	unsigned minNumCandScens
-		= static_cast<unsigned>(ceil(minNumCandPtsRel * nSc)) + 1;
 	Copula2D::Cop2DSample::CandList candScens(minNumCandScens, CdfDistEps);
 	//IVector bestScens;     ///< list of scenarios that minimize the distance
 	//bestScens.reserve(10); // this should be enough to prevent reallocations(?)
@@ -154,7 +152,7 @@ double CopulaSample::gen_new_margin(int const marg)
 		}
 		// now we should have a couple..
 		assert (candScens.get_num_cand() > 0
-						&& "we should have found something...");
+		        && "we should have found something...");
 		candScens.get_rand_cand(s, minDist);
 /*		assert (bestScens.size() > 0 && "we should have found something...");
 
@@ -348,9 +346,11 @@ void CopulaSample::write_gmp_data(string const fName)
 		      << "param nVars := " << nVar << ";" << endl
 		      << "param nScens := " << nSc << ";" << endl
 		      << endl
+		      << "param minProbFrac := " << 0.1 << ";" << endl
 		      << "param wAvgErr := " << 1.0 << ";" << endl
-		      << "param wMaxErr := " << 1.0 << ";" << endl
-		      << "param wAvgDev := " << 1.0 << ";" << endl
+		      << "param wMaxErr := " << 5.0 << ";" << endl
+		      << "param wAvgDev := " << 0.0 << ";" << endl
+		      << "param wMaxDev := " << 0.0 << ";" << endl
 		      << endl
 		      << "param rank (tr)" << endl << "\t:";
 		for (i = 0; i < nVar; ++i) {

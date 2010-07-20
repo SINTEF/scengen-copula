@@ -41,7 +41,8 @@ int main(int argc, char *argv[]) {
 	int nSc = 0;             // number of scenarios to generate
 	std::string tgDistFName; // input file name
 	std::string outputFName; // output file name
-	double numCandPtsRel = 0.0; // minimal number of candidate points (% of all)
+	int numCandPts = 1;      // minimal number of candidate scenarios
+	bool writeProbAllocData; // should we write data for the prob-alloc model?
 
 	// parameters for processing of command-line arguments
 	// value-arguments are shown in the reversed order!
@@ -59,14 +60,12 @@ int main(int argc, char *argv[]) {
 		                                             "file with target distrib.",
 		                                             false, "target-dist.dat",
 		                                             "file name", cmd);
-		TCLAP::ValueArg<double> argNumCandPtsRel ("s", "altsol",
-		                                          "min number of candidate points",
-		                                          false, 0.0, "number from [0,1)",
-		                                          cmd);
-		//TCLAP::ValueArg<std::string> argTgCopFName ("d", "tgcop",
-		//																            "file with target copula",
-		//															              false, "target-cop.dat",
-		//															              "file name", cmd);
+		TCLAP::ValueArg<int> argNumCandPts ("c", "numcand",
+		                                    "min number of candidate scenarios",
+		                                    false, 1, "integer >= 1", cmd);
+		TCLAP::SwitchArg argWriteProbAllocData ("", "proballoc",
+		                                        "write data for prob-alloc model?",
+		                                        cmd, false);
 
 		// parse the arguments
 		cmd.parse( argc, argv );
@@ -74,7 +73,8 @@ int main(int argc, char *argv[]) {
 		srand(argRSeed.getValue());
 		tgDistFName = argTgDistFName.getValue();
 		outputFName = argOutputFName.getValue();
-		numCandPtsRel = argNumCandPtsRel.getValue();
+		numCandPts = argNumCandPts.getValue();
+		writeProbAllocData = argWriteProbAllocData.getValue();
 
 	} catch (TCLAP::ArgException &e) {
 		cerr << "error: " << e.error() << " for arg " << e.argId() << endl;
@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
 	// NB: at the moment, we only have classes for 2D copulas,
 	//     so the multi-variate case has to be handled manually :-(
 	int nCopulas = nVars * (nVars - 1) / 2;
-	CopulaSample copSc(nVars, nSc, numCandPtsRel);
+	CopulaSample copSc(nVars, nSc, numCandPts);
 	//
 	std::vector< Cop2DData<Vector> * > p2copData(nCopulas);
 	Cop2DData<Vector> * p2cop2Ddata;
@@ -128,10 +128,13 @@ int main(int argc, char *argv[]) {
 	copSc.gen_sample();
 	copSc.print_as_txt(outputFName.c_str(), true);
 
-	// write the AMPL/GMP data file
-	copSc.attach_tg_cop_info(&tgCopInfo);
-	copSc.write_gmp_data();
+	if (writeProbAllocData) {
+		// write the AMPL/GMP data file
+		copSc.attach_tg_cop_info(&tgCopInfo);
+		copSc.write_gmp_data();
+	}
 
+	/*
 	TVectorD uV(nVars);
 	cout << endl << "the target cdf at the scenario points:" << endl;
 	for (int s = 0; s < nSc; ++s) {
@@ -140,6 +143,7 @@ int main(int argc, char *argv[]) {
 		}
 		cout << "scen " << s << ": " << tgCopInfo.cdf(uV) << endl;
 	}
+	*/
 
 	return 0;
 }

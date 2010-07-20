@@ -43,16 +43,16 @@ private:
 	std::vector<IVector> sample;
 
 	/// used to control the level of stochasticity of the results
-	double minNumCandPtsRel;  // minimal number of candidate points (in % of all)
+	unsigned minNumCandScens;  // minimal number of candidate points
 
 protected:
 	int nVar; ///< number of random variables
-	int nSc;  ///< number of random variables
+	int nSc;  ///< number of scenarios
 
 	double gen_new_margin(int const iNew);
 
 public:
-	CopulaSample(int const dim, int const S, double const numCandPtsRel = 0.0);
+	CopulaSample(int const dim, int const S, unsigned const numCandPts = 1);
 
 	virtual ~CopulaSample(void) {};
 

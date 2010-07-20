@@ -56,7 +56,7 @@ double CopInfoData::cdf(TVectorD const u) const
 	// This can be turned off, if it slows the code down!
 	{
 		int numNon1s = 0;
-		double lastNon1;
+		double lastNon1 = 0.0; // init just to avoid gcc's warning
 		i = 0;
 		while (i < nVars && numNon1s <= 1) {
 			if (!isEq(u[i], 1.0)) {
