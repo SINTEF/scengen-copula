@@ -111,7 +111,8 @@ double Cop2DSample::cdfOfR(int const i, int const j) const
 }
 
 
-void Cop2DSample::print_as_txt(string const fName, bool const sortByScen)
+void Cop2DSample::print_as_txt(string const fName, bool const scaleTo01,
+                               bool const sortByScen)
 {
 	std::ofstream oFile;
 	oFile.open(fName.c_str(), std::ios::out);
@@ -121,7 +122,11 @@ void Cop2DSample::print_as_txt(string const fName, bool const sortByScen)
 		int i, r1;
 		for (r1 = 0; r1 < N; r1++) {
 			i = (sortByScen ? scenOfMarg1R[r1] : r1);
-			oFile << i << "\t" << i2jC[i] << endl;
+			if (scaleTo01) {
+				oFile << i << "\t" << rank2U01(i2jC[i]) << endl;
+			} else {
+				oFile << i << "\t" << i2jC[i] << endl;
+			}
 		}
 	}
 }

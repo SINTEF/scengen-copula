@@ -1,8 +1,12 @@
 #ifndef COP_2D_INFO_HPP
 #define COP_2D_INFO_HPP
 
+#include <cassert>
+// QuantLib libraries used for the normal copula
+#include <ql/math/distributions/bivariatenormaldistribution.hpp>
+
 #include "common.hpp"
-#include "cassert"
+
 
 namespace Copula2D{
 
@@ -57,6 +61,18 @@ private:
 
 public:
 	Cop2DClayton(const double theta);
+
+	virtual double cdf(const double u, const double v) const;
+};
+
+
+/// copula 4.2.2 from Nelsen, pp. 116
+class Cop2DNelsen2 : public Cop2DInfo {
+private:
+	double th; ///< parameter theta of the copula; th in [1, inf)
+
+public:
+	Cop2DNelsen2(const double theta);
 
 	virtual double cdf(const double u, const double v) const;
 };
@@ -121,6 +137,50 @@ public:
 
 	virtual double cdf(const double u, const double v) const;
 };
+
+
+/// Normal copula
+/**
+	T is the type of the margin vector (double * or std::vector<double>)
+**/
+template <class T>
+class Cop2DNormal : public Cop2DInfo {
+private:
+	double correl;  ///< correlation
+	int gridN;      ///< size of the grid on which we compute the pdf and cdf
+	Matrix gridCdf; ///< cdf evaluated on the grid; indexed -1 .. N-1
+
+	/// \name QuantLib objects that compute normal CDFs etc.
+	///@{
+		/// inverse cdf (by default standard normal distrib.)
+		QuantLib::InverseCumulativeNormal N01InvCdf;
+		/// bivariate cdf (standardized, needs correlation)
+		QuantLib::BivariateCumulativeNormalDistribution N01Cdf2D;
+	///@}
+
+protected:
+	int init_grid();
+
+public:
+	Cop2DNormal(double const rho, int const gridSize = 0);
+
+	int set_grid_size(int const N) { gridN = N; return init_grid(); }
+
+	/// computes the cdf of a given pair of values
+	/**
+		If \c gridN > 0, it uses the values from the grid, otherwise it
+		computes the cdf directly - which is probably slower.
+
+		\warning The two variants give (obviously) the same results only on
+		         the grid. This is important as the grid is in the borders of
+		         the intervals of the support points, but the \a u and \a v
+		         values are (by default) in the middle .. so we never get 0 or 1,
+		         which we can get on the grid! <br>
+		         All in all, it is probably better to use the grid...
+	**/
+	virtual double cdf(const double u, const double v) const;
+};
+
 
 } // namespace
 

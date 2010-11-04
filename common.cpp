@@ -1,4 +1,6 @@
 //#include <cmath>
+#include <ostream>
+
 #include "common.hpp"
 #include "ranker.h"
 
@@ -73,4 +75,19 @@ void get_ranks_or_rows(std::vector< std::vector<double> > const & valMat,
 			rankMat[r][c] = rankV[c] - 1;
 		}
 	}
+}
+
+// '<<' operator for an matrix
+/// \todo .. make it work for the template
+/// \todo .. add '>>' as well
+std::ostream & operator<<(std::ostream & output, const TMatrixD & M) {
+	for (unsigned i = 0; i < M.num_rows(); ++i) {
+		for (unsigned j = 0; j < M.num_cols(); ++j) {
+			if (j > 0)
+				output << "\t";
+			output << M[i][j];
+		}
+		output << std::endl;
+	}
+	return output;  // for multiple << operators.
 }

@@ -235,7 +235,8 @@ public:
 	//	return u01ToRank(cdfOfR(i, j));
 	//}
 
-	void print_as_txt(string const fName, bool const sortByScen = false);
+	void print_as_txt(string const fName, bool const scaleTo01,
+	                  bool const sortByScen = false);
 
 	/// Compute the cdf-distance of for a whole column, given Cdf of prev. col.
 	/**

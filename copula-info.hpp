@@ -22,6 +22,7 @@ public:
 };
 
 
+/// terget copula described by a historical data (sample)
 class CopInfoData : public CopulaInfo {
 private:
 	TMatrixI & ranks; ///< reference to the matrix of margin ranks

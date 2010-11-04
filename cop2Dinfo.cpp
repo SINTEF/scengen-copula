@@ -12,11 +12,11 @@ using namespace std;
 using namespace Copula2D;
 
 
-// -------------------------------------------------------------
+// -----------------------------------------------------------------------
 // Cop2DInfo base class
 
 
-// -------------------------------------------------------------
+// -----------------------------------------------------------------------
 // Clayton copula
 
 Cop2DClayton::Cop2DClayton(double const theta)
@@ -40,7 +40,33 @@ double Cop2DClayton::cdf(const double u, double const v) const
 }
 
 
-// -------------------------------------------------------------
+// -----------------------------------------------------------------------
+// copula 4.2.2 from Nelsen, pp. 116
+
+Cop2DNelsen2::Cop2DNelsen2(double const theta)
+: Cop2DInfo(), th(theta)
+{
+	if (th < 1) {
+		cerr << "ERROR: Parameter theta out of range!";
+		exit(1);
+	}
+}
+
+double Cop2DNelsen2::cdf(const double u, double const v) const
+{
+	// avoiding numerical issues
+	if (u < DblEps || v < DblEps)
+		return 0.0;
+	if (u + DblEps > 1.0)
+		return v;
+	if (v + DblEps > 1.0)
+		return u;
+
+	return max(1 - pow(pow(1 - u, th) + pow(1 - v, th), 1.0 / th), 0.0);
+}
+
+
+// -----------------------------------------------------------------------
 // copula 4.2.18 from Nelsen, pp. 118
 
 Cop2DNelsen18::Cop2DNelsen18(double const theta)
@@ -66,7 +92,7 @@ double Cop2DNelsen18::cdf(const double u, double const v) const
 }
 
 
-// -------------------------------------------------------------
+// -----------------------------------------------------------------------
 // Marshall-Olkin copula from Nelsen, pp. 53
 Cop2DMarshallOlkin::Cop2DMarshallOlkin(double const alpha_, double const beta_)
 : Cop2DInfo(), alpha(alpha_), beta(beta_)
@@ -91,7 +117,7 @@ double Cop2DMarshallOlkin::cdf(const double u, const double v) const
 }
 
 
-// -------------------------------------------------------------
+// -----------------------------------------------------------------------
 // Copula given by a 2D sample
 template <class T>
 Cop2DData<T>::Cop2DData(T const * marg1, T const * marg2, int const nSamplPts,
@@ -165,3 +191,76 @@ double Cop2DData<T>::cdf(const double u, const double v) const
 // explicit instantiation - tell the compiler which instances to compile
 template class Cop2DData<Vector>;
 //template class Cop2DData< std::vector<double> >; // the same as above
+
+
+// -----------------------------------------------------------------------
+// Normal copula
+template <class T>
+Cop2DNormal<T>::Cop2DNormal(double const rho, int const gridSize)
+: Cop2DInfo(), correl(rho), gridN(gridSize), N01Cdf2D(rho)
+{
+	if (gridN > 0) {
+		init_grid();
+	}
+}
+
+template <class T>
+int Cop2DNormal<T>::init_grid()
+{
+	int i, j;
+	double u, v, x, y;
+	assert (gridN > 0 && "Have to set grid size before calling init_grid()!");
+	// add -1 so we can use the recursive formula!
+	gridCdf.resize(boost::extents[ExtRange(-1,gridN)][ExtRange(-1,gridN)]);
+	for (i = -1; i < gridN; i++) {
+		for (j = -1; j < gridN; j++) {
+			gridCdf[i][j] = 0; // initialization .. should NOT be necessary!
+		}
+	}
+	for (i = -1; i < gridN; ++i) {
+		gridCdf[i][-1] = 0.0;
+		gridCdf[-1][i] = 0.0;
+		gridCdf[i][gridN-1] = static_cast<double>(i + 1) / gridN;
+		gridCdf[gridN-1][i] = static_cast<double>(i + 1) / gridN;
+	}
+
+	for (i = 0; i < gridN - 1; i++) {
+		u = rank2U01(i, gridN);
+		x = N01InvCdf(u);
+		for (j = 0; j < gridN - 1; j++) {
+			v = rank2U01(j, gridN);
+			y = N01InvCdf(v);
+			gridCdf[i][j] = N01Cdf2D(x, y);
+		}
+	}
+
+	return 0;
+}
+
+template <class T>
+double Cop2DNormal<T>::cdf(const double u, const double v) const
+{
+	double F;
+	assert (u >= 0.0 && u <= 1.0 && v >= 0.0 && v <= 1.0 && "bounds check");
+	if (isEq(u, 0.0) || isEq(v, 0.0)) { return 0.0; }
+	if (isEq(u, 1.0)) { return v; }
+	if (isEq(v, 1.0)) { return u; }
+	if (gridN > 0) {
+		// there is a grid -> use it
+		int i = u012Rank(u, gridN);
+		int j = u012Rank(v, gridN);
+		assert ( i >= 0 && i < gridN && j >= 0 && j < gridN && "sanity check" );
+		F = gridCdf[i][j];
+	} else {
+		// no grid -> compute it (probably slower)
+		double x = N01InvCdf(u);
+		double y = N01InvCdf(v);
+		F = N01Cdf2D(x, y);
+	}
+	//cout << "TMP: F(" << u << ", " << v << ") = " << F << endl;
+	return F;
+}
+
+// explicit instantiation - tell the compiler which instances to compile
+template class Cop2DNormal<Vector>;
+//template class Cop2DNormal< std::vector<double> >; // the same as above

@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
 	CopulaSample testCopSc(2, nS);
 	testCopSc.attach_tg_2Dcop(&tgCopData, 0, 1);
 	testCopSc.gen_sample();
-	testCopSc.print_as_txt("test_out_cop.txt");
+	testCopSc.print_as_txt("test_out_cop.txt", false);
 	cout << "target Dorey_cop_2D.txt - finished." << endl;
 	//exit(0);
 	// -------------------------------------------------
@@ -62,8 +62,8 @@ int main(int argc, char *argv[]) {
 	CopulaSample copSc(2, nS);
 	copSc.attach_tg_2Dcop(&tgCopTr, 0, 1);
 	copSc.gen_sample();
-	copSc.print_as_txt("out_cop.txt");
-	copSc.print_2D_as_txt(0, 1, "out_2D-cop_0-1.txt");
+	copSc.print_as_txt("out_cop.txt", false);
+	copSc.print_2D_as_txt(0, 1, "out_2D-cop_0-1.txt", false);
 
 
 	/*
@@ -80,6 +80,14 @@ int main(int argc, char *argv[]) {
 	copSc.print_2D_as_txt(0, 2, "out_2D-cop_0-2.txt");
 	copSc.print_2D_as_txt(1, 2, "out_2D-cop_1-2.txt");
 	*/
+
+	// testing the normal copula
+	Cop2DNormal<Vector> norm2DCop1(0.5, nS);
+	CopulaSample normCopSc(2, nS);
+	normCopSc.attach_tg_2Dcop(&norm2DCop1, 0, 1);
+	normCopSc.gen_sample();
+	normCopSc.print_as_txt("out_normal_cop.txt", true);
+	normCopSc.print_2D_as_txt(0, 1, "out_normal_2D-cop_0-1.txt", false);
 
 	return 0;
 }

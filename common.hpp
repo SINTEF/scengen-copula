@@ -109,6 +109,11 @@ typedef TMatrixGen<int> TMatrixI;
 typedef boost::multi_array<double, 1>::array_view<1>::type TMatSliceD;
 typedef boost::multi_array<int, 1>::array_view<1>::type TMatSliceI;
 
+/// '<<' operator for an matrix.
+/// \todo .. make it work for the template
+/// \todo .. add '>>' as well
+std::ostream & operator<<(std::ostream & output, const TMatrixD & M);
+
 /*
 typedef boost::multi_array<double, 2> TMatrixBoost;
 typedef boost::multi_array<double, 1> TVectorBoost;
@@ -212,6 +217,9 @@ void get_ranks_or_rows(std::vector< std::vector<double> > const & valMat,
 	This is used for computing probabilities of scenarios, so it places the
 	points in the top-right corners of the squares (to get the whole area).
 
+	\param[in] r input rank value
+	\param[in] N size of the grid (max. rank)
+	\return value between zero and one (including the two points)
 	For compatibility with \c u012Rank(), we allow r = -1, which returns 0.0 !
 **/
 inline double rank2U01(double const r, int const N) {
