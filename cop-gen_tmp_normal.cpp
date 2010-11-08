@@ -3,6 +3,7 @@
 #include <ctime> // needed by gcc-win
 
 #include <ql/math/distributions/normaldistribution.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include "cop2Dsample.hpp"
 #include "copula-sample.hpp"
@@ -13,10 +14,10 @@ using namespace CopulaScen;
 
 int main(int argc, char *argv[]) {
 	// set the random seed
-  srand ( time(NULL) );
-  //srand(0); // for debugging
+	srand ( time(NULL) );
+	//srand(0); // for debugging
 
-  int i, j, k;
+	int i, j, k;
 
 	const int defaultNmbSamples = 10;
 	int nS = (argc > 1 ? atoi(argv[1]) : defaultNmbSamples);
@@ -45,7 +46,10 @@ int main(int argc, char *argv[]) {
 	int nmb2Dcop = (nVars * (nVars - 1)) / 2;
 	std::vector< Cop2DNormal<Vector> * > tg2Dcopulas(nmb2Dcop);
 
-	CopulaSample copScens(nVars, nS);
+	// minimal length of the candidate list - passed as a second arg.
+	int minNmbCand = (argc <= 2 ? 1 : boost::lexical_cast<int>(argv[2]));
+	//
+	CopulaSample copScens(nVars, nS, minNmbCand);
 
 	k = 0;
 	for (i = 0; i < nVars; ++i) {
@@ -69,31 +73,49 @@ int main(int argc, char *argv[]) {
 			     << endl;
 		} else {
 			TMatrixD normScens(nS, nVars);
+			TMatrixD normScFixMV(nS, nVars); // scenarios with fixed mean-var
 			string margT;
-			double mean, stD, skew, kurt;
+			double tgMean, tgStD, tgSkew, tgKurt;
 			ofstream normScenF("out_normal-scens.txt");
 			if (normScenF) {
 				normScenF << nS << endl << nVars << endl;
 				for (i = 0; i < nVars; ++i) {
-					tgMargF >> margT >> mean >> stD;
+					tgMargF >> margT >> tgMean >> tgStD;
 					if (margT[0] == 'm') {
-						tgMargF >> skew >> kurt;
-						if (!isEq(skew, 0) || !isEq(kurt, 3)) {
+						tgMargF >> tgSkew >> tgKurt;
+						if (!isEq(tgSkew, 0) || !isEq(tgKurt, 3)) {
 							cerr << "ERROR: the distribution in 'tg_margins.txt' is not normal!"
 								  << endl;
 							exit(1);
 						}
 					}
 					// transform the copula to the correct margin
-					QuantLib::InverseCumulativeNormal normCdf(mean, stD);
+					// also compute the actual mean and std. dev.
+					double mean = 0.0;
+					double stD = 0.0;
+					QuantLib::InverseCumulativeNormal normCdf(tgMean, tgStD);
 					for (j = 0; j < nS; ++j) {
 						normScens[j][i] = normCdf((copScens.tmp_get_res(i, j) + 0.5)
 						                          / static_cast<double>(nS));
+						mean += normScens[j][i];
+						stD += pow(normScens[j][i], 2);
+					}
+					mean /= nS;
+					stD = sqrt(stD / nS - pow(mean, 2));
+					// now we can compute the mean-var-fixed values
+					double fixMult = tgStD / stD;
+					for (j = 0; j < nS; ++j) {
+						normScFixMV[j][i] = fixMult * (normScens[j][i] - mean)
+						                    + tgMean;
 					}
 				}
-				cout << "Check the means and variances of the results!!!" << endl;
 				normScenF << normScens;
 				normScenF.close();
+			}
+			ofstream normScenFixedF("out_normal-scens_mv-fixed.txt");
+			if (normScenF) {
+				normScenFixedF << nS << endl << nVars << endl << normScFixMV;
+				normScenFixedF.close();
 			}
 		}
 	}

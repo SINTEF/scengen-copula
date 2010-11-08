@@ -457,8 +457,8 @@ double Cop2DSample::gen_heur()
 // ------------------------------------------------------------------------
 
 void Cop2DSample::CandList::add_item_to_list(int const index,
-																						 double const error,
-																             bool const sortList)
+                                             double const error,
+                                             bool const sortList)
 {
 	if (list.size() + 1 > list.capacity()) {
 		// adding a number will lead to re-allocation -> double the capacity
@@ -488,7 +488,7 @@ void Cop2DSample::CandList::insert_cand(int const index, double const error)
 		// remove values from the end of the list that are no longer good enough
 		// compare to the last item on the minimal-length list
 		while (list.size() >= minNumCand
-					 && list.back().value > list[minNumCand-1].value + maxDiff) {
+		       && list.back().value > list[minNumCand-1].value + maxDiff) {
 			list.pop_back(); // removes the last (i.e. worst) element
 		}
 	}
