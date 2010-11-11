@@ -2,11 +2,14 @@
 #include <fstream>
 #include <ctime> // needed by gcc-win
 
-#include <ql/math/distributions/normaldistribution.hpp>
+#ifndef USING_COND_MEANS
+	#include <ql/math/distributions/normaldistribution.hpp>
+#endif
 #include <boost/lexical_cast.hpp>
 
 #include "cop2Dsample.hpp"
 #include "copula-sample.hpp"
+
 
 using namespace std;
 using namespace Copula2D;
@@ -59,6 +62,12 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
+
+	// the 3rd param, if given, is the random seed
+	if (argc > 3) {
+		srand(boost::lexical_cast<int>(argv[3]));
+	}
+
 	copScens.gen_sample();
 	copScens.print_as_txt("out_normal-cop.txt", true);
 
@@ -90,13 +99,31 @@ int main(int argc, char *argv[]) {
 						}
 					}
 					// transform the copula to the correct margin
-					// also compute the actual mean and std. dev.
+					#ifdef USING_COND_MEANS
+						double evMult = 1.0 / sqrt(2 * 3.1415926535898) * nS * tgStD;
+						QuantLib::InverseCumulativeNormal normInvCdf(0.0, 1.0);
+						for (j = 0; j < nS; ++j) {
+							// using conditional mean of the subintervals of [0, 1]
+							int r = copScens.tmp_get_res(i, j); // 0 .. nS-1
+							double u = static_cast<double>(r) / nS;
+							double Fa = (r == 0 ? 0.0
+							                    : exp(-0.5 * pow(normInvCdf(u), 2)));
+							double Fb = (r == nS - 1 ? 0.0
+							                         : exp(-0.5 * pow(normInvCdf(u + 1.0 / nS), 2)));
+							normScens[j][i] = evMult * (Fa - Fb) + tgMean;
+						}
+					#else
+						QuantLib::InverseCumulativeNormal normInvCdf(tgMean, tgStD);
+						for (j = 0; j < nS; ++j) {
+							normScens[j][i] = normInvCdf((copScens.tmp_get_res(i, j)
+							                              + 0.5)
+							                  / static_cast<double>(nS));
+						}
+					#endif
+					// compute the actual mean and std. dev.
 					double mean = 0.0;
 					double stD = 0.0;
-					QuantLib::InverseCumulativeNormal normCdf(tgMean, tgStD);
 					for (j = 0; j < nS; ++j) {
-						normScens[j][i] = normCdf((copScens.tmp_get_res(i, j) + 0.5)
-						                          / static_cast<double>(nS));
 						mean += normScens[j][i];
 						stD += pow(normScens[j][i], 2);
 					}
