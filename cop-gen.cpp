@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 	std::string tgDistFName; // input file name
 	std::string outputFName; // output file name
 	int numCandPts = 1;      // minimal number of candidate scenarios
-	bool writeProbAllocData; // should we write data for the prob-alloc model?
+	bool writeProbAllocData = false; // write data for the prob-alloc model?
 
 	// parameters for processing of command-line arguments
 	// value-arguments are shown in the reversed order!
@@ -124,6 +124,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	assert (c == nCopulas && "sanity check");
+	p2cop2Ddata = NULL; // all allocated data are in p2copData
 
 	copSc.gen_sample();
 	copSc.print_as_txt(outputFName.c_str(), true);
@@ -144,6 +145,12 @@ int main(int argc, char *argv[]) {
 		cout << "scen " << s << ": " << tgCopInfo.cdf(uV) << endl;
 	}
 	*/
+
+	// cleaning
+	while (p2copData.size() > 0) {
+		delete p2copData.back(); // deletes the object
+		p2copData.pop_back(); // removes it from the list
+	}
 
 	return 0;
 }

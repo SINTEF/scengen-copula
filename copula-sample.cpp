@@ -26,7 +26,21 @@ CopulaSample::CopulaSample(int const dim, int const S,
 		}
 		sample[i].resize(nSc);
 	}
+
+	// at the moment, only the transposed targets are allocated in the class
+	allocTgCops.reserve(nVar * (nVar-1) / 2);
 }
+
+CopulaSample::~CopulaSample()
+{
+	// de-allocate the allocated targets
+	while (allocTgCops.size() > 0) {
+		delete p2tgInfo[allocTgCops.back().first][allocTgCops.back().second];
+		allocTgCops.pop_back();
+	}
+}
+
+
 
 double CopulaSample::gen_new_margin(int const marg)
 {
@@ -196,6 +210,16 @@ double CopulaSample::gen_new_margin(int const marg)
 	}
 	haveSc4Marg[marg] = true;
 
+	// cleaning
+	for (i = 0; i < nVar; ++i) {
+		for (j = 0; j < nVar; ++j) {
+			if (p2sample2D[i][marg] != NULL) {
+				delete p2sample2D[i][marg];
+				p2sample2D[i][marg] = NULL;
+			}
+		}
+	}
+
 	return dist;
 }
 
@@ -208,6 +232,7 @@ void CopulaSample::attach_tg_2Dcop(Cop2DInfo const* p2cop,
 	p2tgInfo[i][j] = p2cop;
 	if (makeTranspTg) {
 		p2tgInfo[j][i] = new Copula2D::Cop2DInfTr(p2cop);
+		allocTgCops.push_back(make_pair(j,i));
 	}
 }
 

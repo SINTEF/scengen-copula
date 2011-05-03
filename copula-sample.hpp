@@ -2,6 +2,7 @@
 #define COP_SAMPLE_HPP
 
 //#include <string>
+#include <utility> // to get std::pair<>
 
 #include "common.hpp"
 #include "cop2Dinfo.hpp"
@@ -18,6 +19,7 @@ namespace CopulaScen {
 /// the main class for creating a multivariate sample
 class CopulaSample {
 private:
+	/// indicator if we have generated scenarios for a given margin
 	std::vector<bool> haveSc4Marg;
 
 	/// pointer to the object with the multivariate copula info
@@ -51,10 +53,14 @@ protected:
 
 	double gen_new_margin(int const iNew);
 
+	/// vector of copulas that have p2tgInfo(i,j) allocated by the class
+	/// \todo do this using smart pointers!
+	std::vector<std::pair<int,int> > allocTgCops;
+
 public:
 	CopulaSample(int const dim, int const S, unsigned const numCandPts = 1);
 
-	virtual ~CopulaSample(void) {};
+	virtual ~CopulaSample();
 
 	/// attach one target 2D copula
 	void attach_tg_2Dcop(Cop2DInfo const* p2cop, int const i, int const j,
