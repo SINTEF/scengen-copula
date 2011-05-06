@@ -1,6 +1,7 @@
 #ifndef COMMON_HPP
 #define COMMON_HPP
 
+#include <iostream>
 #include <cassert>
 
 // matrix types definitions
@@ -241,5 +242,13 @@ inline int u012Rank(double const z, int const N) {
 	return static_cast<int>(ceil(N * (z - DblEps))) - 1;
 }
 
+
+// print vectors using cout
+template<class T>
+std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
+{
+	copy(v.begin(), v.end(), std::ostream_iterator<T>(std::cout, " "));
+	return os;
+}
 
 #endif

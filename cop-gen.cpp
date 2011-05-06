@@ -13,29 +13,13 @@ using namespace std;
 using namespace Copula2D;
 using namespace CopulaScen;
 
+#include <boost/program_options.hpp>
+namespace prOpt = boost::program_options; // short-cut name
+
 
 int main(int argc, char *argv[]) {
 
 	int i, j;
-
-	/*{
-		// testing the array view/slicing
-		typedef boost::multi_array_types::index_range IRange;
-
-		boost::multi_array<double, 2> A(boost::extents[2][3]);
-
-		boost::multi_array<double, 1>::array_view<1>::type Acol1
-			= A[ boost::indices[IRange()][1] ];
-		boost::multi_array<double, 1> Acol2
-			= A[ boost::indices[IRange()][1] ];
-		boost::multi_array<double, 1>::array_view<1>::type Acol3
-			= Acol2[ boost::indices[IRange()] ];
-
-		cout << "A[0,1] at addr " << &A[0][1]
-				 << "; Acol1[0] at addr. " << &Acol1[0] // same as A[0,1]
-				 << "; Acol2[0] at addr. " << &Acol2[0] // different!
-				 << "; Acol3[0] at addr. " << &Acol3[0] << endl; // same as Acol2!
-	}*/
 
 	// variables whose values is read from the command line
 	int nSc = 0;             // number of scenarios to generate
@@ -43,6 +27,91 @@ int main(int argc, char *argv[]) {
 	std::string outputFName; // output file name
 	int numCandPts = 1;      // minimal number of candidate scenarios
 	bool writeProbAllocData = false; // write data for the prob-alloc model?
+	int randSeed;            // random seed
+
+	// NEW: re-implementing using boost::program_options
+	try{
+		// generic options; allowed only from the command line
+		prOpt::options_description genOpt("Generic options");
+		std::string configFName; // config file name
+		genOpt.add_options()
+			("version,v", "print version string")
+			("help,h",    "produce help message")
+			("config,c", prOpt::value<string>(&configFName), "config file name")
+			;
+
+		// main configuration - allowed from both command line and config. file
+		prOpt::options_description confOpt("Configuration");
+		confOpt.add_options()
+			("output-file,o", prOpt::value<string>(&outputFName)
+			                  ->default_value("cop-gen.out"), "output file")
+			("rand-seed,r", prOpt::value<int>(&randSeed)
+			                ->default_value(-1), "random seed")
+			("num-cand-pts", prOpt::value<int>(&numCandPts)->default_value(1),
+			                 "min number of cand. scenarios")
+			;
+
+		// hidden options - allowed everywhere, but not shown to the user
+		prOpt::options_description hiddenOpt("Hidden options");
+		hiddenOpt.add_options()
+			("nmb-scen", prOpt::value<int>(&nSc), "number of scenarios")
+			("out-prob-alloc", prOpt::bool_switch(&writeProbAllocData),
+			                   "write data for prob-alloc model")
+			;
+
+		prOpt::options_description visibleOpt;
+		visibleOpt.add(genOpt).add(confOpt);
+
+		prOpt::options_description cmdLineOpt; // processed from command line
+		cmdLineOpt.add(genOpt).add(confOpt).add(hiddenOpt);
+
+		prOpt::options_description confFileOpt; // processed from config. file
+		confFileOpt.add(confOpt).add(hiddenOpt);
+
+		prOpt::positional_options_description posArg;
+		posArg.add("nmb-scen", -1);
+
+		// process the command line parameters
+		prOpt::variables_map optV;
+		prOpt::store(prOpt::command_line_parser(argc, argv).
+		               options(cmdLineOpt).positional(posArg).run(), optV);
+		// a simpler syntax without positional options:
+		//prOpt::store(prOpt::parse_command_line(argc, argv, allOpt), optV);
+		prOpt::notify(optV);
+
+		// process the config file
+		ifstream confF(configFName.c_str());
+		if (!confF && optV.count("config")) {
+			throw ios_base::failure("the specified config file does not exist");
+		}
+		store(prOpt::parse_config_file(confF, confOpt), optV);
+		prOpt::notify(optV);
+
+		// deal with options that need extra action
+		if (optV.count("version")) {
+			cout << "This code was built at " << __TIME__ << ", " << __DATE__
+			     << "." << endl;
+			return 0;
+		}
+		if (optV.count("help")) {
+			cout << "Copula generation code by Michal Kaut" << endl;
+			cout << visibleOpt;
+			return 0;
+		}
+		if (!optV.count("nmb-scen")) {
+			throw ios_base::failure(
+				"The program needs some arguments - run it again with '--help'");
+		}
+		if (randSeed < 0) {
+			randSeed = time(NULL);
+		}
+	}
+	catch(exception& e) {
+		cerr << e.what() << endl;
+		exit(1);
+	}
+
+return 0;
 
 	// parameters for processing of command-line arguments
 	// value-arguments are shown in the reversed order!
@@ -154,3 +223,22 @@ int main(int argc, char *argv[]) {
 
 	return 0;
 }
+
+	/*{
+		// testing the array view/slicing
+		typedef boost::multi_array_types::index_range IRange;
+
+		boost::multi_array<double, 2> A(boost::extents[2][3]);
+
+		boost::multi_array<double, 1>::array_view<1>::type Acol1
+			= A[ boost::indices[IRange()][1] ];
+		boost::multi_array<double, 1> Acol2
+			= A[ boost::indices[IRange()][1] ];
+		boost::multi_array<double, 1>::array_view<1>::type Acol3
+			= Acol2[ boost::indices[IRange()] ];
+
+		cout << "A[0,1] at addr " << &A[0][1]
+				 << "; Acol1[0] at addr. " << &Acol1[0] // same as A[0,1]
+				 << "; Acol2[0] at addr. " << &Acol2[0] // different!
+				 << "; Acol3[0] at addr. " << &Acol3[0] << endl; // same as Acol2!
+	}*/
