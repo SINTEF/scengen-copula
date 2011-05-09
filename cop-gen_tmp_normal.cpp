@@ -106,6 +106,7 @@ int main(int argc, char *argv[]) {
 							// using conditional mean of the subintervals of [0, 1]
 							int r = copScens.tmp_get_res(i, j); // 0 .. nS-1
 							double u = static_cast<double>(r) / nS;
+							// \todo precompute all the Fx values (nS + 1 values)!
 							double Fa = (r == 0 ? 0.0
 							                    : exp(-0.5 * pow(normInvCdf(u), 2)));
 							double Fb = (r == nS - 1 ? 0.0

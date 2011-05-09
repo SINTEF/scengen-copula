@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
 	for (i = 0; i < nRows; i++)
 		for (j = 0; j < nCols; j++)
 			testFile >> margin[j][i];
-	Cop2DData< std::vector<double> > tgCopData(&margin[0], &margin[1], nRows, nS);
+	Cop2DDataOld< std::vector<double> > tgCopData(&margin[0], &margin[1], nRows, nS);
 	CopulaSample testCopSc(2, nS);
 	testCopSc.attach_tg_2Dcop(&tgCopData, 0, 1);
 	testCopSc.gen_sample();

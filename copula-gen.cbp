@@ -119,11 +119,11 @@
 			<Option target="cop_normal_Rel" />
 			<Option target="cop_norm-exp-val_Rel" />
 		</Unit>
+		<Unit filename="cop-info_hist-data.cpp" />
 		<Unit filename="cop2Dinfo.cpp" />
 		<Unit filename="cop2Dinfo.hpp" />
 		<Unit filename="cop2Dsample.cpp" />
 		<Unit filename="cop2Dsample.hpp" />
-		<Unit filename="copula-info.cpp" />
 		<Unit filename="copula-info.hpp" />
 		<Unit filename="copula-sample.cpp" />
 		<Unit filename="copula-sample.hpp" />

@@ -4,12 +4,24 @@
 #include <iostream>
 #include <cassert>
 
-// matrix types definitions
 #ifdef NDEBUG
-	// disable range-checking for boost arrays
-	// must come before #include <boost/multi_array.hpp>
+	// disable range-checking for boost - must come before other boost headers
 	#define BOOST_DISABLE_ASSERTS
 #endif
+#include <boost/shared_ptr.hpp>
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/matrix_proxy.hpp> // matrix rows and columns
+// new matrix types definitions - everything should converts to these!
+namespace ublas = boost::numeric::ublas; // shortcut name
+typedef ublas::vector<double> UVector;
+typedef ublas::matrix<double> UMatrix;
+typedef ublas::vector<int> UIVector;
+typedef ublas::matrix<int> UIMatrix;
+typedef boost::shared_ptr<UIMatrix> UIMatrixPtr;
+typedef UVector::size_type DimT;
+DimT const MaxVecLen = std::numeric_limits<UVector::size_type>::max();
+
 #include <boost/multi_array.hpp>
 typedef std::vector<double> Vector;
 typedef std::vector<int> IVector;
@@ -109,6 +121,8 @@ typedef TMatrixGen<double> TMatrixD;
 typedef TMatrixGen<int> TMatrixI;
 typedef boost::multi_array<double, 1>::array_view<1>::type TMatSliceD;
 typedef boost::multi_array<int, 1>::array_view<1>::type TMatSliceI;
+typedef boost::shared_ptr<TMatrixD> TMatrixDPtr; // smart pointer to TMatrixD
+typedef boost::shared_ptr<TMatrixI> TMatrixIPtr; // smart pointer to TMatrixI
 
 /// '<<' operator for an matrix.
 /// \todo .. make it work for the template
@@ -200,6 +214,12 @@ void get_ranks(const std::vector<double> &inputVect, std::vector<int> &ranks);
 	ranks go from 0 to N-1
 **/
 //void get_ranks(double const inputVect[], std::vector<int> ranks);
+
+/// compute ranks of rows of a matrix (i.e. taking one row at a time)
+void get_ranks_or_rows(std::vector<UVector> const & valMat, UIMatrix & rankMat);
+
+/// compute ranks of rows of a matrix (i.e. taking one row at a time)
+void get_ranks_or_rows(UMatrix const & valMat, UIMatrix & rankMat);
 
 /// compute ranks of rows of a matrix (i.e. taking one row at a time)
 void get_ranks_or_rows(TMatrixD const & valMat, TMatrixI & rankMat);

@@ -4,6 +4,11 @@
 #include "common.hpp"
 #include "ranker.h"
 
+using std::cout;
+using std::cerr;
+using std::endl;
+
+
 //bool isEq(double const x, double const y) { return abs(x - y) < DblEps; }
 bool isEq(double const x, double const y)
 {
@@ -30,6 +35,70 @@ void get_ranks(double const inputVect[], std::vector<int> ranks); {
 	}
 }
 */
+
+
+void get_ranks_or_rows(std::vector<UVector> const & valMat, UIMatrix & rankMat)
+{
+	unsigned nR = valMat.size();
+	unsigned nC = valMat[0].size(); // valMat is a vector of vectors, not a matrix!
+
+	// resize rankMat if needed; complain if resizing non-empty matrix
+	if (rankMat.size1() != nR || rankMat.size2() != nC) {
+		if (rankMat.size1() + rankMat.size2() > 0) {
+			cerr << "Warning from get_ranks_or_rows(): wrong size of output matrix"
+			     << " - resizing!" << endl;
+			rankMat.resize(valMat.size(), valMat[0].size());
+		}
+	}
+
+	unsigned r, c;
+
+	std::vector<double> valV(nC);
+	std::vector<int> rankV(nC);
+	for (r = 0; r < nR; ++r) {
+		// make a temp. copy of the row
+		for (c = 0; c < nC; ++c) {
+			valV[c] = valMat[r](c);
+		}
+		rank (valV, rankV); // this computes the ranks - needs std::vector<>!
+		// copy to the target matrix; subtract 1 to get ranks from zero
+		for (c = 0; c < nC; ++c) {
+			rankMat(r,c) = rankV[c] - 1;
+		}
+	}
+}
+
+
+void get_ranks_or_rows(UMatrix const & valMat, UMatrix & rankMat)
+{
+	// resize rankMat if needed; complain if resizing non-empty matrix
+	if (valMat.size1() != rankMat.size1() || valMat.size2() != rankMat.size2()) {
+		if (rankMat.size1() + rankMat.size2() > 0) {
+			cerr << "Warning from get_ranks_or_rows(): wrong size of output matrix"
+			     << " - resizing!" << endl;
+			rankMat.resize(valMat.size1(), valMat.size2());
+		}
+	}
+
+	int nR = valMat.size1();
+	int nC = valMat.size2();
+	int r, c;
+
+	std::vector<double> valV(nC);
+	std::vector<int> rankV(nC);
+	for (r = 0; r < nR; ++r) {
+		// make a temp. copy of the row
+		for (c = 0; c < nC; ++c) {
+			valV[c] = valMat(r,c);
+		}
+		rank (valV, rankV); // this computes the ranks - needs std::vector<>!
+		// copy to the target matrix; subtract 1 to get ranks from zero
+		for (c = 0; c < nC; ++c) {
+			rankMat(r,c) = rankV[c] - 1;
+		}
+	}
+}
+
 
 void get_ranks_or_rows(TMatrixD const & valMat, TMatrixI & rankMat)
 {

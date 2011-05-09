@@ -23,6 +23,8 @@ public:
 
 	/// cdf - calculated, so slower than the grid-based version
 	virtual double cdf(double const u, double const v) const = 0;
+
+	typedef boost::shared_ptr<Cop2DInfo> Ptr;
 };
 
 
@@ -118,7 +120,7 @@ public:
 	T is the type of the margin vector (double * or std::vector<double>)
 **/
 template <class T>
-class Cop2DData : public Cop2DInfo {
+class Cop2DDataOld : public Cop2DInfo {
 private:
 	int gridN;        ///< size of the grid on which we compute the pdf and cdf
 	IMatrix gridRCdf; ///< sample cdf evaluated on the grid; indexed -1 .. N-1
@@ -130,7 +132,30 @@ protected:
 	int init_grid();
 
 public:
-	Cop2DData(T const * marg1, T const * marg2, int const nSamplPts,
+	Cop2DDataOld(T const * marg1, T const * marg2, int const nSamplPts,
+	          int const gridSize = 0);
+
+	int set_grid_size(int const N) { gridN = N; return init_grid(); }
+
+	virtual double cdf(const double u, const double v) const;
+};
+
+
+/// Copula given by a 2D sample
+class Cop2DData : public Cop2DInfo {
+private:
+	int gridN;        ///< size of the grid on which we compute the pdf and cdf
+	IMatrix gridRCdf; ///< sample cdf evaluated on the grid; indexed -1 .. N-1
+
+protected:
+	UVector const & margin1; ///< values of the first margin
+	UVector const & margin2; ///< values of the second margin
+	int nPts;         ///< number of the sample/data points in each margin
+
+	int init_grid();
+
+public:
+	Cop2DData(UVector const & marg1, UVector const & marg2, int const nSamplPts,
 	          int const gridSize = 0);
 
 	int set_grid_size(int const N) { gridN = N; return init_grid(); }
