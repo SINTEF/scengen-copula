@@ -8,6 +8,14 @@
 #include "common.hpp"
 
 
+// forward declarations, needed by the following class
+namespace CopulaDef {
+	class CopInfoBy2D;
+	class CopInfoData;
+	UMatrix & cop_info_data_vals(CopInfoData & copInfo);
+	UIMatrix & cop_info_data_ranks(CopInfoData & copInfo);
+}
+
 namespace Copula2D{
 
 /// specifications of a bivariate copula, used as targets
@@ -15,9 +23,16 @@ class Cop2DInfo {
 private:
 
 protected:
+	/// poiner to the multivar info object
+	CopulaDef::CopInfoBy2D * p2multivarTg;
+	DimT marg1idx; ///< index of the first margin in the multivar info object
+	DimT marg2idx; ///< index of the first margin in the multivar info object
 
 public:
-	Cop2DInfo() {}
+	Cop2DInfo(CopulaDef::CopInfoBy2D * const p2CopInfo = NULL,
+	          DimT const i = -1, DimT const j = -1)
+	: p2multivarTg(p2CopInfo), marg1idx(i), marg2idx(j)
+	{}
 
 	virtual ~Cop2DInfo() {}
 
@@ -25,6 +40,14 @@ public:
 	virtual double cdf(double const u, double const v) const = 0;
 
 	typedef boost::shared_ptr<Cop2DInfo> Ptr;
+
+	void attach_multivar_info(CopulaDef::CopInfoBy2D * const p2tg,
+	                          DimT const i = -1, DimT const j = -1)
+	{
+		p2multivarTg = p2tg;
+		if (i >= 0) marg1idx = i;
+		if (j >= 0) marg2idx = j;
+	}
 };
 
 
@@ -35,7 +58,13 @@ private:
 	Cop2DInfo const *p2copInfo; ///< non-mutable pointer to the transposed obj.
 
 public:
-	Cop2DInfTr(Cop2DInfo const *const p2Transp) : p2copInfo(p2Transp) {}
+	/// constructor using a (raw) pointer to the transposed object
+	Cop2DInfTr(Cop2DInfo const & p2Transp)
+	: Cop2DInfo(p2Transp), p2copInfo(&p2Transp) {}
+
+	/// constructor using a smart pointer to the transposed object
+	// the .get() method returns a raw pointer from a smart one
+	Cop2DInfTr(Cop2DInfo::Ptr const p2Transp) : p2copInfo(p2Transp.get()) {}
 
 	double cdf(double const u, double const v) const {
 		return p2copInfo->cdf(v,u);
@@ -144,21 +173,35 @@ public:
 /// Copula given by a 2D sample
 class Cop2DData : public Cop2DInfo {
 private:
-	int gridN;        ///< size of the grid on which we compute the pdf and cdf
-	IMatrix gridRCdf; ///< sample cdf evaluated on the grid; indexed -1 .. N-1
+	CopulaDef::CopInfoData * p2multivarTg;
+	int gridN; ///< size of the grid on which we compute the pdf and cdf
+	/// sample cdf evaluated on the grid; indexed -1 .. N-1
+	/** implemented using boost::multi_array, to get indices starting from -1 **/
+	IMatrix gridRCdf;
 
 protected:
-	UVector const & margin1; ///< values of the first margin
-	UVector const & margin2; ///< values of the second margin
-	int nPts;         ///< number of the sample/data points in each margin
+	// - using matrix_row, as this does not allocate new data!
+	// - matrix_row does not have a default (empty) constructor, so we cannot
+	//   have an array - how would we initialize it?
+	ublas::matrix_row<UMatrix> margin1; ///< values of the first margin
+	ublas::matrix_row<UMatrix> margin2; ///< values of the first margin
+	int nPts;      ///< number of the sample/data points in each margin
 
-	int init_grid();
+	void init_grid();
 
 public:
-	Cop2DData(UVector const & marg1, UVector const & marg2, int const nSamplPts,
-	          int const gridSize = 0);
+	/// constructor with a matrix and row numbers
+	Cop2DData(UMatrix & histData, int const i, int const j,
+	          int const gridSize = 0,
+	          CopulaDef::CopInfoData * const  multiCopInf = NULL);
 
-	int set_grid_size(int const N) { gridN = N; return init_grid(); }
+	// at the moment, this is not supported
+	// would probably have to add a private member with a matrix, since
+	// matrix_row need a matrix as a parameter for the constructor
+	//Cop2DData(UVector const & marg1, UVector const & marg2, int const nSamplPts,
+	//          int const gridSize = 0);
+
+	void set_grid_size(int const N) { gridN = N; init_grid(); }
 
 	virtual double cdf(const double u, const double v) const;
 };

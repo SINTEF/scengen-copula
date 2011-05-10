@@ -195,17 +195,18 @@ template class Cop2DDataOld<Vector>;
 
 // -----------------------------------------------------------------------
 // Copula given by a 2D sample
-Cop2DData::Cop2DData(UVector const & marg1, UVector const & marg2,
-                     int const nSamplPts, int const gridSize)
-: Cop2DInfo(),
-  gridN(gridSize), margin1(marg1), margin2(marg2), nPts(nSamplPts)
+Cop2DData::Cop2DData(UMatrix & histData, int const i, int const j,
+                     int const gridSize,
+                     CopulaDef::CopInfoData * const p2CopInf)
+: Cop2DInfo(NULL, i, j), p2multivarTg(p2CopInf),
+  gridN(gridSize), margin1(histData, i), margin2(histData, j), nPts()
 {
 	if (gridN > 0) {
 		init_grid();
 	}
 }
 
-int Cop2DData::init_grid()
+void Cop2DData::init_grid()
 {
 	int i, j, s;
 	assert (gridN > 0 && "Have to set grid size before calling init_grid()!");
@@ -217,20 +218,43 @@ int Cop2DData::init_grid()
 		}
 	}
 
-	// get the vectors of ranks
-	std::vector<int> margRanks[2];
-	for (int marg = 0; marg < 2; marg++) {
-		//std::vector<int> ranks;
-		margRanks[marg].resize(nPts);
-		/// \todo Use the already computed ranks!
-		get_ranks(*(margins[marg]), margRanks[marg]);
-	}
+	if (p2multivarTg && marg1idx >= 0 && marg2idx >= 0) {
+		// we have a pointer to the multivar info - ask for margin ranks there!
+		ublas::matrix_row<UIMatrix> margRanks1
+			(CopulaDef::cop_info_data_ranks(*p2multivarTg), marg1idx);
+		ublas::matrix_row<UIMatrix> margRanks2
+			(CopulaDef::cop_info_data_ranks(*p2multivarTg), marg2idx);
 
-	// compute the grid-pdf, store it to gridRCdf
-	for (s = 0; s < nPts; s++) {
-		i = u012Rank( rank2U01(margRanks[0][s], nPts), gridN );
-		j = u012Rank( rank2U01(margRanks[1][s], nPts), gridN );
-		gridRCdf[i][j] ++;
+		// compute the grid-pdf, store it to gridRCdf
+		for (s = 0; s < nPts; s++) {
+			i = u012Rank( rank2U01(margRanks1(s), nPts), gridN );
+			j = u012Rank( rank2U01(margRanks2(s), nPts), gridN );
+			gridRCdf[i][j] ++;
+		}
+	} else {
+		// we do not have access to ranks -> have to compute them first
+		cerr << "rank computation not yet finished!" << endl; exit(1);
+		/*
+		UIVector margRanks1(nPts), margRanks2(nPts);
+		get_ranks(margin1, margRanks1);
+		get_ranks(margin2, margRanks2);
+
+		// get the vectors of ranks
+		std::vector<int> margRanks[2];
+		for (int marg = 0; marg < 2; marg++) {
+			//std::vector<int> ranks;
+			margRanks[marg].resize(nPts);
+			/// \todo Use the already computed ranks!
+			get_ranks(*(margins[marg]), margRanks[marg]);
+		}
+
+		// compute the grid-pdf, store it to gridRCdf
+		for (s = 0; s < nPts; s++) {
+			i = u012Rank( rank2U01(margRanks[0][s], nPts), gridN );
+			j = u012Rank( rank2U01(margRanks[1][s], nPts), gridN );
+			gridRCdf[i][j] ++;
+		}
+		*/
 	}
 
 	// compute the grid-cdf
@@ -243,12 +267,9 @@ int Cop2DData::init_grid()
 			// at this point, gridRCdf[i][j] includes the rank cdf!
 		}
 	}
-
-	return 0;
 }
 
-template <class T>
-double Cop2DData<T>::cdf(const double u, const double v) const
+double Cop2DData::cdf(const double u, const double v) const
 {
 	assert (u >= 0.0 && u <= 1.0 && v >= 0.0 && v <= 1.0 && "bounds check");
 	if (isEq(u, 0.0) || isEq(v, 0.0)) { return 0.0; }
@@ -261,7 +282,7 @@ double Cop2DData<T>::cdf(const double u, const double v) const
 }
 
 // explicit instantiation - tell the compiler which instances to compile
-template class Cop2DData<Vector>;
+//template class Cop2DData<Vector>;
 //template class Cop2DData< std::vector<double> >; // the same as above
 
 

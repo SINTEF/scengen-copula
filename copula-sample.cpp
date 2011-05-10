@@ -9,6 +9,29 @@ using namespace CopulaScen;
 
 // --------------------------------------------------------------------------
 // CONSTRUCTORS AND DESTRUCTORS
+CopulaSample::CopulaSample(CopulaDef::CopInfoBy2D::Ptr p2tg, int const S,
+                           unsigned const numCandPts)
+: nVar(p2tg->dim()), nSc(S),
+  haveSc4Marg(nVar, false),
+  p2copInfo(p2tg.get()),
+  p2tgInfo(p2tg->get_pts_to_2d_targets()),
+  p2sample2D(boost::extents[nVar][nVar]),
+  p2prob(NULL), sample(nVar),
+  minNumCandScens(numCandPts)
+{
+	int i, j;
+	for (i = 0; i < nVar; i++) {
+		for (j = 0; j < nVar; j++) {
+			p2sample2D[i][j] = NULL;
+		}
+		sample[i].resize(nSc);
+	}
+
+	// at the moment, only the transposed targets are allocated in the class
+	//allocTgCops.reserve(nVar * (nVar-1) / 2);
+}
+
+/*
 CopulaSample::CopulaSample(int const dim, int const S,
                            unsigned const numCandPts)
 : haveSc4Marg(dim, false),
@@ -30,14 +53,17 @@ CopulaSample::CopulaSample(int const dim, int const S,
 	// at the moment, only the transposed targets are allocated in the class
 	allocTgCops.reserve(nVar * (nVar-1) / 2);
 }
+*/
 
 CopulaSample::~CopulaSample()
 {
+/*
 	// de-allocate the allocated targets
 	while (allocTgCops.size() > 0) {
 		delete p2tgInfo[allocTgCops.back().first][allocTgCops.back().second];
 		allocTgCops.pop_back();
 	}
+*/
 }
 
 
@@ -65,11 +91,11 @@ double CopulaSample::gen_new_margin(int const marg)
 		if (i != marg && haveSc4Marg[i] && p2tgInfo[i][marg]) {
 			// store the margin in the list of copulas (i, marg) to match
 			oldMargins.push_back(i);
-			tg2Dcopulas.push_back(p2tgInfo[i][marg]);
+			tg2Dcopulas.push_back(p2tgInfo[i][marg].get());
 			// create a new copula-2D-sample object
 			stringstream cop2DId; // using stringstream to get simple conversions
 			cop2DId << "sample_" << i << "_" << marg;
-			p2sample2D[i][marg] = new Cop2DSample(nSc, p2tgInfo[i][marg],
+			p2sample2D[i][marg] = new Cop2DSample(nSc, p2tgInfo[i][marg].get(),
 			                                      cop2DId.str());
 			#ifndef NDEBUG
 				cout << "Created new Cop2DSample with id = " << cop2DId.str() << endl;
@@ -224,6 +250,7 @@ double CopulaSample::gen_new_margin(int const marg)
 }
 
 
+/*
 /// \todo Write something here!!!
 void CopulaSample::attach_tg_2Dcop(Cop2DInfo const* p2cop,
                                    int const i, int const j,
@@ -235,7 +262,7 @@ void CopulaSample::attach_tg_2Dcop(Cop2DInfo const* p2cop,
 		allocTgCops.push_back(make_pair(j,i));
 	}
 }
-
+*/
 
 
 /// the main routine; returns the KS-distance

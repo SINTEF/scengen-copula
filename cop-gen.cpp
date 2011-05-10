@@ -12,6 +12,7 @@
 using namespace std;
 using namespace Copula2D;
 using namespace CopulaScen;
+using namespace CopulaDef;
 
 #include <boost/program_options.hpp>
 #include <sstream>
@@ -147,6 +148,43 @@ int main(int argc, char *argv[]) {
 
 	srand(randSeed); // set the random seed
 
+
+	CopInfoBy2D::Ptr p2tgCop;
+
+	if (copType == "sample") {
+		cout << "copula of type 'sample'" << endl;
+
+		// create a new object of the specific class
+		CopInfoData * p2tgCopData = new CopInfoData(copParamsF);
+		p2tgCopData->setup_2d_targets();
+
+		p2tgCop.reset(p2tgCopData); // p2tgCop takes over the pointer
+	}
+	if (copType == "normal") {
+		cout << "normal copula" << endl;
+	}
+
+	CopulaSample copSc(p2tgCop, nSc, numCandPts);
+
+	copSc.gen_sample();
+	copSc.print_as_txt(outputFName.c_str(), true);
+
+	if (writeProbAllocData) {
+		// write the AMPL/GMP data file
+//		copSc.attach_tg_cop_info(&tgCopInfo);
+		copSc.write_gmp_data();
+	}
+
+	// cleaning
+//	while (p2copData.size() > 0) {
+//		delete p2copData.back(); // deletes the object
+//		p2copData.pop_back(); // removes it from the list
+//	}
+
+	return 0;
+}
+
+
 /*
 	// parameters for processing of command-line arguments
 	// value-arguments are shown in the reversed order!
@@ -185,6 +223,7 @@ int main(int argc, char *argv[]) {
 	}
 */
 
+/*
 	// read the input file
 	ifstream tgDistF(copParamsF.c_str());
 	if (!tgDistF) {
@@ -250,7 +289,7 @@ int main(int argc, char *argv[]) {
 		cout << "scen " << s << ": " << tgCopInfo.cdf(uV) << endl;
 	}
 	*/
-
+/*
 	// cleaning
 	while (p2copData.size() > 0) {
 		delete p2copData.back(); // deletes the object

@@ -18,6 +18,10 @@ namespace CopulaScen {
 
 /// the main class for creating a multivariate sample
 class CopulaSample {
+protected:
+	int nVar; ///< number of random variables
+	int nSc;  ///< number of scenarios
+
 private:
 	/// indicator if we have generated scenarios for a given margin
 	std::vector<bool> haveSc4Marg;
@@ -33,7 +37,7 @@ private:
 		all (i,j) members with j<i should be of the Cop2DInfTr type,
 		pointing to the (j,i)
 	**/
-	boost::multi_array<Cop2DInfo const*, 2> p2tgInfo;
+	boost::multi_array<Copula2D::Cop2DInfo::Ptr, 2> & p2tgInfo;
 
 	/// array of pointers to the Cop2DSample objects
 	boost::multi_array<Cop2DSample *, 2> p2sample2D;
@@ -48,23 +52,22 @@ private:
 	unsigned minNumCandScens;  // minimal number of candidate points
 
 protected:
-	int nVar; ///< number of random variables
-	int nSc;  ///< number of scenarios
-
 	double gen_new_margin(int const iNew);
 
 	/// vector of copulas that have p2tgInfo(i,j) allocated by the class
 	/// \todo do this using smart pointers!
-	std::vector<std::pair<int,int> > allocTgCops;
+	//std::vector<std::pair<int,int> > allocTgCops;
 
 public:
-	CopulaSample(int const dim, int const S, unsigned const numCandPts = 1);
+	//CopulaSample(int const dim, int const S, unsigned const numCandPts = 1);
+	CopulaSample(CopulaDef::CopInfoBy2D::Ptr p2tg, int const S,
+	             unsigned const numCandPts = 1);
 
 	virtual ~CopulaSample();
 
 	/// attach one target 2D copula
-	void attach_tg_2Dcop(Cop2DInfo const* p2cop, int const i, int const j,
-	                     bool makeTranspTg = true);
+	//void attach_tg_2Dcop(Cop2DInfo const* p2cop, int const i, int const j,
+	//                     bool makeTranspTg = true);
 
 	/// attach an external vector of scenario probabilities (no mem. allocation)
 	void attach_sc_prob(double const * const scProbs) { p2prob = scProbs; }

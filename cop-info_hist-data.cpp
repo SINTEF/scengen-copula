@@ -30,12 +30,8 @@ CopInfoData::CopInfoData(std::string & tgFName)
 CopInfoData::CopInfoData(UIMatrix const & hDataMat)
 : CopInfoBy2D(hDataMat.size1()),
   nPts(hDataMat.size2()),
-  hData(nVars), hRanks(nVars, nPts), hU01(nVars, nPts)
+  hData(hDataMat), hRanks(nVars, nPts), hU01(nVars, nPts)
 {
-	for (int i = 0; i < nVars; ++i) {
-		hData[i] = ublas::row(hDataMat, i);
-	}
-
 	fill_ranks_etc(); // fills hRanks and hU01
 }
 
@@ -128,14 +124,11 @@ void CopInfoData::read_tg_file(string tgFName)
 	}
 	tgDistF >> nPts >> nVars;
 
-	hData.resize(nVars);
-	for (int i = 0; i < nVars; ++i) {
-		hData[i].resize(nPts);
-	}
+	hData.resize(nVars,nPts);
 	// read from the file - margins are in columns -> must transpose!
 	for (int j = 0; j < nPts; ++j) {
 		for (int i = 0; i < nVars; ++i) {
-			tgDistF >> hData[i](j);
+			tgDistF >> hData(i, j);
 		}
 	}
 }
@@ -163,12 +156,18 @@ void CopInfoData::setup_2d_targets(bool const makeTranspTgs)
 	p2Info2D.resize(boost::extents[nVars][nVars]);
 	for (i = 0; i < nVars; i++) {
 		for (j = i+1; j < nVars; j++) {
-			p2Info2D[i][j].reset(new Copula2D::Cop2DData(hData[i], hData[j], nPts));
-			if (makeTranspTgs) {
-				assert (p2Info2D[i][j] == NULL);
-				// the .get() method returns a raw pointer from a smart one
-				p2Info2D[j][i].reset(new Copula2D::Cop2DInfTr(p2Info2D[i][j].get()));
-			}
+			attach_2d_target(new Copula2D::Cop2DData(hData, i, j), i, j,
+			                 makeTranspTgs);
 		}
 	}
+}
+
+
+// non-member accessors to data of the CopInfoData class - used because we
+// cannot forward-declare the members from within cop2Dinfo.hpp!
+UMatrix & cop_info_data_vals(CopInfoData & copInfo) {
+	return copInfo.data_vals();
+}
+UIMatrix & cop_info_data_ranks(CopInfoData & copInfo) {
+	return copInfo.data_ranks();
 }
