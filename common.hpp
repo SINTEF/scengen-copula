@@ -24,7 +24,6 @@ typedef boost::shared_ptr<UIMatrix> UIMatrixPtr;
 typedef UVector::size_type DimT;
 DimT const MaxVecLen = std::numeric_limits<UVector::size_type>::max();
 
-
 /// \name input-output routines for ublas objects
 ///@{
 	/// stream output for ublas vectors
@@ -45,115 +44,8 @@ DimT const MaxVecLen = std::numeric_limits<UVector::size_type>::max();
 ///@}
 
 
+// at a couple of places, we use the boost multi_array for more flexibility
 #include <boost/multi_array.hpp>
-typedef std::vector<double> Vector;
-typedef std::vector<int> IVector;
-typedef boost::multi_array<double, 2> Matrix;
-typedef boost::multi_array<int, 2> IMatrix;
-
-/// template for a vector class based on boost
-template <typename T>
-class TVectorGen : public boost::multi_array<T, 1> {
-	public:
-		TVectorGen (int const len)
-		: boost::multi_array<T, 1>(boost::extents[len])
-		{}
-
-		/// copy-constructor from the base type, using the base-type constructor
-		TVectorGen (boost::multi_array<T, 1> const &X)
-		: boost::multi_array<T, 1>(X)
-		{}
-
-		/// copy-constructor from the array view, using the base-type constructor
-		TVectorGen (boost::detail::multi_array::multi_array_view<T, 1ul> const &X)
-		: boost::multi_array<T, 1>(X)
-		{}
-
-/*
-		/// assignment using the parent boost class
-		TVectorGen & operator= (boost::multi_array<T, 1> &X) {
-			if (this != &X) {
-				this->boost::multi_array<T, 1>::operator= (X);
-			}
-			return *this;
-		}
-*/
-};
-typedef TVectorGen<double> TVectorD;
-typedef TVectorGen<int> TVectorI;
-
-
-/// matrix class using the boost libraries
-/**
-	Note that this allows to have methods for column and rows that return
-	boost vectors !
-**/
-template <typename T>
-class TMatrixGen : public boost::multi_array<T, 2> {
-	private:
-		typedef boost::multi_array_types::index_range IRange;
-		typename boost::multi_array<T, 2>::index_gen indices;
-
-	public:
-		TMatrixGen (int const nR, int const nC)
-			: boost::multi_array<T, 2>(boost::extents[nR][nC])
-			{}
-
-		/// get a vector consisting of a column of the matrix
-		/**
-			!!! This version creates a new objects, allocating new data !!!
-			An alternative is to return \c boost::multi_array<T,1>
-		*/
-		TVectorGen<T> col(int const c) const {
-			return operator[](indices[IRange()][c]);
-		}
-
-		/// get a view consisting of a column of the matrix
-		/**
-			This version does not copy data, i.e. the resulting object points
-			to the data structures of the matrix.
-			\todo Is it possible to do with a vector?
-		*/
-		boost::detail::multi_array::multi_array_view<T, 1> col(int const c) {
-			return operator[](indices[IRange()][c]);
-		}
-
-		/// get a vector consisting of a row of the matrix
-		/**
-			!!! This version creates a new objects, allocating new data !!!
-			An alternative is to return \c boost::multi_array<T,1>
-		*/
-		TVectorGen<T> row(int const r) const {
-			return operator[](indices[r][IRange()]);
-		}
-
-		/// get a view consisting of a row of the matrix
-		/**
-			This version does not copy data, i.e. the resulting object points
-			to the data structures of the matrix.
-		*/
-		boost::detail::multi_array::multi_array_view<T, 1> row(int const r) {
-			return operator[](indices[r][IRange()]);
-		}
-
-		unsigned num_rows() const { return this->shape()[0]; }
-		unsigned num_cols() const { return this->shape()[1]; }
-
-};
-typedef TMatrixGen<double> TMatrixD;
-typedef TMatrixGen<int> TMatrixI;
-typedef boost::multi_array<double, 1>::array_view<1>::type TMatSliceD;
-typedef boost::multi_array<int, 1>::array_view<1>::type TMatSliceI;
-typedef boost::shared_ptr<TMatrixD> TMatrixDPtr; // smart pointer to TMatrixD
-typedef boost::shared_ptr<TMatrixI> TMatrixIPtr; // smart pointer to TMatrixI
-
-/// '<<' operator for an matrix.
-/// \todo .. make it work for the template
-/// \todo .. add '>>' as well
-std::ostream & operator<<(std::ostream & output, const TMatrixD & M);
-
-// use this to get arrays starting at -1: boost::extents[ExtRange(-1,N)]
-//typedef boost::multi_array_types::extent_range ExtRange;
 
 
 /// Random number generator - integer from 0 to Max-1
@@ -201,12 +93,12 @@ void get_ranks_or_rows(std::vector<UVector> const & valMat, UIMatrix & rankMat);
 void get_ranks_or_rows(UMatrix const & valMat, UIMatrix & rankMat);
 
 /// compute ranks of rows of a matrix (i.e. taking one row at a time)
-void get_ranks_or_rows(TMatrixD const & valMat, TMatrixI & rankMat);
+//void get_ranks_or_rows(TMatrixD const & valMat, TMatrixI & rankMat);
 
 /// compute ranks of rows of a matrix (i.e. taking one row at a time)
 /// delete this version when it is no longer needed!
-void get_ranks_or_rows(std::vector< std::vector<double> > const & valMat,
-                       TMatrixI & rankMat);
+//void get_ranks_or_rows(std::vector< std::vector<double> > const & valMat,
+//                       TMatrixI & rankMat);
 
 
 /// position of the mass inside the discretization intervals

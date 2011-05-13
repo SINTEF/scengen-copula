@@ -33,8 +33,8 @@ private:
 	/// \name main parameters defining the copula
 	//@{
 		int N;        ///< number of sample points in the copula
-		IVector i2jC; ///< vector of i->j connections
-		IVector j2iC; ///< vector of j->i connections
+		UIVector i2jC; ///< vector of i->j connections
+		UIVector j2iC; ///< vector of j->i connections
 
 		void update_j2iC_from_i2jC(); ///< synchronize j2iC with i2jC
 		void update_i2jC_from_j2iC(); ///< synchronize i2jC with j2iC
@@ -54,7 +54,7 @@ private:
 
 		/// scenarios of ranks of the 1st margin.
 		/// use \c p2prob[scenOfMarg1R[i]] to get probability of rank \c i
-		IVector scenOfMarg1R;
+		UIVector scenOfMarg1R;
 
 		//Vector cumProb;     ///< cummulative probabilities
 
@@ -64,7 +64,7 @@ private:
 
 		/// discretization points of the copula marginals.
 		/// these are sorted as 'i', use scenOfRow[] to get scenario values
-		Vector copEvalPts;
+		UVector copEvalPts;
 
 		string sampleId; ///< string to identify the sample (for reporting)
 	//@}
@@ -150,7 +150,7 @@ public:
 		\param[in] p2scProb pointer to scenario probabilities;
 		           NULL means equiprobable scenarios
 	**/
-	void set_scen_of_marg_1(IVector const &margScen,
+	void set_scen_of_marg_1(UIVector const &margScen,
 	                        double const *p2scProb = NULL);
 
 	/// the main heuristics (not used from the multi-variate code)
@@ -244,8 +244,8 @@ public:
 		            rows are available or not; in this case, the rowCdfDist for
 		            the rows with 'false' need not be defined.
 	**/
-	void cdf_dist_of_col(int const i, Vector const &prevColCdf,
-	                     Vector &rowCdfDist, bool rowFree[] = NULL);
+	void cdf_dist_of_col(int const i, UVector const &prevColCdf,
+	                     UVector &rowCdfDist, bool rowFree[] = NULL);
 
 	/// Compute the cdf-distance of for a whole row, given Cdf of prev. row.
 	/**
@@ -256,8 +256,8 @@ public:
 		            columns are available or not; in this case, the colCdfDist for
 		            the columns with 'false' need not be defined.
 	**/
-	void cdf_dist_of_row(int const j, Vector const &prevRowCdf,
-	                     Vector &colCdfDist, bool colFree[] = NULL);
+	void cdf_dist_of_row(int const j, UVector const &prevRowCdf,
+	                     UVector &colCdfDist, bool colFree[] = NULL);
 
 	/// \todo do this; return false if this breaks another link
 	bool add_link(int const colR, int const rowR);

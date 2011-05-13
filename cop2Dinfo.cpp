@@ -284,7 +284,7 @@ void Cop2DData::calc_all_grid_cdfs()
 {
 	/// sample cdf evaluated on the grid; indexed -1 .. N-1
 	/** implemented using boost::multi_array, to get indices starting from -1 **/
-	IMatrix gridRCdf;
+	boost::multi_array<int, 2> gridRCdf;
 	typedef boost::multi_array_types::extent_range ExtRange;
 
 	DimT i, j, s;

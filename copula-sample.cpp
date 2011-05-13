@@ -129,11 +129,11 @@ double CopulaSample::gen_new_margin(int const marg)
 	//bestScens.reserve(10); // this should be enough to prevent reallocations(?)
 	std::vector<bool> scenUsed(nSc, false);
 
-	std::vector<Vector> prevRowCdf(nTg2Dcops); // cdf of the previous row
-	std::vector<Vector> colCdfDist(nTg2Dcops); // dist. of using the columns
+	std::vector<UVector> prevRowCdf(nTg2Dcops); // cdf of the previous row
+	std::vector<UVector> colCdfDist(nTg2Dcops); // dist. of using the columns
 	for (tg = 0; tg < nTg2Dcops; tg++) {
-		prevRowCdf[tg] = Vector(nSc, 0);
-		colCdfDist[tg] = Vector(nSc);
+		prevRowCdf[tg] = ublas::zero_vector<double>(nSc);//Vector(nSc, 0);
+		colCdfDist[tg] = UVector(nSc);
 	}
 
 	// compute a safe upper bound for the distance:
@@ -419,13 +419,13 @@ void CopulaSample::write_gmp_data(string const fName)
 		      << endl;
 
 		double tgScProb;
-		TVectorD uScen(nVar);
+		UVector uScen(nVar);
 		oFile << "param tgCdf :=";
 		for (s = 0; s < nSc; ++s) {
 			for (i = 0; i < nVar; ++i) {
-				uScen[i] = rank2U01(sample[i][s], nSc);
+				uScen(i) = rank2U01(sample[i][s], nSc);
 			}
-			if (p2copInfo) {
+			if (p2copInfo && p2copInfo->has_cdf()) {
 				// have the multivar target info
 				tgScProb = p2copInfo->cdf(uScen);
 			} else {
@@ -435,7 +435,7 @@ void CopulaSample::write_gmp_data(string const fName)
 				for (i = 0; i < nVar; ++i) {
 					for (int j = 0; j < nVar; ++j) {
 						if (j != i && p2tgInfo(i, j)) {
-							tgScProb += p2tgInfo(i, j)->cdf(uScen[0], uScen[1]);
+							tgScProb += p2tgInfo(i, j)->cdf(uScen(0), uScen(1));
 							nTgCops ++;
 						}
 					}

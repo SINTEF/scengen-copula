@@ -70,7 +70,7 @@ void Cop2DSample::set_scen_of_i(IVector const &scenOfColR,
 }
 */
 
-void Cop2DSample::set_scen_of_marg_1(IVector const &margScen,
+void Cop2DSample::set_scen_of_marg_1(UIVector const &margScen,
                                      double const *p2scProb)
 {
 	if ((int) scenOfMarg1R.size() != N) {
@@ -353,8 +353,11 @@ double Cop2DSample::gen_heur()
 	/// bigger values give worse solutions, but different at each run.
 	double CdfDistEps = DblEps; // DblEps should give 'optimal' discretization
 
-	Vector prevColCdf(N, 0.0);
-	IVector bestRows;     ///< all rows ('j') that minimize the distance
+	UVector prevColCdf = ublas::zero_vector<double>(N); //N, 0.0);
+
+	/// list of rows ('j') that minimize the distance
+	/** using std::vector, so we can du .reserve() and .push_back() **/
+	std::vector<DimT> bestRows;
 	bestRows.reserve(10); // this should be enough to prevent reallocations(?)
 
 	double probCol;       ///< probability of column 'i'
@@ -509,8 +512,8 @@ void Cop2DSample::CandList::insert_cand(int const index, double const error)
 
 /// \todo make this into a private method and call it also from the
 ///       \a gen_heur() method !!!
-void Cop2DSample::cdf_dist_of_col(int const i, Vector const &prevColCdf,
-                                  Vector &rowCdfDist, bool rowFree[])
+void Cop2DSample::cdf_dist_of_col(int const i, UVector const &prevColCdf,
+                                  UVector &rowCdfDist, bool rowFree[])
 {
 	assert (rowFree == NULL && "handling of rowFree is not yet implented...");
 
@@ -550,8 +553,8 @@ void Cop2DSample::cdf_dist_of_col(int const i, Vector const &prevColCdf,
 
 /// \todo make this into a private method and call it also from the
 ///       \a gen_heur() method ???
-void Cop2DSample::cdf_dist_of_row(int const j, Vector const &prevRowCdf,
-                                  Vector &colCdfDist, bool colFree[])
+void Cop2DSample::cdf_dist_of_row(int const j, UVector const &prevRowCdf,
+                                  UVector &colCdfDist, bool colFree[])
 {
 	assert (colFree == NULL && "handling of colFree is not yet implented...");
 

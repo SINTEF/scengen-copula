@@ -46,7 +46,7 @@ private:
 
 	/// This is the main matrix, including all the scenarios.
 	/// Why don't we use IMatrix - is it because we need to get the columns?
-	std::vector<IVector> sample;
+	std::vector<UIVector> sample;
 
 	/// used to control the level of stochasticity of the results
 	unsigned minNumCandScens;  // minimal number of candidate points

@@ -25,7 +25,7 @@ public:
 
 	/// cdf at vector \a u = (u_1, .. , u_n)
 	/** should throw an error if used on classes with ::haveCdf == false **/
-	virtual double cdf(TVectorD const u) const = 0;
+	virtual double cdf(UVector const u) const = 0;
 
 	DimT dim() const { return nVars; }      ///< get dimension of the copula
 	bool has_cdf() const { return hasCdf; } ///< check if we have ::cdf()
@@ -91,7 +91,7 @@ public:
 	}
 
 	/// cdf at vector \a u = (u_1, .. , u_n)
-	virtual double cdf(TVectorD const u) const = 0;
+	virtual double cdf(UVector const u) const = 0;
 
 	typedef boost::shared_ptr<CopInfoBy2D> Ptr;
 };
@@ -141,7 +141,7 @@ public:
 	UIMatrix & data_ranks() { return hRanks; }
 	UMatrix & data_u01() { return hU01; }
 
-	double cdf(TVectorD const u) const;
+	double cdf(UVector const u) const;
 };
 
 // non-member accessors to data of the CopInfoData class - used because we
@@ -173,7 +173,7 @@ public:
 	/// creates objects for the 2D targets
 	void setup_2d_targets();
 
-	double cdf(TVectorD const u) const {
+	double cdf(UVector const u) const {
 		throw std::logic_error("class CopInfoNormal does not have cdf()");
 	}
 };

@@ -65,7 +65,7 @@ CopInfoData::CopInfoData(TMatrixI & hRanksMat, bool const fillU01Data)
 	This function uses the comparison of U(0,1) values, i.e. the second option
 	from above. This makes it equivalent to the 2D version.
 **/
-double CopInfoData::cdf(TVectorD const u) const
+double CopInfoData::cdf(UVector const u) const
 {
 	assert (u.size() == nVars);
 
@@ -73,7 +73,7 @@ double CopInfoData::cdf(TVectorD const u) const
 
 	// if any of the margins is zero, the cdf is zero
 	for (i = 0; i < nVars; ++i) {
-		if (isEq(u[i], 0.0)) {
+		if (isEq(u(i), 0.0)) {
 			return 0.0;
 		}
 	}
@@ -85,9 +85,9 @@ double CopInfoData::cdf(TVectorD const u) const
 		double lastNon1 = 0.0; // init just to avoid gcc's warning
 		i = 0;
 		while (i < nVars && numNon1s <= 1) {
-			if (!isEq(u[i], 1.0)) {
+			if (!isEq(u(i), 1.0)) {
 				numNon1s ++;
-				lastNon1 = u[i];
+				lastNon1 = u(i);
 			}
 			i++;
 		}
@@ -104,7 +104,7 @@ double CopInfoData::cdf(TVectorD const u) const
 	int nPtsBelow = 0;
 	for (j = 0; j < nPts; ++j) {
 		i = 0;
-		while (i < nVars && rank2U01(hRanks(i,j), nPts) <= u[i]) {
+		while (i < nVars && rank2U01(hRanks(i,j), nPts) <= u(i)) {
 			i++;
 		}
 		if (i == nVars) {
