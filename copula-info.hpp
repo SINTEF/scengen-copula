@@ -12,10 +12,10 @@ class CopulaInfo {
 private:
 
 protected:
-	int nVars;      ///< number of random variables
+	DimT nVars;      ///< number of random variables
 
 public:
-	CopulaInfo(int const N = 0) : nVars(N) {}
+	CopulaInfo(DimT const N = 0) : nVars(N) {}
 
 	virtual ~CopulaInfo() {}
 
@@ -51,7 +51,7 @@ public:
 	                      int const j, bool const makeTransp = true) {
 		p2Info2D[i][j].reset(p2tg);
 		if (makeTransp) {
-			assert (p2Info2D[i][j] == false);
+			assert (p2Info2D[j][i] == false);
 			p2Info2D[j][i].reset(new Copula2D::Cop2DInfTr(p2Info2D[i][j]));
 		}
 	}
@@ -65,7 +65,7 @@ public:
 	                      int const j, bool const makeTransp = true) {
 		p2Info2D[i][j] = p2tg;
 		if (makeTransp) {
-			assert (p2Info2D[i][j] == false);
+			assert (p2Info2D[j][i] == false);
 			p2Info2D[j][i].reset(new Copula2D::Cop2DInfTr(p2Info2D[i][j]));
 		}
 	}
@@ -84,7 +84,7 @@ public:
 /// target copula described by a historical data (sample)
 class CopInfoData : public CopInfoBy2D {
 protected:
-	int nPts; ///< number of the sample/data points
+	DimT nPts; ///< number of the sample/data points (in the hist. data)
 
 private:
 	/// \name historical data, different formats

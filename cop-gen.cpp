@@ -181,6 +181,14 @@ int main(int argc, char *argv[]) {
 //		p2copData.pop_back(); // removes it from the list
 //	}
 
+	UMatrix A;
+	UMatrix & B = A;
+	cout << "B has " << B.size1() * B.size2() << " elements." << endl;
+	A.resize(2,3);
+	A(0,0) = 5;
+	cout << "B has " << B.size1() * B.size2() << " elements." << endl;
+	cout << "B(0, 0) = " << B(0,0) << endl;
+
 	return 0;
 }
 

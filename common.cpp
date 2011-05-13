@@ -69,15 +69,15 @@ void get_ranks_or_rows(std::vector<UVector> const & valMat, UIMatrix & rankMat)
 }
 
 
-void get_ranks_or_rows(UMatrix const & valMat, UMatrix & rankMat)
+void get_ranks_or_rows(UMatrix const & valMat, UIMatrix & rankMat)
 {
 	// resize rankMat if needed; complain if resizing non-empty matrix
 	if (valMat.size1() != rankMat.size1() || valMat.size2() != rankMat.size2()) {
 		if (rankMat.size1() + rankMat.size2() > 0) {
 			cerr << "Warning from get_ranks_or_rows(): wrong size of output matrix"
 			     << " - resizing!" << endl;
-			rankMat.resize(valMat.size1(), valMat.size2());
 		}
+		rankMat.resize(valMat.size1(), valMat.size2());
 	}
 
 	int nR = valMat.size1();

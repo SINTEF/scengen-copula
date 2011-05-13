@@ -14,6 +14,97 @@ using namespace Copula2D;
 
 // -----------------------------------------------------------------------
 // Cop2DInfo base class
+DimT Cop2DInfo::u_to_grid(double const u) const
+{
+	assert (gridN > 0 && "grid must be set up prior to calling u_to_grid()");
+	assert (!customGridPts && "u_to_grid() does not work with custom grid pts");
+	if (customGridPts) {
+		// custom grid points -> would have to do a line search .. not done yet
+		throw std::logic_error("call to u_to_grid() with custom grid points");
+	}
+	DimT i = (DimT) (u * gridN);
+	assert (isEq(u, gridPts(i)) && "u must be a grid point");
+	return i;
+}
+
+double Cop2DInfo::cdf(double const u, double const v) const
+{
+	if (useGrid) {
+		return gridCdf(u_to_grid(u), u_to_grid(v));
+	} else {
+		assert (u >= 0.0 && u <= 1.0 && v >= 0.0 && v <= 1.0 && "bounds check");
+		// handle boundaries manually - can be problematic in some cases!
+		if (isEq(u, 0.0) || isEq(v, 0.0)) { return 0.0; }
+		if (isEq(u, 1.0)) { return v; }
+		if (isEq(v, 1.0)) { return u; }
+		return calc_cdf(u,v);
+	}
+}
+
+
+void Cop2DInfo::calc_all_grid_cdfs()
+{
+	assert (useGrid && gridN > 0 && gridPts.size() == gridN && "sanity checks");
+
+	gridCdf.resize(gridN, gridN);
+	for (DimT i = 0; i < gridN; ++i) {
+		for (DimT j = 0; j < gridN; ++j) {
+			gridCdf(i, j) = calc_cdf(gridPts(i), gridPts(j));
+		}
+	}
+}
+
+
+void Cop2DInfo::init_cdf_grid(DimT const N, double const posInInt)
+{
+	if (gridN == N && gridPts.size() == N && isEq(gridPts[0], posInInt / N)) {
+		cerr << "Info: init_cdf_grid() called again with the same params!"
+		     << endl;
+		return; // the grid already exists, with the same specs.
+	}
+	// \todo bound checking
+	gridPts.resize(N);
+	for (DimT i = 0; i < N; ++i) {
+		gridPts[i] = (i + posInInt) / N;
+		assert (u_to_grid(gridPts[i]) == i && "sanity check");
+	}
+
+	useGrid = true;
+	gridN = N;
+
+	calc_all_grid_cdfs();
+}
+
+
+void Cop2DInfo::init_cdf_grid(UVector const & gridPos)
+{
+	if (gridN > 0)
+		cerr << "Warning: calling init_cdf_grid() with existing grid!" << endl;
+	// \todo bound checking
+	gridN = gridPos.size();
+	gridPts = gridPos;
+
+	gridCdf.resize(gridN, gridN);
+	for (DimT i = 0; i < gridN; ++i) {
+		for (DimT j = 0; j < gridN; ++j) {
+			gridCdf(i, j) = calc_cdf(gridPts(i), gridPts(j));
+		}
+	}
+
+	useGrid = true;
+	customGridPts = true;
+
+	calc_all_grid_cdfs();
+}
+
+
+void Cop2DInfo::attach_multivar_info(CopulaDef::CopInfoBy2D * const p2tg,
+                                     DimT const i, DimT const j)
+{
+	p2multivarTg = p2tg;
+	if (i >= 0) marg1idx = i;
+	if (j >= 0) marg2idx = j;
+}
 
 
 // -----------------------------------------------------------------------
@@ -28,7 +119,7 @@ Cop2DClayton::Cop2DClayton(double const theta)
 	}
 }
 
-double Cop2DClayton::cdf(const double u, double const v) const
+double Cop2DClayton::calc_cdf(const double u, double const v) const
 {
 	if (fabs(th) < DblEps) {
 		// Clayton cdf is undefined for theta = 0
@@ -52,19 +143,6 @@ Cop2DNelsen2::Cop2DNelsen2(double const theta)
 	}
 }
 
-double Cop2DNelsen2::cdf(const double u, double const v) const
-{
-	// avoiding numerical issues
-	if (u < DblEps || v < DblEps)
-		return 0.0;
-	if (u + DblEps > 1.0)
-		return v;
-	if (v + DblEps > 1.0)
-		return u;
-
-	return max(1 - pow(pow(1 - u, th) + pow(1 - v, th), 1.0 / th), 0.0);
-}
-
 
 // -----------------------------------------------------------------------
 // copula 4.2.18 from Nelsen, pp. 118
@@ -76,19 +154,6 @@ Cop2DNelsen18::Cop2DNelsen18(double const theta)
 		cerr << "ERROR: Parameter theta out of range!";
 		exit(1);
 	}
-}
-
-double Cop2DNelsen18::cdf(const double u, double const v) const
-{
-	// avoiding numerical issues
-	if (u < DblEps || v < DblEps)
-		return 0.0;
-	if (u + DblEps > 1.0)
-		return v;
-	if (v + DblEps > 1.0)
-		return u;
-
-	return max(1 + th / log(exp(th / (u - 1)) + exp(th / (v - 1))), 0.0);
 }
 
 
@@ -107,7 +172,7 @@ Cop2DMarshallOlkin::Cop2DMarshallOlkin(double const alpha_, double const beta_)
 	}
 }
 
-double Cop2DMarshallOlkin::cdf(const double u, const double v) const
+double Cop2DMarshallOlkin::calc_cdf(const double u, const double v) const
 {
 	if (pow(u, alpha) >= pow(v, beta)) {
 		return pow(u, 1.0 - alpha) * v;
@@ -117,6 +182,7 @@ double Cop2DMarshallOlkin::cdf(const double u, const double v) const
 }
 
 
+/*
 // -----------------------------------------------------------------------
 // Copula given by a 2D sample
 template <class T>
@@ -191,24 +257,31 @@ double Cop2DDataOld<T>::cdf(const double u, const double v) const
 // explicit instantiation - tell the compiler which instances to compile
 template class Cop2DDataOld<Vector>;
 //template class Cop2DDataOld< std::vector<double> >; // the same as above
+*/
 
 
 // -----------------------------------------------------------------------
 // Copula given by a 2D sample
 Cop2DData::Cop2DData(UMatrix & histData, int const i, int const j,
                      int const gridSize,
-                     CopulaDef::CopInfoData * const p2CopInf)
-: Cop2DInfo(NULL, i, j), p2multivarTg(p2CopInf),
-  gridN(gridSize), margin1(histData, i), margin2(histData, j), nPts()
+                     CopulaDef::CopInfoBy2D * const p2CopInf)
+: Cop2DInfo(p2CopInf, i, j), margin1(histData, i), margin2(histData, j), nPts()
 {
 	if (gridN > 0) {
 		init_grid();
 	}
 }
 
-void Cop2DData::init_grid()
+
+// has to overwrite the base method, since the values are computed recursively
+void Cop2DData::calc_all_grid_cdfs()
 {
-	int i, j, s;
+	/// sample cdf evaluated on the grid; indexed -1 .. N-1
+	/** implemented using boost::multi_array, to get indices starting from -1 **/
+	IMatrix gridRCdf;
+	typedef boost::multi_array_types::extent_range ExtRange;
+
+	DimT i, j, s;
 	assert (gridN > 0 && "Have to set grid size before calling init_grid()!");
 	// add -1 so we can use the recursive formula!
 	gridRCdf.resize(boost::extents[ExtRange(-1,gridN)][ExtRange(-1,gridN)]);
@@ -218,6 +291,7 @@ void Cop2DData::init_grid()
 		}
 	}
 
+	// get the ranks of the data
 	if (p2multivarTg && marg1idx >= 0 && marg2idx >= 0) {
 		// we have a pointer to the multivar info - ask for margin ranks there!
 		ublas::matrix_row<UIMatrix> margRanks1
@@ -267,19 +341,30 @@ void Cop2DData::init_grid()
 			// at this point, gridRCdf[i][j] includes the rank cdf!
 		}
 	}
+
+	// finally, put values to the main matrix
+	gridCdf.resize(gridN, gridN);
+	for (i = 0; i < gridN; ++i) {
+		for (j = 0; j < gridN; ++j) {
+			gridCdf(i, j) = (double) gridRCdf[i][j] / (double) gridN;
+		}
+	}
 }
 
+/*
 double Cop2DData::cdf(const double u, const double v) const
 {
 	assert (u >= 0.0 && u <= 1.0 && v >= 0.0 && v <= 1.0 && "bounds check");
 	if (isEq(u, 0.0) || isEq(v, 0.0)) { return 0.0; }
 	if (isEq(u, 1.0)) { return v; }
 	if (isEq(v, 1.0)) { return u; }
+	assert (gridN > 0 && "Have to set grid size before calling cdf()!");
 	int i = u012Rank(u, gridN);
 	int j = u012Rank(v, gridN);
 	assert ( i >= 0 && i < gridN && j >= 0 && j < gridN && "sanity check" );
 	return (double) gridRCdf[i][j] / (double) nPts;
 }
+*/
 
 // explicit instantiation - tell the compiler which instances to compile
 //template class Cop2DData<Vector>;
@@ -289,14 +374,23 @@ double Cop2DData::cdf(const double u, const double v) const
 // -----------------------------------------------------------------------
 // Normal copula
 template <class T>
-Cop2DNormal<T>::Cop2DNormal(double const rho, int const gridSize)
-: Cop2DInfo(), correl(rho), gridN(gridSize), N01Cdf2D(rho)
+Cop2DNormal<T>::Cop2DNormal(double const rho)
+: Cop2DInfo(), correl(rho), N01Cdf2D(rho)
 {
-	if (gridN > 0) {
-		init_grid();
+	if (rho < -1 || rho > 1) {
+		throw std::out_of_range("correlation in normal copula out of range");
 	}
 }
 
+template <class T>
+double Cop2DNormal<T>::calc_cdf(double const u, double const v) const
+{
+	double x = N01InvCdf(u);
+	double y = N01InvCdf(v);
+	return N01Cdf2D(x, y);
+}
+
+/*
 template <class T>
 int Cop2DNormal<T>::init_grid()
 {
@@ -329,7 +423,9 @@ int Cop2DNormal<T>::init_grid()
 
 	return 0;
 }
+*/
 
+/*
 template <class T>
 double Cop2DNormal<T>::cdf(const double u, const double v) const
 {
@@ -353,6 +449,7 @@ double Cop2DNormal<T>::cdf(const double u, const double v) const
 	//cout << "TMP: F(" << u << ", " << v << ") = " << F << endl;
 	return F;
 }
+*/
 
 // explicit instantiation - tell the compiler which instances to compile
 template class Cop2DNormal<Vector>;

@@ -20,6 +20,7 @@ namespace Copula2D{
 
 /// specifications of a bivariate copula, used as targets
 class Cop2DInfo {
+	friend class Cop2DInfTr;
 private:
 
 protected:
@@ -28,47 +29,107 @@ protected:
 	DimT marg1idx; ///< index of the first margin in the multivar info object
 	DimT marg2idx; ///< index of the first margin in the multivar info object
 
+	/// calculation of one cdf; used mainly to fill the grid
+	virtual double calc_cdf(double const u, double const v) const = 0;
+
+	/// \name cdf-grid-related members
+	/**
+		For some copulas, the calculation of cdf(u,v) might be quite slow.
+		For this reason, the main algorithm computes pre-computes it and stores
+		it in a matrix, to avoid repeating calls. But this will still mean
+		repeating calculation in cases where we use the same Cop2DInfo object
+		for several pairs of variables. For this reason, it is better to store
+		the values inside the class...
+	**/
+	///@{
+		bool useGrid;    ///< use grid for calculations?
+		bool customGridPts; ///< custom/non-standard grid positions
+		DimT gridN;      ///< size of the grid
+		UVector gridPts; ///< points of the grid - values from [0,1]
+		UMatrix gridCdf; ///< the computed cdf values (values from [0,1])
+
+		/// convert a value from [0,1] into the position on the grid
+		/// \warning at the moment, does not work if customGridPts = true!
+		DimT u_to_grid(double const u) const;
+
+		/// this fill the grid with cdf values
+		/** assumes values in gridPts; allocates gridCdf if needed **/
+		virtual void calc_all_grid_cdfs();
+	///@}
+
 public:
 	Cop2DInfo(CopulaDef::CopInfoBy2D * const p2CopInfo = NULL,
 	          DimT const i = -1, DimT const j = -1)
-	: p2multivarTg(p2CopInfo), marg1idx(i), marg2idx(j)
+	: p2multivarTg(p2CopInfo), marg1idx(i), marg2idx(j),
+	  useGrid(false), customGridPts(false), gridN(0)
 	{}
 
 	virtual ~Cop2DInfo() {}
 
-	/// cdf - calculated, so slower than the grid-based version
-	virtual double cdf(double const u, double const v) const = 0;
-
 	typedef boost::shared_ptr<Cop2DInfo> Ptr;
 
+	/// \name cdf-grid- related methods
+	///@{
+		/// cdf - uses the grid if available, calc_cdf(u,v) otherwise
+		virtual double cdf(double const u, double const v) const;
+
+		/// grid cdf, directly using indices of the grid (fastest)
+		/**
+			\warning no checking -> will fail on index errors!
+		**/
+		double grid_cdf(DimT const i, DimT const j) const {
+			return gridCdf(i, j);
+		}
+
+		/// initialize the grid cdf, regular intervals
+		/**
+			\param[in] N size of the grid
+			\param[in] posInInt position of the grid points inside each interval
+		**/
+		virtual void init_cdf_grid(DimT const N, double const posInInt = 0.5);
+
+		/// initialize the grid cdf, custo grid points
+		/**
+			\param[in] gridSize size of the grid
+			\param[in] gridPos  vector of position of the grid points
+			\note Since we use custom grid points, ::u_to_grid won't work and
+			      hence ::cdf fails -> have to use ::grid_cdf instead!
+		**/
+		virtual void init_cdf_grid(UVector const & gridPos);
+
+		UMatrix const & get_cdf_grid() const { return gridCdf; }
+	///@}
+
 	void attach_multivar_info(CopulaDef::CopInfoBy2D * const p2tg,
-	                          DimT const i = -1, DimT const j = -1)
-	{
-		p2multivarTg = p2tg;
-		if (i >= 0) marg1idx = i;
-		if (j >= 0) marg2idx = j;
-	}
+	                          DimT const i = -1, DimT const j = -1);
 };
 
 
 /// class for the transposed versions of all copulas
+/**
+	Logically, this should should not be a derived class, but a simple class
+	with a pointer and the two cdf methods. We use inheritance so we can pass
+	a pointer as Cop2DInfo*.
+
+	\todo try changing to private or protected inheritance
+**/
 class Cop2DInfTr : public Cop2DInfo {
 private:
-	// note: this is the same as 'const Cop2DInfo *p2copInfo;'
 	Cop2DInfo const *p2copInfo; ///< non-mutable pointer to the transposed obj.
 
+protected:
+	inline double calc_cdf(double const u, double const v) const {
+		return p2copInfo->calc_cdf(u, v);
+	}
 public:
 	/// constructor using a (raw) pointer to the transposed object
 	Cop2DInfTr(Cop2DInfo const & p2Transp)
-	: Cop2DInfo(p2Transp), p2copInfo(&p2Transp) {}
+	: Cop2DInfo(), p2copInfo(&p2Transp) {}
 
 	/// constructor using a smart pointer to the transposed object
 	// the .get() method returns a raw pointer from a smart one
-	Cop2DInfTr(Cop2DInfo::Ptr const p2Transp) : p2copInfo(p2Transp.get()) {}
-
-	double cdf(double const u, double const v) const {
-		return p2copInfo->cdf(v,u);
-	}
+	Cop2DInfTr(Cop2DInfo::Ptr const p2Transp)
+	: Cop2DInfo(), p2copInfo(p2Transp.get()) {}
 };
 
 
@@ -77,10 +138,10 @@ public:
 
 /// The independent copula
 class Cop2DIndep : public Cop2DInfo {
+	double calc_cdf(const double u, const double v) const { return u * v; }
+
 public:
 	Cop2DIndep() : Cop2DInfo() {}
-
-	double cdf(const double u, const double v) const { return u * v; }
 };
 
 
@@ -90,10 +151,10 @@ class Cop2DClayton : public Cop2DInfo {
 private:
 	double th; ///< parameter theta of the copula; th in [-1, inf)
 
+	double calc_cdf(const double u, const double v) const;
+
 public:
 	Cop2DClayton(const double theta);
-
-	virtual double cdf(const double u, const double v) const;
 };
 
 
@@ -102,10 +163,12 @@ class Cop2DNelsen2 : public Cop2DInfo {
 private:
 	double th; ///< parameter theta of the copula; th in [1, inf)
 
+	double calc_cdf(const double u, const double v) const {
+		return std::max(1 - pow(pow(1 - u, th) + pow(1 - v, th), 1.0 / th), 0.0);
+	}
+
 public:
 	Cop2DNelsen2(const double theta);
-
-	virtual double cdf(const double u, const double v) const;
 };
 
 
@@ -114,10 +177,12 @@ class Cop2DNelsen18 : public Cop2DInfo {
 private:
 	double th; ///< parameter theta of the copula; th in [-1, inf)
 
+	double calc_cdf(const double u, const double v) const {
+		return std::max(1 + th / log(exp(th / (u - 1)) + exp(th / (v - 1))), 0.0);
+	}
+
 public:
 	Cop2DNelsen18(const double theta);
-
-	virtual double cdf(const double u, const double v) const;
 };
 
 
@@ -137,10 +202,10 @@ private:
 	double alpha; ///< parameter alpha of the copula; alpha in [0, 1]
 	double beta;  ///< parameter beta of the copula; beta in [0, 1]
 
+	double calc_cdf(const double u, const double v) const;
+
 public:
 	Cop2DMarshallOlkin(double const alpha_, double const beta_);
-
-	virtual double cdf(const double u, const double v) const;
 };
 
 
@@ -148,6 +213,7 @@ public:
 /**
 	T is the type of the margin vector (double * or std::vector<double>)
 **/
+/*
 template <class T>
 class Cop2DDataOld : public Cop2DInfo {
 private:
@@ -168,16 +234,19 @@ public:
 
 	virtual double cdf(const double u, const double v) const;
 };
+*/
 
 
 /// Copula given by a 2D sample
 class Cop2DData : public Cop2DInfo {
 private:
-	CopulaDef::CopInfoData * p2multivarTg;
-	int gridN; ///< size of the grid on which we compute the pdf and cdf
-	/// sample cdf evaluated on the grid; indexed -1 .. N-1
-	/** implemented using boost::multi_array, to get indices starting from -1 **/
-	IMatrix gridRCdf;
+	// have to have it, as it is pure virtual in the base - only a dummy
+	double calc_cdf(double const u, double const v) const {
+		throw std::logic_error("calc_cdf() should never be used in this class");
+		return 0;
+	}
+
+	void calc_all_grid_cdfs(); ///< overwriting the base method
 
 protected:
 	// - using matrix_row, as this does not allocate new data!
@@ -193,7 +262,7 @@ public:
 	/// constructor with a matrix and row numbers
 	Cop2DData(UMatrix & histData, int const i, int const j,
 	          int const gridSize = 0,
-	          CopulaDef::CopInfoData * const  multiCopInf = NULL);
+	          CopulaDef::CopInfoBy2D * const  multiCopInf = NULL);
 
 	// at the moment, this is not supported
 	// would probably have to add a private member with a matrix, since
@@ -215,8 +284,6 @@ template <class T>
 class Cop2DNormal : public Cop2DInfo {
 private:
 	double correl;  ///< correlation
-	int gridN;      ///< size of the grid on which we compute the pdf and cdf
-	Matrix gridCdf; ///< cdf evaluated on the grid; indexed -1 .. N-1
 
 	/// \name QuantLib objects that compute normal CDFs etc.
 	///@{
@@ -226,13 +293,10 @@ private:
 		QuantLib::BivariateCumulativeNormalDistribution N01Cdf2D;
 	///@}
 
-protected:
-	int init_grid();
+	double calc_cdf(double const u, double const v) const;
 
 public:
-	Cop2DNormal(double const rho, int const gridSize = 0);
-
-	int set_grid_size(int const N) { gridN = N; return init_grid(); }
+	Cop2DNormal(double const rho);
 
 	/// computes the cdf of a given pair of values
 	/**

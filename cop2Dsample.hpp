@@ -43,11 +43,8 @@ private:
 		bool have_valid_cop();
 	//@}
 
-	/// \name matrix with the target values of the cdf - speeds things up
-	///@{
-		Matrix tgCdfOfR;      ///< pre-computed matrix of target cdf values
-		void fill_tgCdfOfR(); ///< get the matrix of target cdf values
-	///@}
+	/// reference to a matrix of pre-computed cdf values - points to *p2tgInfo
+	UMatrix const & tgCdfOfR;
 
 	/// \name connection to scenarios of the main alg.
 	//@{
@@ -72,7 +69,7 @@ private:
 		string sampleId; ///< string to identify the sample (for reporting)
 	//@}
 
-	Cop2DInfo const *p2tgInfo; ///< pointer to the target specification (can be 0)
+	Cop2DInfo * p2tgInfo; ///< pointer to the target specification
 
 	/// \name misc. methods
 	//@{
@@ -104,7 +101,7 @@ private:
 
 		/// shortcut to the target rank-cdf, with margins given as ranks
 		inline double tgRCdfOfR(int const i, int const j) const {
-			return N * tgCdfOfR[i][j];
+			return N * tgCdfOfR(i, j);
 		}
 
 		void gen_random();
@@ -128,7 +125,7 @@ private:
 protected:
 
 public:
-	Cop2DSample(int const nSamples, Cop2DInfo const *const p2TgCop,
+	Cop2DSample(int const nSamples, Cop2DInfo *const p2TgCop,
 	            string const id = "");
 
 	~Cop2DSample() {};

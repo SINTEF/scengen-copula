@@ -174,7 +174,7 @@ class TMatrixI : public boost::multi_array<int, 2> {
 */
 
 // use this to get arrays starting at -1: boost::extents[ExtRange(-1,N)]
-typedef boost::multi_array_types::extent_range ExtRange;
+//typedef boost::multi_array_types::extent_range ExtRange;
 
 
 /// Random number generator - integer from 0 to Max-1

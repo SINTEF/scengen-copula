@@ -66,9 +66,9 @@ CopInfoData::CopInfoData(TMatrixI & hRanksMat, bool const fillU01Data)
 **/
 double CopInfoData::cdf(TVectorD const u) const
 {
-	assert (u.size() == (unsigned) nVars);
+	assert (u.size() == nVars);
 
-	int i, j;
+	DimT i, j;
 
 	// if any of the margins is zero, the cdf is zero
 	for (i = 0; i < nVars; ++i) {
@@ -126,8 +126,8 @@ void CopInfoData::read_tg_file(string tgFName)
 
 	hData.resize(nVars,nPts);
 	// read from the file - margins are in columns -> must transpose!
-	for (int j = 0; j < nPts; ++j) {
-		for (int i = 0; i < nVars; ++i) {
+	for (DimT j = 0; j < nPts; ++j) {
+		for (DimT i = 0; i < nVars; ++i) {
 			tgDistF >> hData(i, j);
 		}
 	}
@@ -142,8 +142,8 @@ void CopInfoData::fill_ranks_etc()
 	get_ranks_or_rows(hData, hRanks);
 
 	hU01.resize(nVars, nPts);
-	for (int i = 0; i < nVars; ++i) {
-		for (int j = 0; j < nPts; ++j) {
+	for (DimT i = 0; i < nVars; ++i) {
+		for (DimT j = 0; j < nPts; ++j) {
 			hU01(i,j) = rank2U01(hRanks(i,j), nPts);
 		}
 	}
@@ -152,7 +152,7 @@ void CopInfoData::fill_ranks_etc()
 
 void CopInfoData::setup_2d_targets(bool const makeTranspTgs)
 {
-	int i, j;
+	DimT i, j;
 	p2Info2D.resize(boost::extents[nVars][nVars]);
 	for (i = 0; i < nVars; i++) {
 		for (j = i+1; j < nVars; j++) {
@@ -165,9 +165,9 @@ void CopInfoData::setup_2d_targets(bool const makeTranspTgs)
 
 // non-member accessors to data of the CopInfoData class - used because we
 // cannot forward-declare the members from within cop2Dinfo.hpp!
-UMatrix & cop_info_data_vals(CopInfoData & copInfo) {
+UMatrix & CopulaDef::cop_info_data_vals(CopInfoData & copInfo) {
 	return copInfo.data_vals();
 }
-UIMatrix & cop_info_data_ranks(CopInfoData & copInfo) {
+UIMatrix & CopulaDef::cop_info_data_ranks(CopInfoData & copInfo) {
 	return copInfo.data_ranks();
 }
