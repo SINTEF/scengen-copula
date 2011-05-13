@@ -1,7 +1,7 @@
 #ifndef COP_2D_SAMPLE_HPP
 #define COP_2D_SAMPLE_HPP
 
-#include <string>
+//#include <string>
 //#include <cassert>
 #include <algorithm>
 

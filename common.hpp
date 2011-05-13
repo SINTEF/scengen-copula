@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cassert>
+#include <string>
 
 #ifdef NDEBUG
 	// disable range-checking for boost - must come before other boost headers
@@ -12,6 +13,7 @@
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp> // matrix rows and columns
+//#include <boost/numeric/ublas/io.hpp> // input/output methods
 // new matrix types definitions - everything should converts to these!
 namespace ublas = boost::numeric::ublas; // shortcut name
 typedef ublas::vector<double> UVector;
@@ -21,6 +23,27 @@ typedef ublas::matrix<int> UIMatrix;
 typedef boost::shared_ptr<UIMatrix> UIMatrixPtr;
 typedef UVector::size_type DimT;
 DimT const MaxVecLen = std::numeric_limits<UVector::size_type>::max();
+
+
+/// \name input-output routines for ublas objects
+///@{
+	/// stream output for ublas vectors
+	template<class T>
+	std::ostream & operator<< (std::ostream & os, ublas::vector<T> & v);
+
+	/// stream output for ublas matrices
+	template<class T>
+	std::ostream & operator<< (std::ostream & os, ublas::matrix<T> & M);
+
+	/// stream input for ublas vectors
+	template<class T>
+	std::istream & operator>> (std::istream & is, ublas::vector<T> & v);
+
+	/// output ublas vectors
+	template<class T>
+	std::istream & operator>> (std::istream & is, ublas::matrix<T> & M);
+///@}
+
 
 #include <boost/multi_array.hpp>
 typedef std::vector<double> Vector;
@@ -128,50 +151,6 @@ typedef boost::shared_ptr<TMatrixI> TMatrixIPtr; // smart pointer to TMatrixI
 /// \todo .. make it work for the template
 /// \todo .. add '>>' as well
 std::ostream & operator<<(std::ostream & output, const TMatrixD & M);
-
-/*
-typedef boost::multi_array<double, 2> TMatrixBoost;
-typedef boost::multi_array<double, 1> TVectorBoost;
-class TMatrix : public TMatrixBoost {
-	private:
-		typedef boost::multi_array_types::index_range IRange;
-		index_gen indices;
-
-	public:
-		TMatrix (int const nR, int const nC)
-			: boost::multi_array<double, 2>(boost::extents[nR][nC])
-			{}
-
-		TVectorBoost col(int const c) {
-			return operator[](indices[IRange()][c]);
-		}
-
-		TVectorBoost row(int const r) {
-			return operator[](indices[r][IRange()]);
-		}
-};
-
-typedef boost::multi_array<int, 2> TMatrixIBoost;
-typedef boost::multi_array<int, 1> TVectorIBoost;
-class TMatrixI : public boost::multi_array<int, 2> {
-	private:
-		typedef boost::multi_array_types::index_range IRange;
-		TMatrixIBoost::index_gen indices;
-
-	public:
-		TMatrixI (int const nR, int const nC)
-			: boost::multi_array<int, 2>(boost::extents[nR][nC])
-			{}
-
-		TVectorIBoost col(int const c) {
-			return operator[](indices[IRange()][c]);
-		}
-
-		TVectorIBoost row(int const r) {
-			return operator[](indices[r][IRange()]);
-		}
-};
-*/
 
 // use this to get arrays starting at -1: boost::extents[ExtRange(-1,N)]
 //typedef boost::multi_array_types::extent_range ExtRange;

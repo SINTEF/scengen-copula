@@ -63,14 +63,15 @@ void Cop2DInfo::init_cdf_grid(DimT const N, double const posInInt)
 		return; // the grid already exists, with the same specs.
 	}
 	// \todo bound checking
+
+	useGrid = true;
+	gridN = N;
+
 	gridPts.resize(N);
 	for (DimT i = 0; i < N; ++i) {
 		gridPts[i] = (i + posInInt) / N;
 		assert (u_to_grid(gridPts[i]) == i && "sanity check");
 	}
-
-	useGrid = true;
-	gridN = N;
 
 	calc_all_grid_cdfs();
 }
@@ -81,8 +82,11 @@ void Cop2DInfo::init_cdf_grid(UVector const & gridPos)
 	if (gridN > 0)
 		cerr << "Warning: calling init_cdf_grid() with existing grid!" << endl;
 	// \todo bound checking
+
 	gridN = gridPos.size();
 	gridPts = gridPos;
+	useGrid = true;
+	customGridPts = true;
 
 	gridCdf.resize(gridN, gridN);
 	for (DimT i = 0; i < gridN; ++i) {
@@ -91,13 +95,11 @@ void Cop2DInfo::init_cdf_grid(UVector const & gridPos)
 		}
 	}
 
-	useGrid = true;
-	customGridPts = true;
-
 	calc_all_grid_cdfs();
 }
 
 
+/*
 void Cop2DInfo::attach_multivar_info(CopulaDef::CopInfoBy2D * const p2tg,
                                      DimT const i, DimT const j)
 {
@@ -105,6 +107,7 @@ void Cop2DInfo::attach_multivar_info(CopulaDef::CopInfoBy2D * const p2tg,
 	if (i >= 0) marg1idx = i;
 	if (j >= 0) marg2idx = j;
 }
+*/
 
 
 // -----------------------------------------------------------------------
@@ -263,13 +266,16 @@ template class Cop2DDataOld<Vector>;
 // -----------------------------------------------------------------------
 // Copula given by a 2D sample
 Cop2DData::Cop2DData(UMatrix & histData, int const i, int const j,
-                     int const gridSize,
-                     CopulaDef::CopInfoBy2D * const p2CopInf)
-: Cop2DInfo(p2CopInf, i, j), margin1(histData, i), margin2(histData, j), nPts()
+                     CopulaDef::CopInfoData * const p2CopInf)
+: Cop2DInfo(),
+  p2multivarTg(p2CopInf), marg1idx(i), marg2idx(j),
+  margin1(histData, i), margin2(histData, j), nPts()
 {
+	/*
 	if (gridN > 0) {
 		init_grid();
 	}
+	*/
 }
 
 
@@ -373,8 +379,7 @@ double Cop2DData::cdf(const double u, const double v) const
 
 // -----------------------------------------------------------------------
 // Normal copula
-template <class T>
-Cop2DNormal<T>::Cop2DNormal(double const rho)
+Cop2DNormal::Cop2DNormal(double const rho)
 : Cop2DInfo(), correl(rho), N01Cdf2D(rho)
 {
 	if (rho < -1 || rho > 1) {
@@ -382,8 +387,7 @@ Cop2DNormal<T>::Cop2DNormal(double const rho)
 	}
 }
 
-template <class T>
-double Cop2DNormal<T>::calc_cdf(double const u, double const v) const
+double Cop2DNormal::calc_cdf(double const u, double const v) const
 {
 	double x = N01InvCdf(u);
 	double y = N01InvCdf(v);
@@ -452,5 +456,5 @@ double Cop2DNormal<T>::cdf(const double u, const double v) const
 */
 
 // explicit instantiation - tell the compiler which instances to compile
-template class Cop2DNormal<Vector>;
+//template class Cop2DNormal<Vector>;
 //template class Cop2DNormal< std::vector<double> >; // the same as above

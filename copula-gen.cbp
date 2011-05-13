@@ -92,7 +92,7 @@
 				<Option object_output=".obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="sample 25 -t test.dat" />
+				<Option parameters="normal 25 -t tg_corrs.txt" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
@@ -124,6 +124,7 @@
 		<Unit filename="cop2Dinfo.hpp" />
 		<Unit filename="cop2Dsample.cpp" />
 		<Unit filename="cop2Dsample.hpp" />
+		<Unit filename="copula-info.cpp" />
 		<Unit filename="copula-info.hpp" />
 		<Unit filename="copula-sample.cpp" />
 		<Unit filename="copula-sample.hpp" />

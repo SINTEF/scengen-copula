@@ -9,7 +9,83 @@ using std::cerr;
 using std::endl;
 
 
-//bool isEq(double const x, double const y) { return abs(x - y) < DblEps; }
+// ----------------------------------------------------------------------------
+template<class T>
+std::ostream & operator<< (std::ostream & os, ublas::vector<T> & v)
+{
+	typename ublas::vector<T>::iterator it;
+	for (it = v.begin(); it != v.end(); ++it) {
+		os << *it << " ";
+	}
+	return os;
+}
+
+/// stream output for ublas matrices
+template<class T>
+std::ostream & operator<< (std::ostream & os, ublas::matrix<T> & M)
+{
+	typename ublas::matrix<T>::iterator1 it1;
+	typename ublas::matrix<T>::iterator2 it2;
+	os << endl;
+	for (it1 = M.begin1(); it1 != M.end1(); ++it1) {
+		for (it2 = it1.begin(); it2 != it1.end(); ++it2) {
+			os << *it2 << "\t";
+		}
+		os << endl;
+	}
+	return os;
+}
+
+/// stream input for ublas vectors
+template<class T>
+std::istream & operator>> (std::istream & is, ublas::vector<T> & v)
+{
+	if (v.size() == 0) {
+		// vector not allocated -> assume the size is in the file!
+		DimT vLen;
+		is >> vLen;
+		v.resize(vLen);
+	}
+	typename ublas::vector<T>::iterator it;
+	for (it = v.begin(); it != v.end(); ++it) {
+		is >> *it;
+	}
+	return is;
+}
+
+/// stream input for ublas matrices
+template<class T>
+std::istream & operator>> (std::istream & is, ublas::matrix<T> & M)
+{
+	if (M.size1() * M.size2() == 0) {
+		// matrix not allocated -> assume sizes are the first numbers in 'is'!
+		DimT nRows, nCols;
+		is >> nRows >> nCols;
+		M.resize(nRows, nCols);
+	}
+	typename ublas::matrix<T>::iterator1 it1;
+	typename ublas::matrix<T>::iterator2 it2;
+	for (it1 = M.begin1(); it1 != M.end1(); ++it1) {
+		for (it2 = it1.begin(); it2 != it1.end(); ++it2) {
+			is >> *it2;
+		}
+	}
+	return is;
+}
+
+// list of instances to compile ("explicit instantiation")
+template std::ostream & operator<< (std::ostream &, UVector &);
+template std::ostream & operator<< (std::ostream &, UIVector &);
+template std::ostream & operator<< (std::ostream &, UMatrix &);
+template std::ostream & operator<< (std::ostream &, UIMatrix &);
+//
+template std::istream & operator>> (std::istream &, UVector &);
+template std::istream & operator>> (std::istream &, UIVector &);
+template std::istream & operator>> (std::istream &, UMatrix &);
+template std::istream & operator>> (std::istream &, UIMatrix &);
+
+
+// ----------------------------------------------------------------------------
 bool isEq(double const x, double const y)
 {
 	// warning: abs() is integer, this needs std::abs() or fabs()

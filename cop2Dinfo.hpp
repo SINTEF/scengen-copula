@@ -1,7 +1,6 @@
 #ifndef COP_2D_INFO_HPP
 #define COP_2D_INFO_HPP
 
-#include <cassert>
 // QuantLib libraries used for the normal copula
 #include <ql/math/distributions/bivariatenormaldistribution.hpp>
 
@@ -24,11 +23,6 @@ class Cop2DInfo {
 private:
 
 protected:
-	/// poiner to the multivar info object
-	CopulaDef::CopInfoBy2D * p2multivarTg;
-	DimT marg1idx; ///< index of the first margin in the multivar info object
-	DimT marg2idx; ///< index of the first margin in the multivar info object
-
 	/// calculation of one cdf; used mainly to fill the grid
 	virtual double calc_cdf(double const u, double const v) const = 0;
 
@@ -58,10 +52,8 @@ protected:
 	///@}
 
 public:
-	Cop2DInfo(CopulaDef::CopInfoBy2D * const p2CopInfo = NULL,
-	          DimT const i = -1, DimT const j = -1)
-	: p2multivarTg(p2CopInfo), marg1idx(i), marg2idx(j),
-	  useGrid(false), customGridPts(false), gridN(0)
+	Cop2DInfo()
+	: useGrid(false), customGridPts(false), gridN(0)
 	{}
 
 	virtual ~Cop2DInfo() {}
@@ -100,8 +92,8 @@ public:
 		UMatrix const & get_cdf_grid() const { return gridCdf; }
 	///@}
 
-	void attach_multivar_info(CopulaDef::CopInfoBy2D * const p2tg,
-	                          DimT const i = -1, DimT const j = -1);
+	//void attach_multivar_info(CopulaDef::CopInfoBy2D * const p2tg,
+	//                          DimT const i = -1, DimT const j = -1);
 };
 
 
@@ -240,6 +232,11 @@ public:
 /// Copula given by a 2D sample
 class Cop2DData : public Cop2DInfo {
 private:
+	/// poiner to the multivar info object
+	CopulaDef::CopInfoData * p2multivarTg;
+	DimT marg1idx; ///< index of the first margin in the multivar info object
+	DimT marg2idx; ///< index of the first margin in the multivar info object
+
 	// have to have it, as it is pure virtual in the base - only a dummy
 	double calc_cdf(double const u, double const v) const {
 		throw std::logic_error("calc_cdf() should never be used in this class");
@@ -254,15 +251,14 @@ protected:
 	//   have an array - how would we initialize it?
 	ublas::matrix_row<UMatrix> margin1; ///< values of the first margin
 	ublas::matrix_row<UMatrix> margin2; ///< values of the first margin
-	int nPts;      ///< number of the sample/data points in each margin
+	DimT nPts;      ///< number of the sample/data points in each margin
 
-	void init_grid();
+	//void init_grid();
 
 public:
 	/// constructor with a matrix and row numbers
 	Cop2DData(UMatrix & histData, int const i, int const j,
-	          int const gridSize = 0,
-	          CopulaDef::CopInfoBy2D * const  multiCopInf = NULL);
+	          CopulaDef::CopInfoData * const  multiCopInf = NULL);
 
 	// at the moment, this is not supported
 	// would probably have to add a private member with a matrix, since
@@ -270,17 +266,13 @@ public:
 	//Cop2DData(UVector const & marg1, UVector const & marg2, int const nSamplPts,
 	//          int const gridSize = 0);
 
-	void set_grid_size(int const N) { gridN = N; init_grid(); }
+	//void set_grid_size(int const N) { gridN = N; init_grid(); }
 
-	virtual double cdf(const double u, const double v) const;
+	//virtual double cdf(const double u, const double v) const;
 };
 
 
 /// Normal copula
-/**
-	T is the type of the margin vector (double * or std::vector<double>)
-**/
-template <class T>
 class Cop2DNormal : public Cop2DInfo {
 private:
 	double correl;  ///< correlation
@@ -310,7 +302,7 @@ public:
 		         which we can get on the grid! <br>
 		         All in all, it is probably better to use the grid...
 	**/
-	virtual double cdf(const double u, const double v) const;
+	//virtual double cdf(const double u, const double v) const;
 };
 
 

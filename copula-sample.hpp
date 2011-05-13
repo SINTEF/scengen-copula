@@ -32,12 +32,12 @@ private:
 	**/
 	CopulaDef::CopulaInfo const * p2copInfo;
 
-	/// array of pointers to the Cop2dInfo objects
+	/// matrix of pointers to the Cop2dInfo objects
 	/**
-		all (i,j) members with j<i should be of the Cop2DInfTr type,
-		pointing to the (j,i)
+		It is a (strict) upper-triangular matrix, i.e. we have (i,j) with j > i.
 	**/
-	boost::multi_array<Copula2D::Cop2DInfo::Ptr, 2> & p2tgInfo;
+	CopulaDef::CopInfoBy2D::Cop2DInfoPtMatrix & p2tgInfo;
+	//boost::multi_array<Copula2D::Cop2DInfo::Ptr, 2> & p2tgInfo;
 
 	/// array of pointers to the Cop2DSample objects
 	boost::multi_array<Cop2DSample *, 2> p2sample2D;

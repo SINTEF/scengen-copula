@@ -12,8 +12,17 @@ using namespace std;
 using namespace CopulaDef;
 
 
-CopInfoData::CopInfoData(std::string & tgFName)
-: CopInfoBy2D()
+CopInfoData::CopInfoData(UIMatrix const & hDataMat)
+: CopInfoBy2D(hDataMat.size1(), true),
+  nPts(hDataMat.size2()),
+  hData(hDataMat), hRanks(nVars, nPts), hU01(nVars, nPts)
+{
+	fill_ranks_etc(); // fills hRanks and hU01
+}
+
+
+CopInfoData::CopInfoData(std::string const & tgFName)
+: CopInfoBy2D(0, true)
 {
 	try {
 		read_tg_file(tgFName); // fills hData
@@ -26,14 +35,6 @@ CopInfoData::CopInfoData(std::string & tgFName)
 	fill_ranks_etc(); // fills hRanks and hU01
 }
 
-
-CopInfoData::CopInfoData(UIMatrix const & hDataMat)
-: CopInfoBy2D(hDataMat.size1()),
-  nPts(hDataMat.size2()),
-  hData(hDataMat), hRanks(nVars, nPts), hU01(nVars, nPts)
-{
-	fill_ranks_etc(); // fills hRanks and hU01
-}
 
 /*
 CopInfoData::CopInfoData(TMatrixI & hRanksMat, bool const fillU01Data)
@@ -115,7 +116,7 @@ double CopInfoData::cdf(TVectorD const u) const
 }
 
 
-void CopInfoData::read_tg_file(string tgFName)
+void CopInfoData::read_tg_file(string const & tgFName)
 {
 	// read the input file
 	std::ifstream tgDistF(tgFName.c_str());
@@ -150,14 +151,13 @@ void CopInfoData::fill_ranks_etc()
 }
 
 
-void CopInfoData::setup_2d_targets(bool const makeTranspTgs)
+void CopInfoData::setup_2d_targets()
 {
 	DimT i, j;
-	p2Info2D.resize(boost::extents[nVars][nVars]);
+	p2Info2D.resize(nVars, nVars);
 	for (i = 0; i < nVars; i++) {
 		for (j = i+1; j < nVars; j++) {
-			attach_2d_target(new Copula2D::Cop2DData(hData, i, j), i, j,
-			                 makeTranspTgs);
+			attach_2d_target(new Copula2D::Cop2DData(hData, i, j, this), i, j);
 		}
 	}
 }

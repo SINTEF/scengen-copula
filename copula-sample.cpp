@@ -88,14 +88,14 @@ double CopulaSample::gen_new_margin(int const marg)
 	// find the copulas to be matched
 	// for the moment, assume that the new variable is the second index!!!
 	for (i = 0; i < nVar; i++) {
-		if (i != marg && haveSc4Marg[i] && p2tgInfo[i][marg]) {
+		if (i != marg && haveSc4Marg[i] && p2tgInfo(i, marg)) {
 			// store the margin in the list of copulas (i, marg) to match
 			oldMargins.push_back(i);
-			tg2Dcopulas.push_back(p2tgInfo[i][marg].get());
+			tg2Dcopulas.push_back(p2tgInfo(i, marg).get());
 			// create a new copula-2D-sample object
 			stringstream cop2DId; // using stringstream to get simple conversions
 			cop2DId << "sample_" << i << "_" << marg;
-			p2sample2D[i][marg] = new Cop2DSample(nSc, p2tgInfo[i][marg].get(),
+			p2sample2D[i][marg] = new Cop2DSample(nSc, p2tgInfo(i, marg).get(),
 			                                      cop2DId.str());
 			#ifndef NDEBUG
 				cout << "Created new Cop2DSample with id = " << cop2DId.str() << endl;
@@ -434,8 +434,8 @@ void CopulaSample::write_gmp_data(string const fName)
 				int nTgCops = 0;
 				for (i = 0; i < nVar; ++i) {
 					for (int j = 0; j < nVar; ++j) {
-						if (j != i && p2tgInfo[i][j]) {
-							tgScProb += p2tgInfo[i][j]->cdf(uScen[0], uScen[1]);
+						if (j != i && p2tgInfo(i, j)) {
+							tgScProb += p2tgInfo(i, j)->cdf(uScen[0], uScen[1]);
 							nTgCops ++;
 						}
 					}

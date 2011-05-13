@@ -345,7 +345,7 @@ double Cop2DSample::gen_heur()
 	double minDist;
 
 	assert ((!p2prob || (int) scenOfMarg1R.size() == N)
-					&& "if we have probabilities, we must have column-scens as well");
+	        && "if we have probabilities, we must have column-scens as well");
 
 	/// minimum cdf-improvement for a new best solution
 	/// This controls how much better (in terms of cdf-distance) must a row be
