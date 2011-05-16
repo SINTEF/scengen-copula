@@ -11,8 +11,8 @@
 namespace CopulaDef {
 	class CopInfoBy2D;
 	class CopInfoData;
-	UMatrix & cop_info_data_vals(CopInfoData & copInfo);
-	UIMatrix & cop_info_data_ranks(CopInfoData & copInfo);
+	MatrixD & cop_info_data_vals(CopInfoData & copInfo);
+	MatrixI & cop_info_data_ranks(CopInfoData & copInfo);
 }
 
 namespace Copula2D{
@@ -39,8 +39,8 @@ protected:
 		bool useGrid;    ///< use grid for calculations?
 		bool customGridPts; ///< custom/non-standard grid positions
 		DimT gridN;      ///< size of the grid
-		UVector gridPts; ///< points of the grid - values from [0,1]
-		UMatrix gridCdf; ///< the computed cdf values (values from [0,1])
+		VectorD gridPts; ///< points of the grid - values from [0,1]
+		MatrixD gridCdf; ///< the computed cdf values (values from [0,1])
 
 		/// convert a value from [0,1] into the position on the grid
 		/// \warning at the moment, does not work if customGridPts = true!
@@ -87,9 +87,9 @@ public:
 			\note Since we use custom grid points, ::u_to_grid won't work and
 			      hence ::cdf fails -> have to use ::grid_cdf instead!
 		**/
-		virtual void init_cdf_grid(UVector const & gridPos);
+		virtual void init_cdf_grid(VectorD const & gridPos);
 
-		UMatrix const & get_cdf_grid() const { return gridCdf; }
+		MatrixD const & get_cdf_grid() const { return gridCdf; }
 	///@}
 
 	//void attach_multivar_info(CopulaDef::CopInfoBy2D * const p2tg,
@@ -202,34 +202,6 @@ public:
 
 
 /// Copula given by a 2D sample
-/**
-	T is the type of the margin vector (double * or std::vector<double>)
-**/
-/*
-template <class T>
-class Cop2DDataOld : public Cop2DInfo {
-private:
-	int gridN;        ///< size of the grid on which we compute the pdf and cdf
-	IMatrix gridRCdf; ///< sample cdf evaluated on the grid; indexed -1 .. N-1
-
-protected:
-	T const * margins[2];  ///< the two vectors of margins
-	int nPts; ///< number of the sample/data points
-
-	int init_grid();
-
-public:
-	Cop2DDataOld(T const * marg1, T const * marg2, int const nSamplPts,
-	          int const gridSize = 0);
-
-	int set_grid_size(int const N) { gridN = N; return init_grid(); }
-
-	virtual double cdf(const double u, const double v) const;
-};
-*/
-
-
-/// Copula given by a 2D sample
 class Cop2DData : public Cop2DInfo {
 private:
 	/// poiner to the multivar info object
@@ -249,26 +221,21 @@ protected:
 	// - using matrix_row, as this does not allocate new data!
 	// - matrix_row does not have a default (empty) constructor, so we cannot
 	//   have an array - how would we initialize it?
-	ublas::matrix_row<UMatrix> margin1; ///< values of the first margin
-	ublas::matrix_row<UMatrix> margin2; ///< values of the first margin
+	ublas::matrix_row<MatrixD> margin1; ///< values of the first margin
+	ublas::matrix_row<MatrixD> margin2; ///< values of the first margin
 	DimT nPts;      ///< number of the sample/data points in each margin
 
-	//void init_grid();
 
 public:
 	/// constructor with a matrix and row numbers
-	Cop2DData(UMatrix & histData, int const i, int const j,
+	Cop2DData(MatrixD & histData, int const i, int const j,
 	          CopulaDef::CopInfoData * const  multiCopInf = NULL);
 
 	// at the moment, this is not supported
 	// would probably have to add a private member with a matrix, since
 	// matrix_row need a matrix as a parameter for the constructor
-	//Cop2DData(UVector const & marg1, UVector const & marg2, int const nSamplPts,
+	//Cop2DData(VectorD const & marg1, VectorD const & marg2, int const nSamplPts,
 	//          int const gridSize = 0);
-
-	//void set_grid_size(int const N) { gridN = N; init_grid(); }
-
-	//virtual double cdf(const double u, const double v) const;
 };
 
 
@@ -289,20 +256,6 @@ private:
 
 public:
 	Cop2DNormal(double const rho);
-
-	/// computes the cdf of a given pair of values
-	/**
-		If \c gridN > 0, it uses the values from the grid, otherwise it
-		computes the cdf directly - which is probably slower.
-
-		\warning The two variants give (obviously) the same results only on
-		         the grid. This is important as the grid is in the borders of
-		         the intervals of the support points, but the \a u and \a v
-		         values are (by default) in the middle .. so we never get 0 or 1,
-		         which we can get on the grid! <br>
-		         All in all, it is probably better to use the grid...
-	**/
-	//virtual double cdf(const double u, const double v) const;
 };
 
 

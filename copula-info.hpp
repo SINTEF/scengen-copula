@@ -1,7 +1,8 @@
 #ifndef COPULA_INFO_HPP
 #define COPULA_INFO_HPP
 
-#include <boost/numeric/ublas/triangular.hpp>
+#include <boost/numeric/ublas/symmetric.hpp>  // for correlation matrices
+#include <boost/numeric/ublas/triangular.hpp> // pts. to target 2D copulas
 
 #include "common.hpp"
 #include "cop2Dinfo.hpp"
@@ -25,7 +26,7 @@ public:
 
 	/// cdf at vector \a u = (u_1, .. , u_n)
 	/** should throw an error if used on classes with ::haveCdf == false **/
-	virtual double cdf(UVector const u) const = 0;
+	virtual double cdf(VectorD const u) const = 0;
 
 	DimT dim() const { return nVars; }      ///< get dimension of the copula
 	bool has_cdf() const { return hasCdf; } ///< check if we have ::cdf()
@@ -91,7 +92,7 @@ public:
 	}
 
 	/// cdf at vector \a u = (u_1, .. , u_n)
-	virtual double cdf(UVector const u) const = 0;
+	virtual double cdf(VectorD const u) const = 0;
 
 	typedef boost::shared_ptr<CopInfoBy2D> Ptr;
 };
@@ -109,9 +110,9 @@ private:
 		All matrices have margins in rows, i.e. i-th margin is (i,*).
 	**/
 	///@{
-		UMatrix hData;   ///< hist. data, original values
-		UIMatrix hRanks; ///< hist. data, ranks (values from 1 to N)
-		UMatrix  hU01;   ///< hist. data, ranks scaled to U(0,1)
+		MatrixD hData;   ///< hist. data, original values
+		MatrixI hRanks; ///< hist. data, ranks (values from 1 to N)
+		MatrixD  hU01;   ///< hist. data, ranks scaled to U(0,1)
 	///@}
 
 protected:
@@ -124,7 +125,7 @@ protected:
 
 public:
 	/// constructor with the target data as input
-	CopInfoData(UIMatrix const & hDataMat);
+	CopInfoData(MatrixI const & hDataMat);
 
 	/// constructor with file name of the target distribution
 	CopInfoData(std::string const & tgFName);
@@ -137,24 +138,24 @@ public:
 	/// creates objects for the 2D targets
 	void setup_2d_targets();
 
-	UMatrix & data_vals() { return hData; }
-	UIMatrix & data_ranks() { return hRanks; }
-	UMatrix & data_u01() { return hU01; }
+	MatrixD & data_vals() { return hData; }
+	MatrixI & data_ranks() { return hRanks; }
+	MatrixD & data_u01() { return hU01; }
 
-	double cdf(UVector const u) const;
+	double cdf(VectorD const u) const;
 };
 
 // non-member accessors to data of the CopInfoData class - used because we
 // cannot forward-declare the members from within cop2Dinfo.hpp!
-UMatrix & cop_info_data_vals(CopInfoData & copInfo);
-UIMatrix & cop_info_data_ranks(CopInfoData & copInfo);
+MatrixD & cop_info_data_vals(CopInfoData & copInfo);
+MatrixI & cop_info_data_ranks(CopInfoData & copInfo);
 
 
 // ----------------------------------------------------------------------------
 /// target copula described by a historical data (sample)
 class CopInfoNormal : public CopInfoBy2D {
 private:
-	UMatrix correlMat; ///< correlation matrix
+	ublas::symmetric_matrix<double> correlMat; ///< correlation matrix
 
 protected:
 	/// read the correlation matrix from a file
@@ -163,7 +164,7 @@ protected:
 
 public:
 	/// constructor with the target data as input
-	CopInfoNormal(UMatrix const & correls);
+	CopInfoNormal(MatrixD const & correls);
 
 	/// constructor with file name of the target distribution
 	CopInfoNormal(std::string const & tgFName);
@@ -173,11 +174,10 @@ public:
 	/// creates objects for the 2D targets
 	void setup_2d_targets();
 
-	double cdf(UVector const u) const {
+	double cdf(VectorD const u) const {
 		throw std::logic_error("class CopInfoNormal does not have cdf()");
 	}
 };
-
 
 } // namespace
 

@@ -12,7 +12,7 @@ using namespace std;
 using namespace CopulaDef;
 
 
-CopInfoData::CopInfoData(UIMatrix const & hDataMat)
+CopInfoData::CopInfoData(MatrixI const & hDataMat)
 : CopInfoBy2D(hDataMat.size1(), true),
   nPts(hDataMat.size2()),
   hData(hDataMat), hRanks(nVars, nPts), hU01(nVars, nPts)
@@ -65,7 +65,7 @@ CopInfoData::CopInfoData(TMatrixI & hRanksMat, bool const fillU01Data)
 	This function uses the comparison of U(0,1) values, i.e. the second option
 	from above. This makes it equivalent to the 2D version.
 **/
-double CopInfoData::cdf(UVector const u) const
+double CopInfoData::cdf(VectorD const u) const
 {
 	assert (u.size() == nVars);
 
@@ -165,9 +165,9 @@ void CopInfoData::setup_2d_targets()
 
 // non-member accessors to data of the CopInfoData class - used because we
 // cannot forward-declare the members from within cop2Dinfo.hpp!
-UMatrix & CopulaDef::cop_info_data_vals(CopInfoData & copInfo) {
+MatrixD & CopulaDef::cop_info_data_vals(CopInfoData & copInfo) {
 	return copInfo.data_vals();
 }
-UIMatrix & CopulaDef::cop_info_data_ranks(CopInfoData & copInfo) {
+MatrixI & CopulaDef::cop_info_data_ranks(CopInfoData & copInfo) {
 	return copInfo.data_ranks();
 }

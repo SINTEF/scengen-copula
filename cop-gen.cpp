@@ -5,6 +5,9 @@
 #include <ctime> // needed on gcc-win
 //#include <tclap/CmdLine.h> // processing of command-line arguments
 
+// testing only!
+#include <boost/numeric/ublas/symmetric.hpp>
+
 #include "copula-info.hpp"
 #include "cop2Dsample.hpp"
 #include "copula-sample.hpp"
@@ -20,8 +23,6 @@ namespace prOpt = boost::program_options; // short-cut name
 
 
 int main(int argc, char *argv[]) {
-
-	//int i, j;
 
 	// variables whose values is read from the command line
 	int nSc = 0;               // number of scenarios to generate
@@ -177,7 +178,6 @@ int main(int argc, char *argv[]) {
 
 	if (writeProbAllocData) {
 		// write the AMPL/GMP data file
-//		copSc.attach_tg_cop_info(&tgCopInfo);
 		copSc.write_gmp_data();
 	}
 
@@ -186,29 +186,6 @@ int main(int argc, char *argv[]) {
 //		delete p2copData.back(); // deletes the object
 //		p2copData.pop_back(); // removes it from the list
 //	}
-
-/*
-	cout << endl;
-	UMatrix A;
-	UMatrix & B = A;
-	cout << "B has " << B.size1() * B.size2() << " elements." << endl;
-	A.resize(2,3);
-	for (DimT i = 0; i < A.size1(); ++i)
-		for (DimT j = 0; j < A.size2(); ++j)
-			A(i,j) = A.size2() * i + j + 1;
-	cout << "A = " << A.size1() << "x" << A.size2() << " matrix:" << A;
-	cout << "B has " << B.size1() * B.size2() << " elements." << endl;
-	cout << "B(0, 0) = " << B(0,0) << endl;
-	cout << "B = " << B;
-
-	std::ifstream matF("test.dat");
-	A.clear();
-	cout << "After clear(), matrix A has " << B.size1() * B.size2() << "elements" << endl;
-	A.resize(0, 0);
-	cout << "After resize(0,0), matrix A has " << B.size1() * B.size2() << "elements" << endl;
-	matF >> A;
-	cout << "A = " << A.size1() << "x" << A.size2() << " matrix:" << A;
-*/
 
 	return 0;
 }

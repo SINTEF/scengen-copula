@@ -13,7 +13,7 @@ using namespace CopulaDef;
 // ---------------------------------------------------------------------------
 // class CopInfoNormal
 
-CopInfoNormal::CopInfoNormal(UMatrix const & correls)
+CopInfoNormal::CopInfoNormal(MatrixD const & correls)
 : CopInfoBy2D(correls.size1(), false), correlMat(correls)
 {}
 

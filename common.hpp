@@ -10,21 +10,27 @@
 	#define BOOST_DISABLE_ASSERTS
 #endif
 #include <boost/shared_ptr.hpp>
+
+// ---------------------------------------------------------------------------
+// vector and matrix definitions, using boost::numeric::ublas
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp> // matrix rows and columns
-//#include <boost/numeric/ublas/io.hpp> // input/output methods
-// new matrix types definitions - everything should converts to these!
+
 namespace ublas = boost::numeric::ublas; // shortcut name
-typedef ublas::vector<double> UVector;
-typedef ublas::matrix<double> UMatrix;
-typedef ublas::vector<int> UIVector;
-typedef ublas::matrix<int> UIMatrix;
-typedef boost::shared_ptr<UIMatrix> UIMatrixPtr;
-typedef UVector::size_type DimT;
-DimT const MaxVecLen = std::numeric_limits<UVector::size_type>::max();
+typedef ublas::vector<double> VectorD;
+typedef ublas::matrix<double> MatrixD;
+typedef ublas::vector<int> VectorI;
+typedef ublas::matrix<int> MatrixI;
+typedef boost::shared_ptr<MatrixI> MatrixIPtr;
+typedef VectorD::size_type DimT;
+DimT const MaxVecLen = std::numeric_limits<VectorD::size_type>::max();
 
 /// \name input-output routines for ublas objects
+/**
+	These methods exist in <boost/numeric/ublas/io.hpp>, but they use
+	a different format (put a whole matrix on one line, ..)
+**/
 ///@{
 	/// stream output for ublas vectors
 	template<class T>
@@ -38,16 +44,50 @@ DimT const MaxVecLen = std::numeric_limits<UVector::size_type>::max();
 	template<class T>
 	std::istream & operator>> (std::istream & is, ublas::vector<T> & v);
 
-	/// output ublas vectors
+	/// stream input for ublas matrices
 	template<class T>
 	std::istream & operator>> (std::istream & is, ublas::matrix<T> & M);
+
+	/// stream input for ublas symmetric matrices
+	template<class T>
+	std::istream & operator>> (std::istream & is,
+	                           ublas::symmetric_matrix<T> & M);
 ///@}
 
 
+// ---------------------------------------------------------------------------
 // at a couple of places, we use the boost multi_array for more flexibility
 #include <boost/multi_array.hpp>
+template <typename T>
+class Array2D : public boost::multi_array<T, 2> {
+	private:
+		typedef boost::multi_array_types::index_range IRange;
+		typedef boost::multi_array_types::extent_range ERange;
+		typename boost::multi_array<T, 2>::index_gen indices;
+
+	public:
+		Array2D (DimT const nR, DimT const nC)
+			: boost::multi_array<T, 2>(boost::extents[nR][nC]) {}
+
+		Array2D (DimT const nR, DimT const nC, int const i0)
+			: boost::multi_array<T, 2>(boost::extents[ERange(i0,nR)]
+			                                         [ERange(i0,nC)]) {}
+};
 
 
+// ---------------------------------------------------------------------------
+// in addition, we also use std::vector at a couple of places
+/// print std::vector to a stream
+template<class T>
+std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
+{
+	copy(v.begin(), v.end(), std::ostream_iterator<T>(os, " "));
+	return os;
+}
+
+
+// ---------------------------------------------------------------------------
+// generic macros and difinitions
 /// Random number generator - integer from 0 to Max-1
 /**
 	 rand() is the only random number generator in C++ <br>
@@ -74,35 +114,19 @@ const double DblInf = sqrt(std::numeric_limits<double>::max());
 	#define ECHO(message)
 #endif
 
+// ---------------------------------------------------------------------------
+// misc. functions for the copula-generation code
 /// compute ranks of a given vector
 /**
 	ranks go from 0 to N-1
 **/
 void get_ranks(const std::vector<double> &inputVect, std::vector<int> &ranks);
 
-/// compute ranks of a given vector
-/**
-	ranks go from 0 to N-1
-**/
-//void get_ranks(double const inputVect[], std::vector<int> ranks);
+/// compute ranks of rows of a matrix (i.e. taking one row at a time)
+void get_ranks_or_rows(std::vector<VectorD> const & valMat, MatrixI & rankMat);
 
 /// compute ranks of rows of a matrix (i.e. taking one row at a time)
-void get_ranks_or_rows(std::vector<UVector> const & valMat, UIMatrix & rankMat);
-
-/// compute ranks of rows of a matrix (i.e. taking one row at a time)
-void get_ranks_or_rows(UMatrix const & valMat, UIMatrix & rankMat);
-
-/// compute ranks of rows of a matrix (i.e. taking one row at a time)
-//void get_ranks_or_rows(TMatrixD const & valMat, TMatrixI & rankMat);
-
-/// compute ranks of rows of a matrix (i.e. taking one row at a time)
-/// delete this version when it is no longer needed!
-//void get_ranks_or_rows(std::vector< std::vector<double> > const & valMat,
-//                       TMatrixI & rankMat);
-
-
-/// position of the mass inside the discretization intervals
-//double const discrPt = 0.5; // 0.5 means in the middle
+void get_ranks_or_rows(MatrixD const & valMat, MatrixI & rankMat);
 
 /// convert rank {-1,0,..,N-1} into number from [0,1]
 /**
@@ -133,13 +157,5 @@ inline int u012Rank(double const z, int const N) {
 	return static_cast<int>(ceil(N * (z - DblEps))) - 1;
 }
 
-
-// print vectors using cout
-template<class T>
-std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
-{
-	copy(v.begin(), v.end(), std::ostream_iterator<T>(std::cout, " "));
-	return os;
-}
 
 #endif

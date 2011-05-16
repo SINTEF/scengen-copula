@@ -15,7 +15,7 @@ CopulaSample::CopulaSample(CopulaDef::CopInfoBy2D::Ptr p2tg, int const S,
   haveSc4Marg(nVar, false),
   p2copInfo(p2tg.get()),
   p2tgInfo(p2tg->get_pts_to_2d_targets()),
-  p2sample2D(boost::extents[nVar][nVar]),
+  p2sample2D(nVar, nVar),
   p2prob(NULL), sample(nVar),
   minNumCandScens(numCandPts)
 {
@@ -30,42 +30,6 @@ CopulaSample::CopulaSample(CopulaDef::CopInfoBy2D::Ptr p2tg, int const S,
 	// at the moment, only the transposed targets are allocated in the class
 	//allocTgCops.reserve(nVar * (nVar-1) / 2);
 }
-
-/*
-CopulaSample::CopulaSample(int const dim, int const S,
-                           unsigned const numCandPts)
-: haveSc4Marg(dim, false),
-  p2copInfo(NULL),
-  p2tgInfo(boost::extents[dim][dim]), p2sample2D(boost::extents[dim][dim]),
-  p2prob(NULL), sample(dim),
-  minNumCandScens(numCandPts),
-  nVar(dim), nSc(S)
-{
-	int i, j;
-	for (i = 0; i < nVar; i++) {
-		for (j = 0; j < nVar; j++) {
-			p2tgInfo[i][j] = NULL;
-			p2sample2D[i][j] = NULL;
-		}
-		sample[i].resize(nSc);
-	}
-
-	// at the moment, only the transposed targets are allocated in the class
-	allocTgCops.reserve(nVar * (nVar-1) / 2);
-}
-*/
-
-CopulaSample::~CopulaSample()
-{
-/*
-	// de-allocate the allocated targets
-	while (allocTgCops.size() > 0) {
-		delete p2tgInfo[allocTgCops.back().first][allocTgCops.back().second];
-		allocTgCops.pop_back();
-	}
-*/
-}
-
 
 
 double CopulaSample::gen_new_margin(int const marg)
@@ -123,17 +87,14 @@ double CopulaSample::gen_new_margin(int const marg)
 		- store the best scenarios
 		- after the loop, chose one of the candidates
 	*/
-
 	Copula2D::Cop2DSample::CandList candScens(minNumCandScens, CdfDistEps);
-	//IVector bestScens;     ///< list of scenarios that minimize the distance
-	//bestScens.reserve(10); // this should be enough to prevent reallocations(?)
 	std::vector<bool> scenUsed(nSc, false);
 
-	std::vector<UVector> prevRowCdf(nTg2Dcops); // cdf of the previous row
-	std::vector<UVector> colCdfDist(nTg2Dcops); // dist. of using the columns
+	std::vector<VectorD> prevRowCdf(nTg2Dcops); // cdf of the previous row
+	std::vector<VectorD> colCdfDist(nTg2Dcops); // dist. of using the columns
 	for (tg = 0; tg < nTg2Dcops; tg++) {
 		prevRowCdf[tg] = ublas::zero_vector<double>(nSc);//Vector(nSc, 0);
-		colCdfDist[tg] = UVector(nSc);
+		colCdfDist[tg] = VectorD(nSc);
 	}
 
 	// compute a safe upper bound for the distance:
@@ -147,7 +108,6 @@ double CopulaSample::gen_new_margin(int const marg)
 	for (iR = 0; iR < nSc; iR++) {
 		// init minDist & clean the bestRows array
 		minDist = maxMinDist;
-		//bestScens.clear();
 		candScens.clear();
 
 		for (tg = 0; tg < nTg2Dcops; tg++) {
@@ -166,45 +126,14 @@ double CopulaSample::gen_new_margin(int const marg)
 					int rankInTgMargin = sample[oldMargins[tg]][s]; // CHECK!
 					dist += colCdfDist[tg][rankInTgMargin];
 				}
-
 				candScens.insert_cand(s, dist);
-/*
-				if (dist < minDist - CdfDistEps) {
-					// j is a new best row -> delete current candidates and store j
-					bestScens.clear();
-					bestScens.push_back(s);
-					minDist = dist;
-				} else {
-					if (dist < minDist + CdfDistEps)  {
-						// j is just as good as the best known value -> add to list
-						bestScens.push_back(s);
-						// We could update the minDist here, but that could cause the
-						// list to 'slide' downwards, so we end-up with bad solutions
-						// On the other hand, if we do not update, then we on the next
-						// change of minDist remove also points that are in the range..
-						// The best would probably be to keep all the distances as well,
-						// keep updating minDist and then clean the list at the end.
-						//minDist = min(dist, minDist); // causes problems!
-					}
-				}
-*/
 			}
 		}
 		// now we should have a couple..
 		assert (candScens.get_num_cand() > 0
 		        && "we should have found something...");
 		candScens.get_rand_cand(s, minDist);
-/*		assert (bestScens.size() > 0 && "we should have found something...");
 
-		/// \todo Check!
-		if (bestScens.size() == 1) {
-			// only have one candidate row -> easy
-			s = bestScens[0];
-		} else {
-			// more candidates -> choose randomly, using my macro for random int
-			s = bestScens[irand(bestScens.size())];
-		}
-*/
 		#ifndef NDEBUG
 			cout << "CopulaSample::gen_new_margin(" << marg
 			     << "): new link: iR=" << iR << ", s=" << s
@@ -248,21 +177,6 @@ double CopulaSample::gen_new_margin(int const marg)
 
 	return dist;
 }
-
-
-/*
-/// \todo Write something here!!!
-void CopulaSample::attach_tg_2Dcop(Cop2DInfo const* p2cop,
-                                   int const i, int const j,
-                                   bool makeTranspTg)
-{
-	p2tgInfo[i][j] = p2cop;
-	if (makeTranspTg) {
-		p2tgInfo[j][i] = new Copula2D::Cop2DInfTr(p2cop);
-		allocTgCops.push_back(make_pair(j,i));
-	}
-}
-*/
 
 
 /// the main routine; returns the KS-distance
@@ -318,70 +232,6 @@ void CopulaSample::print_as_txt(string const fName, bool const scaleTo01,
 		}
 		oFile.close();
 	}
-
-	/*
-	// TMP !!!
-	#ifndef NDEBUG
-	Vector iScOfR(nSc);
-	Vector jScOfR(nSc);
-	Vector tgScPr(nSc);
-	for (int j = 1; j < nVar; ++j) {
-		for (int i = 0; i < j; ++i) {
-			if (j != i && haveSc4Marg[i] && p2sample2D[i][j]) {
-				assert (p2tgInfo[i][j]);
-				cout << "summary for 2D-copula (" << i << "," << j << ")" << endl;
-
-				for (int s = 0; s < nSc; ++s) {
-					iScOfR[sample[i][s]] = s;
-					jScOfR[sample[j][s]] = s;
-					tgScPr[s] = 0.0; // init
-				}
-				double sumTgPr = 0.0;
-				for (int iR = 0; iR < nSc; ++iR) {
-					int s = iScOfR[iR];
-					int jR = sample[j][s];
-					assert (jScOfR[jR] == s && "sanity check");
-					double u = (iR + 0.5) / (double) nSc;
-					double v = (jR + 0.5) / (double) nSc;
-					double tgCdf = p2tgInfo[i][j]->cdf(u, v);
-					double tgProb = tgCdf;
-					// now have to subtract all probs included in the cdf:
-					for (int iR2 = 0; iR2 < iR; ++iR2) {
-						int s2 = iScOfR[iR2];
-						int jR2 = sample[j][s2];
-						if (jR2 < jR) {
-							//assert (tgScPr[s2] > 0.0 && "should have been assigned");
-							tgProb -= tgScPr[s2];
-							//assert (tgProb > 0.0 && "sanity check");
-						}
-					}
-					sumTgPr += tgProb;
-					tgScPr[s] = tgProb;
-				}
-				cout << "sum of prob. = " << sumTgPr << endl;
-
-				for (int s = 0; s < nSc; ++s) {
-					double scCdf = p2sample2D[i][j]->cdfOfR(sample[i][s], sample[j][s]);
-					//double u = (sample[i][s] + 0.5) / nSc;
-					//double v = (sample[j][s] + 0.5) / nSc;
-					double u = rank2U01(sample[i][s], nSc);
-					double v = rank2U01(sample[j][s], nSc);
-					double u0 = (sample[i][s] == 0 ? 0.0 : (sample[i][s] - 0.5) / nSc);
-					double v0 = (sample[j][s] == 0 ? 0.0 : (sample[j][s] - 0.5) / nSc);
-					double tgCdf = p2tgInfo[i][j]->cdf(u, v);
-					double scProb = (p2prob ? p2prob[s] : 1.0 / (double) nSc);
-					cout << "\tscen " << s << ": (" << sample[i][s] << "," << sample[j][s]
-					     << ") - sc-cdf = " << scCdf << ", tg-cdf = " << tgCdf
-					     << "; sc-prob = " << scProb << ", tg-prob = " << tgScPr[s]
-					     << " ?=? " << sqrt(p2tgInfo[i][j]->cdf(u, v) - p2tgInfo[i][j]->cdf(u0, v)
-					        - p2tgInfo[i][j]->cdf(u, v0) + p2tgInfo[i][j]->cdf(u0, v0)) << endl;
-				}
-			}
-		}
-	}
-	#endif
-*/
-
 }
 
 
@@ -419,7 +269,7 @@ void CopulaSample::write_gmp_data(string const fName)
 		      << endl;
 
 		double tgScProb;
-		UVector uScen(nVar);
+		VectorD uScen(nVar);
 		oFile << "param tgCdf :=";
 		for (s = 0; s < nSc; ++s) {
 			for (i = 0; i < nVar; ++i) {

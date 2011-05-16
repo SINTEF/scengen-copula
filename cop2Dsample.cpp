@@ -40,37 +40,7 @@ Cop2DSample::Cop2DSample(int const nSamples, Cop2DInfo * const p2TgCop,
 // --------------------------------------------------------------------------
 // PUBLIC METHODS
 
-/*
-void Cop2DSample::set_scen_of_i(IVector const &scenOfColR,
-																double const *p2scProb)
-{
-	if ((int) scenOfMarg1R.size() != N) {
-		assert ((int) scenOfMarg1R.size() == 0
-						&& "number of samples should never change");
-		scenOfMarg1R.resize(N);
-	}
-	int i, s;
-	double scPr;
-
-	for (i = 0; i < N; i++) {
-		scenOfMarg1R[i] = scenOfColR[i];
-	}
-
-	p2prob = p2scProb;
-	double cumPr = 0.0;
-	for (i = 0; i < N; i++) {
-		s = scenOfMarg1R[i]; // scenario of col 'i'
-		// remember that copEvalPts is sorted by ranks, not by scenarios
-		scPr = (p2prob ? p2prob[s] : 1.0 / N);
-		copEvalPts[i] = cumPr + evalPtPos * scPr; // point used in the cdf
-		cumPr += scPr;
-		//cumProb[i] = cumPr;
-	}
-	assert (fabs(cumPr - 1.0) < DblEps && "probabilities must sum up to 1!");
-}
-*/
-
-void Cop2DSample::set_scen_of_marg_1(UIVector const &margScen,
+void Cop2DSample::set_scen_of_marg_1(VectorI const &margScen,
                                      double const *p2scProb)
 {
 	if ((int) scenOfMarg1R.size() != N) {
@@ -179,20 +149,6 @@ bool Cop2DSample::have_valid_cop()
 }
 
 
-/*
-void Cop2DSample::fill_tgCdfOfR()
-{
-	int i, j;
-	for (i = 0; i < N; i++) {
-		double u = copEvalPts[i];
-		for (j = 0; j < N; j++) {
-			tgCdfOfR[i][j] = p2tgInfo->cdf(u, copEvalPts[j]);
-		}
-	}
-}
-*/
-
-
 int Cop2DSample::grid_pts_below (int const iR, int const jR) const
 {
 	assert (!p2prob && "does not make sense for non-equiprobable case!");
@@ -293,45 +249,6 @@ double Cop2DSample::grid_prob_box(int const i0, int const j0,
 
 
 /*
-double Cop2DSample::prob_in_box(int const i0, int const j0,
-                                int const i1, int const j1) const
-{
-	int i, j;
-	double prob = 0.0;
-
-	if (p2prob) {
-		// we have custom probabilities
-		cerr << "ERROR: non-equiprobable scenarios not implemented." << endl;
-	} else {
-		// no custom probabilities -> assume equiprobable
-		int n = 0;
-		if ((i1 - i0) <= (j1 - j0)) {
-			// fewer i's than j's -> do it column-wise
-			for (i = i0; i < i1; i++) {
-				j = i2jC[i];
-				assert (j >= 0 && j < N && "bound check; if it fails, check i2jC");
-				if ((j >= j0) && (j < j1)) {
-					n++;
-				}
-			}
-		} else {
-			// fewer j's than i's -> do it row-wise
-			for (j = j0; j < j1; j++) {
-				i = j2iC[j];
-				assert (i >= 0 && i < N && "bound check; if it fails, check j2iC");
-				if ((i >= i0) && (i < i1)) {
-					n++;
-				}
-			}
-		}
-		prob = n / static_cast<double>(N); // alt: n * 1.0 / N
-	}
-
-	return prob;
-}
-*/
-
-/*
 	If one wants a direct comparison to the MIP method, one should probably
 	round the tgRCdfOfR values - but it gives worse results (bigger KS-dist.)!!
 
@@ -353,7 +270,7 @@ double Cop2DSample::gen_heur()
 	/// bigger values give worse solutions, but different at each run.
 	double CdfDistEps = DblEps; // DblEps should give 'optimal' discretization
 
-	UVector prevColCdf = ublas::zero_vector<double>(N); //N, 0.0);
+	VectorD prevColCdf = ublas::zero_vector<double>(N); //N, 0.0);
 
 	/// list of rows ('j') that minimize the distance
 	/** using std::vector, so we can du .reserve() and .push_back() **/
@@ -512,8 +429,8 @@ void Cop2DSample::CandList::insert_cand(int const index, double const error)
 
 /// \todo make this into a private method and call it also from the
 ///       \a gen_heur() method !!!
-void Cop2DSample::cdf_dist_of_col(int const i, UVector const &prevColCdf,
-                                  UVector &rowCdfDist, bool rowFree[])
+void Cop2DSample::cdf_dist_of_col(int const i, VectorD const &prevColCdf,
+                                  VectorD &rowCdfDist, bool rowFree[])
 {
 	assert (rowFree == NULL && "handling of rowFree is not yet implented...");
 
@@ -553,8 +470,8 @@ void Cop2DSample::cdf_dist_of_col(int const i, UVector const &prevColCdf,
 
 /// \todo make this into a private method and call it also from the
 ///       \a gen_heur() method ???
-void Cop2DSample::cdf_dist_of_row(int const j, UVector const &prevRowCdf,
-                                  UVector &colCdfDist, bool colFree[])
+void Cop2DSample::cdf_dist_of_row(int const j, VectorD const &prevRowCdf,
+                                  VectorD &colCdfDist, bool colFree[])
 {
 	assert (colFree == NULL && "handling of colFree is not yet implented...");
 

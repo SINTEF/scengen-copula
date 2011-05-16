@@ -1,8 +1,6 @@
 #ifndef COP_2D_SAMPLE_HPP
 #define COP_2D_SAMPLE_HPP
 
-//#include <string>
-//#include <cassert>
 #include <algorithm>
 
 #include "common.hpp"
@@ -20,7 +18,6 @@ namespace CopulaScen {
 
 namespace Copula2D {
 
-
 /// sample from a bivariate copula in terms of ranks
 /**
 	Internally, the class only works on connections between ranks.
@@ -33,8 +30,8 @@ private:
 	/// \name main parameters defining the copula
 	//@{
 		int N;        ///< number of sample points in the copula
-		UIVector i2jC; ///< vector of i->j connections
-		UIVector j2iC; ///< vector of j->i connections
+		VectorI i2jC; ///< vector of i->j connections
+		VectorI j2iC; ///< vector of j->i connections
 
 		void update_j2iC_from_i2jC(); ///< synchronize j2iC with i2jC
 		void update_i2jC_from_j2iC(); ///< synchronize i2jC with j2iC
@@ -44,7 +41,7 @@ private:
 	//@}
 
 	/// reference to a matrix of pre-computed cdf values - points to *p2tgInfo
-	UMatrix const & tgCdfOfR;
+	MatrixD const & tgCdfOfR;
 
 	/// \name connection to scenarios of the main alg.
 	//@{
@@ -54,7 +51,7 @@ private:
 
 		/// scenarios of ranks of the 1st margin.
 		/// use \c p2prob[scenOfMarg1R[i]] to get probability of rank \c i
-		UIVector scenOfMarg1R;
+		VectorI scenOfMarg1R;
 
 		//Vector cumProb;     ///< cummulative probabilities
 
@@ -64,7 +61,7 @@ private:
 
 		/// discretization points of the copula marginals.
 		/// these are sorted as 'i', use scenOfRow[] to get scenario values
-		UVector copEvalPts;
+		VectorD copEvalPts;
 
 		string sampleId; ///< string to identify the sample (for reporting)
 	//@}
@@ -150,7 +147,7 @@ public:
 		\param[in] p2scProb pointer to scenario probabilities;
 		           NULL means equiprobable scenarios
 	**/
-	void set_scen_of_marg_1(UIVector const &margScen,
+	void set_scen_of_marg_1(VectorI const &margScen,
 	                        double const *p2scProb = NULL);
 
 	/// the main heuristics (not used from the multi-variate code)
@@ -215,8 +212,6 @@ public:
 					return list.front().value;
 				}
 		};
-
-
 	///@}
 
 
@@ -225,12 +220,6 @@ public:
 		the input values are two ranks, i.e. values from {0 .. N-1}
 	**/
 	double cdfOfR(int const i, int const j) const;
-
-	/// rank cdf -> returns integral values between 0 and N-1
-	/// makes sense only in the equiprobable case!
-	//int rCdfOfR(int const i, int const j) const {
-	//	return u01ToRank(cdfOfR(i, j));
-	//}
 
 	void print_as_txt(string const fName, bool const scaleTo01,
 	                  bool const sortByScen = false);
@@ -244,8 +233,8 @@ public:
 		            rows are available or not; in this case, the rowCdfDist for
 		            the rows with 'false' need not be defined.
 	**/
-	void cdf_dist_of_col(int const i, UVector const &prevColCdf,
-	                     UVector &rowCdfDist, bool rowFree[] = NULL);
+	void cdf_dist_of_col(int const i, VectorD const &prevColCdf,
+	                     VectorD &rowCdfDist, bool rowFree[] = NULL);
 
 	/// Compute the cdf-distance of for a whole row, given Cdf of prev. row.
 	/**
@@ -256,13 +245,12 @@ public:
 		            columns are available or not; in this case, the colCdfDist for
 		            the columns with 'false' need not be defined.
 	**/
-	void cdf_dist_of_row(int const j, UVector const &prevRowCdf,
-	                     UVector &colCdfDist, bool colFree[] = NULL);
+	void cdf_dist_of_row(int const j, VectorD const &prevRowCdf,
+	                     VectorD &colCdfDist, bool colFree[] = NULL);
 
 	/// \todo do this; return false if this breaks another link
 	bool add_link(int const colR, int const rowR);
 };
-
 
 } // namespace
 

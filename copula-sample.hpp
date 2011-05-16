@@ -37,16 +37,15 @@ private:
 		It is a (strict) upper-triangular matrix, i.e. we have (i,j) with j > i.
 	**/
 	CopulaDef::CopInfoBy2D::Cop2DInfoPtMatrix & p2tgInfo;
-	//boost::multi_array<Copula2D::Cop2DInfo::Ptr, 2> & p2tgInfo;
 
 	/// array of pointers to the Cop2DSample objects
-	boost::multi_array<Cop2DSample *, 2> p2sample2D;
+	Array2D<Cop2DSample *> p2sample2D;
 
 	double const *p2prob; ///< pointer to scen. probabilities (can be NULL)
 
 	/// This is the main matrix, including all the scenarios.
 	/// Why don't we use IMatrix - is it because we need to get the columns?
-	std::vector<UIVector> sample;
+	std::vector<VectorI> sample;
 
 	/// used to control the level of stochasticity of the results
 	unsigned minNumCandScens;  // minimal number of candidate points
@@ -54,20 +53,11 @@ private:
 protected:
 	double gen_new_margin(int const iNew);
 
-	/// vector of copulas that have p2tgInfo(i,j) allocated by the class
-	/// \todo do this using smart pointers!
-	//std::vector<std::pair<int,int> > allocTgCops;
-
 public:
-	//CopulaSample(int const dim, int const S, unsigned const numCandPts = 1);
 	CopulaSample(CopulaDef::CopInfoBy2D::Ptr p2tg, int const S,
 	             unsigned const numCandPts = 1);
 
-	virtual ~CopulaSample();
-
-	/// attach one target 2D copula
-	//void attach_tg_2Dcop(Cop2DInfo const* p2cop, int const i, int const j,
-	//                     bool makeTranspTg = true);
+	virtual ~CopulaSample() {}
 
 	/// attach an external vector of scenario probabilities (no mem. allocation)
 	void attach_sc_prob(double const * const scProbs) { p2prob = scProbs; }
@@ -98,8 +88,7 @@ public:
 	/// write a data file for the probability-allocation model
 	void write_gmp_data(string const fName = "prob-alloc.dat");
 
-	int tmp_get_res(int const i, int const s) { return sample[i][s]; }
-
+	//int tmp_get_res(int const i, int const s) { return sample[i][s]; }
 };
 
 } // namespace

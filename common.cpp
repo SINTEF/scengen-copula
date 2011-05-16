@@ -73,17 +73,42 @@ std::istream & operator>> (std::istream & is, ublas::matrix<T> & M)
 	return is;
 }
 
-// list of instances to compile ("explicit instantiation")
-template std::ostream & operator<< (std::ostream &, UVector &);
-template std::ostream & operator<< (std::ostream &, UIVector &);
-template std::ostream & operator<< (std::ostream &, UMatrix &);
-template std::ostream & operator<< (std::ostream &, UIMatrix &);
-//
-template std::istream & operator>> (std::istream &, UVector &);
-template std::istream & operator>> (std::istream &, UIVector &);
-template std::istream & operator>> (std::istream &, UMatrix &);
-template std::istream & operator>> (std::istream &, UIMatrix &);
+#include <boost/numeric/ublas/symmetric.hpp>
 
+/// stream input for ublas matrices
+template<class T>
+std::istream & operator>> (std::istream & is, ublas::symmetric_matrix<T> & M)
+{
+	// using >> for a standard matrix
+	typename ublas::matrix<T> tmpM(M.size1(), M.size2());
+	is >> tmpM;
+	cout << endl << "tmpM = " << tmpM << endl;
+	DimT N = tmpM.size1();
+	assert (tmpM.size2() == N && "must be a square matrix");
+
+	M.resize(N);
+	for (DimT i = 0; i < N; ++i) {
+		for (DimT j = 0; j <= i; ++j) {
+			M(i, j) = tmpM(i, j);
+			assert (isEq(tmpM(j, i), M(i, j)) && "must be symmetric");
+		}
+	}
+	return is;
+}
+
+// list of instances to compile ("explicit instantiation")
+template std::ostream & operator<< (std::ostream &, VectorD &);
+template std::ostream & operator<< (std::ostream &, VectorI &);
+template std::ostream & operator<< (std::ostream &, MatrixD &);
+template std::ostream & operator<< (std::ostream &, MatrixI &);
+//
+template std::istream & operator>> (std::istream &, VectorD &);
+template std::istream & operator>> (std::istream &, VectorI &);
+template std::istream & operator>> (std::istream &, MatrixD &);
+template std::istream & operator>> (std::istream &, MatrixI &);
+//
+template std::istream & operator>> (std::istream &,
+                                    ublas::symmetric_matrix<double> &);
 
 // ----------------------------------------------------------------------------
 bool isEq(double const x, double const y)
@@ -102,18 +127,8 @@ void get_ranks(const std::vector<double> &inputVect, std::vector<int> &ranks) {
 	}
 }
 
-/*
-void get_ranks(double const inputVect[], std::vector<int> ranks); {
-	size_t len = sizeof(inputVect) / sizeof(double);
-	rank(inputVect, len, ranks);
-	for (unsigned i = 0; i < len; i++) {
-		ranks[i]--;
-	}
-}
-*/
 
-
-void get_ranks_or_rows(std::vector<UVector> const & valMat, UIMatrix & rankMat)
+void get_ranks_or_rows(std::vector<VectorD> const & valMat, MatrixI & rankMat)
 {
 	unsigned nR = valMat.size();
 	unsigned nC = valMat[0].size(); // valMat is a vector of vectors, not a matrix!
@@ -145,7 +160,7 @@ void get_ranks_or_rows(std::vector<UVector> const & valMat, UIMatrix & rankMat)
 }
 
 
-void get_ranks_or_rows(UMatrix const & valMat, UIMatrix & rankMat)
+void get_ranks_or_rows(MatrixD const & valMat, MatrixI & rankMat)
 {
 	// resize rankMat if needed; complain if resizing non-empty matrix
 	if (valMat.size1() != rankMat.size1() || valMat.size2() != rankMat.size2()) {
