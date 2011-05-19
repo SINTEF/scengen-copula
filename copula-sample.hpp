@@ -19,8 +19,8 @@ namespace CopulaScen {
 /// the main class for creating a multivariate sample
 class CopulaSample {
 protected:
-	int nVar; ///< number of random variables
-	int nSc;  ///< number of scenarios
+	DimT nVar; ///< number of random variables
+	DimT nSc;  ///< number of scenarios
 
 private:
 	/// indicator if we have generated scenarios for a given margin
@@ -51,10 +51,10 @@ private:
 	unsigned minNumCandScens;  // minimal number of candidate points
 
 protected:
-	double gen_new_margin(int const iNew);
+	double gen_new_margin(DimT const iNew);
 
 public:
-	CopulaSample(CopulaDef::CopInfoBy2D::Ptr p2tg, int const S,
+	CopulaSample(CopulaDef::CopInfoBy2D::Ptr p2tg, DimT const S,
 	             unsigned const numCandPts = 1);
 
 	virtual ~CopulaSample() {}

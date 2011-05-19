@@ -92,7 +92,7 @@
 				<Option object_output=".obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="normal 25 -t tg_corrs.txt" />
+				<Option parameters="sample 25 -t Dorey_cop_2D.txt" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>

@@ -15,10 +15,11 @@ Cop2DSample::Cop2DSample(int const nSamples, Cop2DInfo * const p2TgCop,
 : N(nSamples), i2jC(nSamples, -1), j2iC(nSamples, -1),
   tgCdfOfR(p2TgCop->get_cdf_grid()),
   p2prob(NULL), scenOfMarg1R(0), //cumProb(N),
-  evalPtPos(0.5), copEvalPts(N),
+  //evalPtPos(1.0), copEvalPts(N),
   sampleId(id),
   p2tgInfo(p2TgCop)
 {
+	/*
 	/// \todo do we need this here? it is repeated at set_scen_of_marg_1()!
 	for (int i = 0; i < N; i++) {
 		copEvalPts[i] = (i + evalPtPos) / N; // discretization points
@@ -28,9 +29,10 @@ Cop2DSample::Cop2DSample(int const nSamples, Cop2DInfo * const p2TgCop,
 	if (evalPtPos >= 1.0 - DblEps) {
 		copEvalPts[N-1] = 1.0;
 	}
+	*/
 
 	// initialize the cdf grid of the target info object
-	p2TgCop->init_cdf_grid(nSamples, evalPtPos);
+	p2TgCop->init_cdf_grid(nSamples, 1.0);
 
 	// fill the matrix of target rank-cdf values
 	//fill_tgCdfOfR();
@@ -70,7 +72,7 @@ void Cop2DSample::set_scen_of_marg_1(VectorI const &margScen,
 		s = scenOfMarg1R[i]; // scenario of col 'i'
 		scPr = (p2prob ? p2prob[s] : 1.0 / N);
 		// remember that copEvalPts is sorted by ranks, not by scenarios
-		copEvalPts[i] = cumPr + evalPtPos * scPr; // point used in the cdf
+		//copEvalPts[i] = cumPr + evalPtPos * scPr; // point used in the cdf
 		cumPr += scPr;
 		//cumProb[i] = cumPr;
 	}
@@ -307,7 +309,7 @@ double Cop2DSample::gen_heur()
 			   evalPtPos should not matter for the actual cdf - we just take the
 			   previous one and increase it by the column probability; the value
 			   is taken to be valid in the whole box. evalPtPos comes into play
-			   through tgCdfOfR(), where it is used in computing the evaluation points.
+			   through tgCdfOfR, where it is used in computing the evaluation pts.
 			*/
 			ECHO ("Cop2DSample::gen_heur(): i=" << i << ",j=0 ; jj=" << jj
 			      << "; prevColCdf[" << jj << "]=" << prevColCdf[jj]

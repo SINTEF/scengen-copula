@@ -9,7 +9,7 @@ using namespace CopulaScen;
 
 // --------------------------------------------------------------------------
 // CONSTRUCTORS AND DESTRUCTORS
-CopulaSample::CopulaSample(CopulaDef::CopInfoBy2D::Ptr p2tg, int const S,
+CopulaSample::CopulaSample(CopulaDef::CopInfoBy2D::Ptr p2tg, DimT const S,
                            unsigned const numCandPts)
 : nVar(p2tg->dim()), nSc(S),
   haveSc4Marg(nVar, false),
@@ -19,7 +19,7 @@ CopulaSample::CopulaSample(CopulaDef::CopInfoBy2D::Ptr p2tg, int const S,
   p2prob(NULL), sample(nVar),
   minNumCandScens(numCandPts)
 {
-	int i, j;
+	DimT i, j;
 	for (i = 0; i < nVar; i++) {
 		for (j = 0; j < nVar; j++) {
 			p2sample2D[i][j] = NULL;
@@ -27,15 +27,17 @@ CopulaSample::CopulaSample(CopulaDef::CopInfoBy2D::Ptr p2tg, int const S,
 		sample[i].resize(nSc);
 	}
 
+	//p2tg->init_cdf_grids(S); // done in the 2D classes
+
 	// at the moment, only the transposed targets are allocated in the class
 	//allocTgCops.reserve(nVar * (nVar-1) / 2);
 }
 
 
-double CopulaSample::gen_new_margin(int const marg)
+double CopulaSample::gen_new_margin(DimT const marg)
 {
-	int i, j, s;
-	int tg, iR;
+	DimT i, j, s;
+	DimT tg, iR;
 
 	assert (haveSc4Marg[marg] == false && "the margin has not been generated");
 
@@ -68,7 +70,7 @@ double CopulaSample::gen_new_margin(int const marg)
 			p2sample2D[i][marg]->set_scen_of_marg_1(sample[i], p2prob);
 		}
 	}
-	int nTg2Dcops = tg2Dcopulas.size();
+	DimT nTg2Dcops = tg2Dcopulas.size();
 
 	double dist = 0.0; // init not really needed - just to avoid a gcc warning..
 	double minDist;
@@ -152,7 +154,7 @@ double CopulaSample::gen_new_margin(int const marg)
 			j = sample[i][s]; // the row-rank for the given target copula
 
 			// update prevRowCdf:
-			for (int jj = j; jj < nSc; jj++) {
+			for (DimT jj = j; jj < nSc; jj++) {
 				prevRowCdf[tg][jj] += scProb;
 			}
 
@@ -183,8 +185,7 @@ double CopulaSample::gen_new_margin(int const marg)
 /// \todo Do something here!
 double CopulaSample::gen_sample()
 {
-	int marg;
-	int s;
+	DimT s, marg;
 	double totDist = 0.0;
 
 	// initialize the first margin
@@ -211,9 +212,10 @@ void CopulaSample::print_as_txt(string const fName, bool const scaleTo01,
 	if (!oFile) {
 		cerr << "WARNING: could not open output file " << fName << "!" << endl;
 	} else {
-		int marg, s;
+		DimT marg, s;
 		if (sortByMarg >= 0) {
-			cerr << "Sorting of output by margins si not implemented yet!" << endl;
+			throw std::logic_error(
+				"Sorting of output by margins si not yet implemented!");
 		}
 		if (scaleTo01) {
 			for (s = 0; s < nSc; s++) {
@@ -237,7 +239,7 @@ void CopulaSample::print_as_txt(string const fName, bool const scaleTo01,
 
 void CopulaSample::write_gmp_data(string const fName)
 {
-	int i, s;
+	DimT i, s;
 	std::ofstream oFile;
 	oFile.open(fName.c_str(), std::ios::out);
 	if (!oFile) {
@@ -281,9 +283,9 @@ void CopulaSample::write_gmp_data(string const fName)
 			} else {
 				// no multivar target -> take the average of all the 2D copulas!
 				tgScProb = 0.0;
-				int nTgCops = 0;
+				DimT nTgCops = 0;
 				for (i = 0; i < nVar; ++i) {
-					for (int j = 0; j < nVar; ++j) {
+					for (DimT j = 0; j < nVar; ++j) {
 						if (j != i && p2tgInfo(i, j)) {
 							tgScProb += p2tgInfo(i, j)->cdf(uScen(0), uScen(1));
 							nTgCops ++;

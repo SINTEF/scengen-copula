@@ -39,18 +39,19 @@ public:
 /// class for copulas specified pairwise by their 2D copulas
 class CopInfoBy2D : public CopulaInfo {
 public:
-	typedef ublas::triangular_matrix<Copula2D::Cop2DInfo::Ptr,
-	                                 ublas::strict_upper> Cop2DInfoPtMatrix;
-protected:
-	int n2Dcops; ///< number of bivariate copulas
-
-	/// matrix of pointers to the 2D copula specifications
+	/// type for matrix/array of pointers to the 2D copula info objects
 	/**
 		When adding a new margin, the generation code connects the new margin
 		\c j with the already-generated margins \c i < j, using 2D copulas
 		\c (i,j). If follows that we only need a (strict) upper-triangular
 		matrix to store the 2D copulas.
 	**/
+	typedef ublas::triangular_matrix<Copula2D::Cop2DInfo::Ptr,
+	                                 ublas::strict_upper> Cop2DInfoPtMatrix;
+protected:
+	int n2Dcops; ///< number of bivariate copulas
+
+	/// matrix of pointers to the 2D copula specifications
 	Cop2DInfoPtMatrix p2Info2D;
 	//boost::multi_array<Copula2D::Cop2DInfo::Ptr, 2> p2Info2D;
 
@@ -94,6 +95,25 @@ public:
 	/// cdf at vector \a u = (u_1, .. , u_n)
 	virtual double cdf(VectorD const u) const = 0;
 
+
+	/// initialize cdf grids for all the target 2D copulas; regular intervals
+	/**
+		\param[in] N size of the grid
+		\param[in] useTgPos let the target copula decide the value of \a posInInt
+		\param[in] posInInt position of the grid points inside each interval
+
+	**/
+	//void init_cdf_grids(DimT const N, bool const useTgPos = true,
+	//                    double const posInInt = 0.5);
+
+	/// initialize cdf grids for all the target 2D copulas; custom grid points
+	/**
+		\param[in] gridPos  vector of position of the grid points
+	**/
+	//void init_cdf_grids(VectorD const & gridPos);
+
+
+	/// smart pointer to the class
 	typedef boost::shared_ptr<CopInfoBy2D> Ptr;
 };
 

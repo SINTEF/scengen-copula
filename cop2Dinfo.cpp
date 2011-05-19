@@ -22,7 +22,7 @@ DimT Cop2DInfo::u_to_grid(double const u) const
 		// custom grid points -> would have to do a line search .. not done yet
 		throw std::logic_error("call to u_to_grid() with custom grid points");
 	}
-	DimT i = (DimT) (u * gridN);
+	DimT i = (DimT) ((u - gridPts(0)) * gridN + DblEps);
 	assert (isEq(u, gridPts(i)) && "u must be a grid point");
 	return i;
 }
@@ -44,12 +44,12 @@ double Cop2DInfo::cdf(double const u, double const v) const
 
 void Cop2DInfo::calc_all_grid_cdfs()
 {
-	assert (useGrid && gridN > 0 && gridPts.size() == gridN && "sanity checks");
+	assert (gridN > 0 && gridPts.size() == gridN && "sanity checks");
 
 	gridCdf.resize(gridN, gridN);
 	for (DimT i = 0; i < gridN; ++i) {
 		for (DimT j = 0; j < gridN; ++j) {
-			gridCdf(i, j) = calc_cdf(gridPts(i), gridPts(j));
+			gridCdf(i, j) = cdf(gridPts(i), gridPts(j));
 		}
 	}
 }
@@ -64,16 +64,19 @@ void Cop2DInfo::init_cdf_grid(DimT const N, double const posInInt)
 	}
 	// \todo bound checking
 
-	useGrid = true;
 	gridN = N;
 
 	gridPts.resize(N);
 	for (DimT i = 0; i < N; ++i) {
-		gridPts[i] = (i + posInInt) / N;
-		assert (u_to_grid(gridPts[i]) == i && "sanity check");
+		gridPts(i) = (i + posInInt) / N;
+		assert (u_to_grid(gridPts(i)) == i && "sanity check");
 	}
+	ECHO ("posInInt = " << posInInt << "; gridPts = " << gridPts);
 
+	useGrid = false; // this forces calls to calc_cdf() from cdf()
 	calc_all_grid_cdfs();
+
+	useGrid = true;
 }
 
 
@@ -180,14 +183,15 @@ Cop2DData::Cop2DData(MatrixD & histData, int const i, int const j,
                      CopulaDef::CopInfoData * const p2CopInf)
 : Cop2DInfo(),
   p2multivarTg(p2CopInf), marg1idx(i), marg2idx(j),
-  margin1(histData, i), margin2(histData, j), nPts()
+  margin1(histData, i), margin2(histData, j), nPts(histData.size2())
 {}
 
 
 // has to overwrite the base method, since the values are computed recursively
 void Cop2DData::calc_all_grid_cdfs()
 {
-	DimT i, j, s;
+	int i, j;
+	DimT s;
 	assert (gridN > 0 && "Have to set grid size before calling init_grid()!");
 
 	/// sample cdf evaluated on the grid; indexed -1 .. N-1
@@ -198,8 +202,8 @@ void Cop2DData::calc_all_grid_cdfs()
 
 	// add -1 so we can use the recursive formula!
 	// gridRCdf.resize(boost::extents[ExtRange(-1,gridN)][ExtRange(-1,gridN)]);
-	for (i = -1; i < gridN; i++) {
-		for (j = -1; j < gridN; j++) {
+	for (i = -1; i < (int) gridN; i++) {
+		for (j = -1; j < (int) gridN; j++) {
 			gridRCdf[i][j] = 0; // initialization .. should NOT be necessary!
 		}
 	}
@@ -245,9 +249,9 @@ void Cop2DData::calc_all_grid_cdfs()
 	}
 
 	// compute the grid-cdf
-	for (i = 0; i < gridN; i++) {
+	for (i = 0; i < (int) gridN; i++) {
 		int colCount = 0;
-		for (j = 0; j < gridN; j++) {
+		for (j = 0; j < (int) gridN; j++) {
 			// at this point, gridRCdf[i][j] includes the rank pdf from above
 			colCount += gridRCdf[i][j];
 			gridRCdf[i][j] = gridRCdf[i-1][j] + colCount;
@@ -257,9 +261,9 @@ void Cop2DData::calc_all_grid_cdfs()
 
 	// finally, put values to the main matrix
 	gridCdf.resize(gridN, gridN);
-	for (i = 0; i < gridN; ++i) {
-		for (j = 0; j < gridN; ++j) {
-			gridCdf(i, j) = (double) gridRCdf[i][j] / (double) gridN;
+	for (i = 0; i < (int) gridN; ++i) {
+		for (j = 0; j < (int) gridN; ++j) {
+			gridCdf(i, j) = (double) gridRCdf[i][j] / (double) nPts; // was: gridN;
 		}
 	}
 }

@@ -36,11 +36,11 @@ protected:
 		the values inside the class...
 	**/
 	///@{
-		bool useGrid;    ///< use grid for calculations?
+		bool useGrid;       ///< use cdf grid for calculations?
 		bool customGridPts; ///< custom/non-standard grid positions
-		DimT gridN;      ///< size of the grid
-		VectorD gridPts; ///< points of the grid - values from [0,1]
-		MatrixD gridCdf; ///< the computed cdf values (values from [0,1])
+		DimT gridN;         ///< size of the grid
+		VectorD gridPts;    ///< points of the grid - values from [0,1]
+		MatrixD gridCdf;    ///< the computed cdf values (values from [0,1])
 
 		/// convert a value from [0,1] into the position on the grid
 		/// \warning at the moment, does not work if customGridPts = true!
@@ -58,6 +58,7 @@ public:
 
 	virtual ~Cop2DInfo() {}
 
+	/// smart pointer to the class
 	typedef boost::shared_ptr<Cop2DInfo> Ptr;
 
 	/// \name cdf-grid- related methods
@@ -78,11 +79,10 @@ public:
 			\param[in] N size of the grid
 			\param[in] posInInt position of the grid points inside each interval
 		**/
-		virtual void init_cdf_grid(DimT const N, double const posInInt = 0.5);
+		virtual void init_cdf_grid(DimT const N, double const posInInt = 1.0);
 
-		/// initialize the grid cdf, custo grid points
+		/// initialize the grid cdf, custom grid points
 		/**
-			\param[in] gridSize size of the grid
 			\param[in] gridPos  vector of position of the grid points
 			\note Since we use custom grid points, ::u_to_grid won't work and
 			      hence ::cdf fails -> have to use ::grid_cdf instead!
@@ -223,7 +223,7 @@ protected:
 	//   have an array - how would we initialize it?
 	ublas::matrix_row<MatrixD> margin1; ///< values of the first margin
 	ublas::matrix_row<MatrixD> margin2; ///< values of the first margin
-	DimT nPts;      ///< number of the sample/data points in each margin
+	DimT nPts;     ///< number of the sample/data points in each margin
 
 
 public:

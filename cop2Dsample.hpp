@@ -56,12 +56,27 @@ private:
 		//Vector cumProb;     ///< cummulative probabilities
 
 		/// position of the cdf evaluation point in the discretization intervals.
-		/// reasonable values are 0.5 (cond. mean) or 1.0 (standard emp. cdf)
-		double evalPtPos;
+		/**
+			reasonable values are 0.5 (cond. mean) or 1.0 (standard emp. cdf)
+			\todo Not really needed -> remove???
+		**/
+		/* This was removed, as it was not really used - it looks like the only
+		   reasonable value is 1.0 - for calculation of cdf .. this sits in
+		   the copulaInfo class!
+		   However, we might still want some value for output, which would then
+		   be independent on the other one. On the other hand, the copula sample
+		   is best kept in form of ranks, we can easily transform it later
+		   - except for the cases of unequal probabilities! .. but can we really
+		     handle this in this code anyway???
+		*/
+		//double evalPtPos;
 
 		/// discretization points of the copula marginals.
-		/// these are sorted as 'i', use scenOfRow[] to get scenario values
-		VectorD copEvalPts;
+		/**
+			these are sorted as 'i', use scenOfRow[] to get scenario values
+			\todo These values are not used anywhere -> remove?!?
+		**/
+		//VectorD copEvalPts;
 
 		string sampleId; ///< string to identify the sample (for reporting)
 	//@}
@@ -158,10 +173,11 @@ public:
 	///@{
 		/// index-value pair, with constructor and "<" op. for sorting by value
 		struct IdxValPair {
-			int index;
+			DimT index;
 			double value;
 
-			IdxValPair (int const idx, double const val): index(idx), value(val) {}
+			IdxValPair (DimT const idx, double const val)
+			 : index(idx), value(val) {}
 
 			bool operator< (const IdxValPair& right) const {
 				return (this->value < right.value);
@@ -196,9 +212,9 @@ public:
 					return list[irand(list.size())].index;
 				}
 
-				void get_rand_cand(int &idx, double &val) const {
+				void get_rand_cand(DimT &idx, double &val) const {
 					assert (list.size() > 0 && "needs some values in the list!");
-					int i = irand(list.size());
+					DimT i = irand(list.size());
 					idx = list[i].index;
 					val = list[i].value;
 				}
@@ -241,7 +257,7 @@ public:
 		\param[in]  j index of the row, i.e. the rank \c j
 		\param[in]  prevRowCdf vector of \f$ F(\cdot,j-1) \f$ values
 		\param[out] colCdfDist cdf-distance for putting the link to different cols
-		\param[out] colFree if given, will be filled by indicators whether the
+		\param[out] colFree if given, will be filled with indicators whether the
 		            columns are available or not; in this case, the colCdfDist for
 		            the columns with 'false' need not be defined.
 	**/
