@@ -130,9 +130,9 @@ private:
 		All matrices have margins in rows, i.e. i-th margin is (i,*).
 	**/
 	///@{
-		MatrixD hData;   ///< hist. data, original values
+		MatrixD hData;  ///< hist. data, original values
 		MatrixI hRanks; ///< hist. data, ranks (values from 1 to N)
-		MatrixD  hU01;   ///< hist. data, ranks scaled to U(0,1)
+		MatrixD hU01;   ///< hist. data, ranks scaled to U(0,1)
 	///@}
 
 protected:

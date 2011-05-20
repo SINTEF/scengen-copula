@@ -158,4 +158,17 @@ inline int u012Rank(double const z, int const N) {
 }
 
 
+template<typename T>
+double vec_mean(ublas::vector<T> const & v);
+
+template<typename T>
+double vec_std_dev(ublas::vector<T> const & v, double const mean,
+                   bool const unbiased = false);
+
+
+/// fix mean and standard deviation (if given) of a sample (in-place)
+/** \note At the moment, this assumes equiprobable sample values **/
+void fix_mean_std(VectorD & sample, double mean, double stD = -1.0,
+                  bool unbiasedStD = false);
+
 #endif

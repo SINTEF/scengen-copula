@@ -11,11 +11,13 @@
 #include "copula-info.hpp"
 #include "cop2Dsample.hpp"
 #include "copula-sample.hpp"
+#include "margins.hpp"
 
 using namespace std;
 using namespace Copula2D;
 using namespace CopulaScen;
 using namespace CopulaDef;
+using namespace MarginDistrib;
 
 #include <boost/program_options.hpp>
 #include <sstream>
@@ -28,6 +30,7 @@ int main(int argc, char *argv[]) {
 	int nSc = 0;               // number of scenarios to generate
 	std::string copType;       // type of the copula
 	std::string copParamsF;    // file with copula parameters
+	std::string margType;      // type of the margins
 	std::string margParamsF;   // file with parameters for the margins
 	std::string outputFName;   // output file name
 	int numCandPts = 1;        // minimal number of candidate scenarios
@@ -74,10 +77,12 @@ int main(int argc, char *argv[]) {
 			              "file: target distrib. (for cop=sample)")
 			("cop-par,p", prOpt::value<string>(&copParamsF)
 			              ->default_value("cop-params.dat"),
-			              "file: copula params (for cop=normal)")
-			("marg-par,m", prOpt::value<string>(&margParamsF)
+			              "file: copula params")
+			("marg-type,m", prOpt::value<string>(&margType),
+			               "type of the marginal distributions")
+			("marg-par,d", prOpt::value<string>(&margParamsF)
 			               ->default_value("marg-params.dat"),
-			               "file: margin params (for cop=normal)")
+			               "file: margin params")
 			;
 
 		// hidden options - allowed everywhere, but not shown to the user
@@ -151,6 +156,7 @@ int main(int argc, char *argv[]) {
 
 
 	CopInfoBy2D::Ptr p2tgCop;
+	MarginsInfo::Ptr p2tgMargins;
 
 	if (copType == "sample") {
 		cout << "copula of type 'sample'" << endl;
@@ -160,6 +166,15 @@ int main(int argc, char *argv[]) {
 		p2tgCopData->setup_2d_targets();
 
 		p2tgCop.reset(p2tgCopData); // p2tgCop takes over the pointer
+
+		if (margType == "") {
+			margType = "sample"; // default for sample cop. is sample margins
+		}
+		if (margType == "sample") {
+			// set the margins here, where we have the CopInfoData * pointer
+			// !using default for the second param -> no post-processing!
+			p2tgMargins.reset(new SampleMargins(p2tgCopData->data_vals()));
+		}
 	}
 	if (copType == "normal") {
 		cout << "normal copula" << endl;
@@ -169,6 +184,10 @@ int main(int argc, char *argv[]) {
 		p2tgCopNormal->setup_2d_targets();
 
 		p2tgCop.reset(p2tgCopNormal); // p2tgCop takes over the pointer
+
+		if (margType == "") {
+			margType = "normal"; // default for sample copula
+		}
 	}
 
 	CopulaSample copSc(p2tgCop, nSc, numCandPts);
@@ -176,6 +195,37 @@ int main(int argc, char *argv[]) {
 	copSc.gen_sample();
 	copSc.print_as_txt(outputFName.c_str(), true);
 
+
+	// -------------------------------------------------------------------
+	// transform the margins
+
+	// the sample margins have been set up together with the copula
+	if (margType == "sample" && copType != "sample") {
+		throw std::logic_error("this combination is not supported");
+	}
+
+	if (margType == "normal") {
+		try {
+			// !using default for the second param -> no post-processing!
+			p2tgMargins.reset(new NormalMargins(margParamsF));
+		}
+		catch(exception & e) {
+			cerr << "Error while reading the target means and std. devs" << endl
+			     << e.what() << endl;
+			exit(1);
+		}
+	}
+
+	MatrixI copRanks;
+	copSc.get_result_ranks(copRanks); // get the results in terms of ranks
+	MatrixD resValues;
+	p2tgMargins->get_margin_distr(copRanks, resValues);
+
+	// print the result to cout .. no file specified for it just now!
+	cout << "The final sample, with transformed margins:" << endl
+	     << resValues << endl;
+
+	// -------------------------------------------------------------------
 	if (writeProbAllocData) {
 		// write the AMPL/GMP data file
 		copSc.write_gmp_data();

@@ -181,8 +181,7 @@ double CopulaSample::gen_new_margin(DimT const marg)
 }
 
 
-/// the main routine; returns the KS-distance
-/// \todo Do something here!
+// the main routine; returns the KS-like-distance
 double CopulaSample::gen_sample()
 {
 	DimT s, marg;
@@ -201,6 +200,17 @@ double CopulaSample::gen_sample()
 	}
 
 	return totDist;
+}
+
+
+// get the ranks as one big matrix
+void CopulaSample::get_result_ranks(MatrixI & ranks)
+{
+	DimT i;
+	ranks.resize(nVar, nSc);
+	for (i = 0; i < nVar; ++i) {
+		ublas::row(ranks, i) = sample[i]; // TEST!
+	}
 }
 
 

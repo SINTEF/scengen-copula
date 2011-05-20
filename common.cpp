@@ -189,3 +189,61 @@ void get_ranks_or_rows(MatrixD const & valMat, MatrixI & rankMat)
 		}
 	}
 }
+
+
+template<typename T>
+double vec_mean(ublas::vector<T> const & v)
+{
+	typename ublas::vector<T>::const_iterator it;
+	double mu = 0.0;
+	for (it = v.begin(); it != v.end(); ++it)
+		mu += v(*it);
+	return mu / v.size();
+}
+template double vec_mean(VectorD const &); // compile this for VectorD
+
+
+template<typename T>
+double vec_std_dev(ublas::vector<T> const & v, double const mean,
+                   bool const unbiased = false)
+{
+	typename ublas::vector<T>::const_iterator it;
+	DimT N = v.size();
+	double stD = 0.0;
+	for (it = v.begin(); it != v.end(); ++it)
+		stD += pow(v(*it), 2);
+	stD /= N;            // std = E[X^2]
+	stD -= pow(mean, 2); // std = E[X^2] - (EX)^2 = Var(X)
+	if (stD < 0)
+		throw std::domain_error("negative variance in std_dev()!");
+	if (unbiased)
+		stD *= static_cast<double>(N) / (N - 1.0); // unbiased (instead of MLE)
+	return sqrt(stD);
+}
+template double vec_std_dev(VectorD const &, double const, bool const);
+
+
+void fix_mean_std(VectorD & sample, double mean, double stD, bool unbiasedStD)
+{
+	double curMean = vec_mean(sample);
+	if (stD < 0.0) { // this means std. dev. not given -> fix only the mean
+		// ublas does NOT have "vector + scalar" overloaded operators!
+		// -> we add by creating a temp. vector with the same value at all el.
+		sample += ublas::scalar_vector<double>(sample.size(), mean - curMean);
+	} else {
+		double curStD = vec_std_dev(sample, curMean, unbiasedStD);
+		if (curStD < DblEps) { // zero variance -> problems
+			if (stD < DblEps) { // the target is also zero -> just fix the mean
+				// again creating a temp. scalar vector to do "vector += constant"
+				sample += ublas::scalar_vector<double>(sample.size(),
+				                                       mean - curMean);
+				return;
+			}
+		}
+		double scaling = stD / curStD;
+		sample *= scaling;
+		// again creating a temp. scalar vector to do "vector += constant"
+		sample += ublas::scalar_vector<double>(sample.size(),
+		                                       mean - scaling * curMean);
+	}
+}

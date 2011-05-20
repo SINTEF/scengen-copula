@@ -70,6 +70,9 @@ public:
 	/// the main routine; returns the KS-distance
 	virtual double gen_sample();
 
+	/// get the ranks as one big matrix
+	void get_result_ranks(MatrixI & ranks);
+
 	/// print one 2D copula in a text format
 	void print_2D_as_txt(int const i, int const j,
 	                     string const fName, bool const scaleTo01,

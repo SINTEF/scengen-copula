@@ -132,6 +132,10 @@
 			<Option target="Debug" />
 			<Option target="Release" />
 		</Unit>
+		<Unit filename="margin-distrib.cpp" />
+		<Unit filename="margin-distrib.hpp" />
+		<Unit filename="margins.cpp" />
+		<Unit filename="margins.hpp" />
 		<Unit filename="ranker.h" />
 		<Extensions>
 			<envvars />
