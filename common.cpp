@@ -10,32 +10,6 @@ using std::endl;
 
 
 // ----------------------------------------------------------------------------
-template<class T>
-std::ostream & operator<< (std::ostream & os, ublas::vector<T> & v)
-{
-	typename ublas::vector<T>::iterator it;
-	for (it = v.begin(); it != v.end(); ++it) {
-		os << *it << " ";
-	}
-	return os;
-}
-
-/// stream output for ublas matrices
-template<class T>
-std::ostream & operator<< (std::ostream & os, ublas::matrix<T> & M)
-{
-	typename ublas::matrix<T>::iterator1 it1;
-	typename ublas::matrix<T>::iterator2 it2;
-	os << endl;
-	for (it1 = M.begin1(); it1 != M.end1(); ++it1) {
-		for (it2 = it1.begin(); it2 != it1.end(); ++it2) {
-			os << *it2 << "\t";
-		}
-		os << endl;
-	}
-	return os;
-}
-
 /// stream input for ublas vectors
 template<class T>
 std::istream & operator>> (std::istream & is, ublas::vector<T> & v)
@@ -97,11 +71,6 @@ std::istream & operator>> (std::istream & is, ublas::symmetric_matrix<T> & M)
 }
 
 // list of instances to compile ("explicit instantiation")
-template std::ostream & operator<< (std::ostream &, VectorD &);
-template std::ostream & operator<< (std::ostream &, VectorI &);
-template std::ostream & operator<< (std::ostream &, MatrixD &);
-template std::ostream & operator<< (std::ostream &, MatrixI &);
-//
 template std::istream & operator>> (std::istream &, VectorD &);
 template std::istream & operator>> (std::istream &, VectorI &);
 template std::istream & operator>> (std::istream &, MatrixD &);

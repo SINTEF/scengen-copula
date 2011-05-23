@@ -29,16 +29,48 @@ DimT const MaxVecLen = std::numeric_limits<VectorD::size_type>::max();
 /// \name input-output routines for ublas objects
 /**
 	These methods exist in <boost/numeric/ublas/io.hpp>, but they use
-	a different format (put a whole matrix on one line, ..)
+	a different format (put a whole matrix on one line, ..). We use
+	ublas::vector_expression<> and ublas::matrix_expression<> instead of
+	ublas::vector<> and ublas::matrix<>, so we can print results of operations
+	like trans() etc.
+
+	The implementations of the output operations are here in the header file,
+	to avoid explicit instantiation in the .cpp file. For example, we would need
+	to add a new type if we wanted to print a transposed matrix, since trans()
+	returns a special (and rather cryptic) type..
 **/
 ///@{
-	/// stream output for ublas vectors
-	template<class T>
-	std::ostream & operator<< (std::ostream & os, ublas::vector<T> & v);
+	/// stream output for ublas vectors (\a VT is the vector class)
+	template<class VT>
+	std::ostream & operator<< (std::ostream & os,
+	                           const ublas::vector_expression<VT> & v)
+	{
+		// Note: the vector_expression<VT> has only one method "()", which
+		// returns "& VT" or "const & VT" - a ref. to the included vector object.
+		typename VT::const_iterator it;
+		for (it = v().begin(); it != v().end(); ++it) {
+			os << *it << " ";
+		}
+		return os;
+	}
 
-	/// stream output for ublas matrices
-	template<class T>
-	std::ostream & operator<< (std::ostream & os, ublas::matrix<T> & M);
+	/// stream output for ublas matrices (\a MT is the matrix class)
+	template<class MT>
+	std::ostream & operator<< (std::ostream & os,
+	                           const ublas::matrix_expression<MT> & M)
+	{
+		// Note: the matrix_expression<MT> has only one method "()", which
+		// returns "& MT" or "const & MT" - a ref. to the included matrix object.
+		typename MT::const_iterator1 it1;
+		typename MT::const_iterator2 it2;
+		for (it1 = M().begin1(); it1 != M().end1(); ++it1) {
+			for (it2 = it1.begin(); it2 != it1.end(); ++it2) {
+				os << *it2 << "\t";
+			}
+			os << std::endl;
+		}
+		return os;
+	}
 
 	/// stream input for ublas vectors
 	template<class T>
@@ -52,6 +84,16 @@ DimT const MaxVecLen = std::numeric_limits<VectorD::size_type>::max();
 	template<class T>
 	std::istream & operator>> (std::istream & is,
 	                           ublas::symmetric_matrix<T> & M);
+///@}
+
+/// \name other functions related to the vector and matrix objects
+///@{
+	template<typename T>
+	double vec_mean(ublas::vector<T> const & v);
+
+	template<typename T>
+	double vec_std_dev(ublas::vector<T> const & v, double const mean,
+	                   bool const unbiased = false);
 ///@}
 
 
@@ -156,14 +198,6 @@ inline int u012Rank(double const z, int const N) {
 	// subtract epsilon, to avoid numerical issues with ceil()
 	return static_cast<int>(ceil(N * (z - DblEps))) - 1;
 }
-
-
-template<typename T>
-double vec_mean(ublas::vector<T> const & v);
-
-template<typename T>
-double vec_std_dev(ublas::vector<T> const & v, double const mean,
-                   bool const unbiased = false);
 
 
 /// fix mean and standard deviation (if given) of a sample (in-place)
