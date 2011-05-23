@@ -32,93 +32,18 @@
 					<Add option="-s" />
 				</Linker>
 			</Target>
-			<Target title="cop-solver-deb">
-				<Option output="bin/Debug/cop-gen" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="bin/Debug/" />
-				<Option object_output=".obj/Debug/" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Option parameters="25 -r 0 -i test.dat" />
-				<Compiler>
-					<Add option="-g" />
-				</Compiler>
-			</Target>
-			<Target title="cop-solver-rel">
-				<Option output="bin/Release/cop-gen" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="bin/Release/" />
-				<Option object_output=".obj/Release/" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-fexpensive-optimizations" />
-					<Add option="-O3" />
-					<Add option="-DNDEBUG" />
-				</Compiler>
-			</Target>
-			<Target title="cop_normal_Rel">
-				<Option output="bin/Release/cop-gen_normal" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="bin/Release" />
-				<Option object_output=".obj/Release/" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-fexpensive-optimizations" />
-					<Add option="-O3" />
-					<Add option="-DNDEBUG" />
-				</Compiler>
-				<Linker>
-					<Add option="-s" />
-				</Linker>
-			</Target>
-			<Target title="cop_norm-exp-val_Rel">
-				<Option output="bin/Release/cop-gen_normal_exp-val" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="bin/Release" />
-				<Option object_output=".obj/Release/" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-fexpensive-optimizations" />
-					<Add option="-O3" />
-					<Add option="-DNDEBUG" />
-					<Add option="-DUSING_COND_MEANS" />
-				</Compiler>
-				<Linker>
-					<Add option="-s" />
-				</Linker>
-			</Target>
-			<Target title="test-Debug">
-				<Option output="bin/Debug/copula-gen" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="bin/Debug" />
-				<Option object_output=".obj/Debug/" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Option parameters="sample 25 -t Dorey_cop_2D.txt" />
-				<Compiler>
-					<Add option="-g" />
-				</Compiler>
-				<Linker>
-					<Add library="boost_program_options" />
-				</Linker>
-			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
 		<Linker>
+			<Add library="boost_program_options" />
 			<Add library="QuantLib" />
 		</Linker>
 		<Unit filename="common.cpp" />
 		<Unit filename="common.hpp" />
-		<Unit filename="cop-gen.cpp">
-			<Option target="cop-solver-rel" />
-			<Option target="cop-solver-deb" />
-			<Option target="test-Debug" />
-		</Unit>
-		<Unit filename="cop-gen_tmp_normal.cpp">
-			<Option target="cop_normal_Rel" />
-			<Option target="cop_norm-exp-val_Rel" />
-		</Unit>
+		<Unit filename="cop-gen.cpp" />
 		<Unit filename="cop-info_hist-data.cpp" />
 		<Unit filename="cop2Dinfo.cpp" />
 		<Unit filename="cop2Dinfo.hpp" />
@@ -128,10 +53,6 @@
 		<Unit filename="copula-info.hpp" />
 		<Unit filename="copula-sample.cpp" />
 		<Unit filename="copula-sample.hpp" />
-		<Unit filename="main.cpp">
-			<Option target="Debug" />
-			<Option target="Release" />
-		</Unit>
 		<Unit filename="margin-distrib.cpp" />
 		<Unit filename="margin-distrib.hpp" />
 		<Unit filename="margins.cpp" />
