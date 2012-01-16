@@ -5,6 +5,9 @@
 #include "copula-info.hpp"
 
 using namespace CopulaDef;
+using std::cout;
+using std::cerr;
+using std::endl;
 
 // ---------------------------------------------------------------------------
 // class CopInfoBy2D
@@ -57,7 +60,9 @@ CopInfoNormal::CopInfoNormal(std::string const & tgFName)
 		read_correl_mat(tgFName);
 	}
 	catch(std::exception& e) {
-		std::cerr << e.what() << std::endl;
+		cerr << "Error: Could not open data file `" << tgFName
+		     << "' for the normal copula!" << endl;
+		cerr << "       The error message was: " << e.what() << endl;
 		throw; // re-throw the exception
 	}
 }
@@ -68,8 +73,8 @@ void CopInfoNormal::read_correl_mat(std::string const & tgFName)
 	// read the input file
 	std::ifstream tgCorrF(tgFName.c_str());
 	if (!tgCorrF) {
-		throw std::ios_base::failure("Could not open input file "
-		                             + tgFName + "!");
+		throw std::ios_base::failure("Could not open input file `"
+		                             + tgFName + "'!");
 	}
 	tgCorrF >> correlMat; // this should read the matrix, including dimensions
 

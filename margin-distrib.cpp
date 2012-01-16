@@ -57,7 +57,7 @@ double MarginNormal::inv_cdf(DimT const r, DimT const N) const
 
 
 // ---------------------------------------------------------------------------
-// class MarginNormal
+// class MarginSample
 
 MarginSample::MarginSample(VectorD const & sample, SamplePP const postP)
 : UnivarMargin(postP), sortedS(sample), nPts(sample.size())

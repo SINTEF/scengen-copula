@@ -28,8 +28,9 @@ CopInfoData::CopInfoData(std::string const & tgFName)
 		read_tg_file(tgFName); // fills hData
 	}
 	catch(exception& e) {
-		cerr << e.what() << endl;
-		exit(1);
+		cerr << "Error: Could not open target file `" << tgFName << "'" << endl;
+		cerr << "       The error message was: " << e.what() << endl;
+		throw; // re-throw the exception
 	}
 
 	fill_ranks_etc(); // fills hRanks and hU01

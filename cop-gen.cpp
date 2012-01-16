@@ -24,6 +24,9 @@ using namespace MarginDistrib;
 namespace prOpt = boost::program_options; // short-cut name
 
 
+enum CopTypeIDs {cUnknown, cSample, cNormal};
+
+
 int main(int argc, char *argv[]) {
 
 	/*
@@ -38,14 +41,14 @@ int main(int argc, char *argv[]) {
 
 	// variables whose values is read from the command line
 	int nSc = 0;                // number of scenarios to generate
-	string copType;             // type of the copula
-	string copParamsF;          // file with copula parameters
-	string margType;            // type of the margins
-	string margParamsF;         // file with parameters for the margins
-	string outputFName;         // output file name
+	string copType = "";        // type of the copula
+	string copParamsF = "";     // file with copula parameters
+	string margType = "";       // type of the margins
+	string margParamsF = "";    // file with parameters for the margins
+	string outputFName = "";    // output file name
 	bool transfMargins = false; // transform margins to target distrib.?
 	bool outputCopula = false;  // output copula, in addition to the distrib.?
-	string outCopFName;         // output file name for the copula
+	string outCopFName = "";    // output file name for the copula
 	bool copAsRanks = false;    // output copula in terms of ranks?
 	int numCandPts = 1;         // minimal number of candidate scenarios
 	int randSeed;               // random seed
@@ -53,8 +56,8 @@ int main(int argc, char *argv[]) {
 
 	stringstream helpHeader;
 	helpHeader << "Copula generation code by Michal Kaut" << endl << endl
-	           << "Usage: " << argv[0] << " sample|normal nmb-scens [options]"
-	           << endl;
+	           << "Usage: " << argv[0] << " [options] nmb-scens" << endl
+	           << " Help: " << argv[0] << " --help" << endl;
 
 	// NEW: re-implementing using boost::program_options
 	try{
@@ -86,7 +89,8 @@ int main(int argc, char *argv[]) {
 		// method-specific options - allowed from both sources
 		prOpt::options_description methodOpt("Method-specific options");
 		methodOpt.add_options()
-			("cop-type,c", prOpt::value<string>(&copType), "copula type/family")
+			("cop-type,c", prOpt::value<string>(&copType)->required(),
+			               "copula type/family")
 			("input,i", prOpt::value<string>(&copParamsF)
 			            ->default_value("cop-params.dat"),
 			            "input file: copula parameters")
@@ -99,7 +103,8 @@ int main(int argc, char *argv[]) {
 		// hidden options - allowed everywhere, but not shown to the user
 		prOpt::options_description hiddenOpt("Hidden options");
 		hiddenOpt.add_options()
-			("nmb-scen", prOpt::value<int>(&nSc), "number of scenarios")
+			("nmb-scen", prOpt::value<int>(&nSc)->required(),
+			             "number of scenarios")
 			("num-cand-pts", prOpt::value<int>(&numCandPts)->default_value(1),
 			                 "min number of cand. scenarios")
 			("out-prob-alloc", prOpt::bool_switch(&writeProbAllocData),
@@ -124,15 +129,24 @@ int main(int argc, char *argv[]) {
 		             options(cmdLineOpt).positional(posArg).run(), optV);
 		// a simpler syntax without positional options:
 		//prOpt::store(prOpt::parse_command_line(argc, argv, allOpt), optV);
-		prOpt::notify(optV);
 
 		// process the config file
-		ifstream confF(configFName.c_str());
-		if (!confF && optV.count("config")) {
-			throw ios_base::failure("the specified config file does not exist");
+		if (optV.count("config")) {
+			ifstream confF(configFName.c_str());
+			if (!confF) {
+				throw ios_base::failure("the specified config file does not exist");
+			}
+			store(prOpt::parse_config_file(confF, confOpt), optV);
 		}
-		store(prOpt::parse_config_file(confF, confOpt), optV);
-		prOpt::notify(optV);
+
+		/*
+			At this point, we have processed both the command line and config file.
+			If we now called 'prOpt::notify(optV)', it would throw an exception
+			if any of the required parameters were missing .. even if we called
+			the program with "--help"; see stackoverflow.com/questions/5395503/.
+			This means that we have to check all the special options first,
+			before checking the correctness of the input.
+		*/
 
 		// deal with options that need extra action
 		if (optV.count("version")) {
@@ -149,9 +163,10 @@ int main(int argc, char *argv[]) {
 			cout << helpHeader.str() << visibleOpt;
 			return 0;
 		}
-		if (!optV.count("nmb-scen")) {
-			throw ios_base::failure(helpHeader.str());
-		}
+
+		// now check the input - with throw an exception on errors
+		prOpt::notify(optV);
+
 		if (randSeed < 0) {
 			randSeed = time(NULL);
 		}
@@ -169,7 +184,12 @@ int main(int argc, char *argv[]) {
 	}
 	catch(exception& e) {
 		cerr << e.what() << endl;
+		cout << endl << "For help, call: " << argv[0] << " --help" << endl;
 		exit(1);
+	}
+	catch(...) {
+		cerr << "Unknown error!" << endl;
+		exit(2);
 	}
 
 	srand(randSeed); // set the random seed
@@ -178,43 +198,82 @@ int main(int argc, char *argv[]) {
 	// -------------------------------------------------------------------
 	// setup copula objects + generate the copula scenarios
 
+	/// \todo this should go somewhere else!?!
+	/*
+	std::map<CopTypeIDs, string> copNameMap;
+	copNameMap[cSample] = "sample";
+	copNameMap[cNormal] = "normal";
+	*/
+	std::map<string, CopTypeIDs> copNameMap;
+	std::map<string, CopTypeIDs>::iterator cIt;
+	copNameMap["sample"] = cSample;
+	copNameMap["normal"] = cNormal;
+
 	CopInfoBy2D::Ptr p2tgCop;
 	MarginsInfo::Ptr p2tgMargins;
 
-	if (copType == "sample") {
+	// first check if the given copula type exists
+	if (copNameMap.count(copType) == 0) {
+		cerr << "Unknown copula type `" << copType << "' .. aborting!" << endl;
+		cout << "Known copula types are:";
+		for (cIt = copNameMap.begin(); cIt != copNameMap.end(); ++ cIt)
+			cout << " " << cIt->first;
+		cout << endl;
+		exit(1);
+	}
+	// copula type is OK -> it is safe to use copNameMap[copType]
+	try {
+	switch (copNameMap[copType]) {
+	case cSample: // "sample"
 		cout << "copula of type 'sample'" << endl;
+		// We need to use a block here, so we can have local variables;
+		// these are needed to access the model-specific methods
+		{
+			CopInfoData * p2tgCopData = new CopInfoData(copParamsF);
+			p2tgCopData->setup_2d_targets();
 
+			p2tgCop.reset(p2tgCopData); // p2tgCop takes over the pointer
+
+			if (margType == "") {
+				margType = "sample"; // default for sample cop. is sample margins
+			}
+			if (margType == "sample") {
+				// set the margins here, where we have the CopInfoData * pointer
+				// !using default for the second param -> no post-processing!
+				p2tgMargins.reset(new SampleMargins(p2tgCopData->data_vals()));
+			}
+		}
+		break;
+	case cNormal: // "normal"
+		cout << "copula of type 'normal'" << endl;
 		// create a new object of the specific class
-		CopInfoData * p2tgCopData = new CopInfoData(copParamsF);
-		p2tgCopData->setup_2d_targets();
+		{
+			CopInfoNormal * p2tgCopNormal = new CopInfoNormal(copParamsF);
+			p2tgCopNormal->setup_2d_targets();
 
-		p2tgCop.reset(p2tgCopData); // p2tgCop takes over the pointer
+			p2tgCop.reset(p2tgCopNormal); // p2tgCop takes over the pointer
 
-		if (margType == "") {
-			margType = "sample"; // default for sample cop. is sample margins
+			if (margType == "") {
+				margType = "normal"; // default for sample copula
+			}
 		}
-		if (margType == "sample") {
-			// set the margins here, where we have the CopInfoData * pointer
-			// !using default for the second param -> no post-processing!
-			p2tgMargins.reset(new SampleMargins(p2tgCopData->data_vals()));
-		}
+		break;
+	default:
+		cerr << "ERROR: file " << __FILE__ << ", line " << __LINE__
+		     << " .. should never be here!" << endl;
+		exit(1);
 	}
-	if (copType == "normal") {
-		cout << "normal copula" << endl;
-
-		// create a new object of the specific class
-		CopInfoNormal * p2tgCopNormal = new CopInfoNormal(copParamsF);
-		p2tgCopNormal->setup_2d_targets();
-
-		p2tgCop.reset(p2tgCopNormal); // p2tgCop takes over the pointer
-
-		if (margType == "") {
-			margType = "normal"; // default for sample copula
-		}
 	}
+	catch(exception& e) {
+		cerr << "Error: There was some problem initializing the copula!" << endl
+		     << "       The error message was: " << e.what() << endl;
+		exit(1);
+	}
+	ECHO ("at " << __FILE__ << ", l. " << __LINE__ << ".");
 
 	CopulaSample copSc(p2tgCop, nSc, numCandPts);
 	copSc.gen_sample();
+	ECHO ("at " << __FILE__ << ", l. " << __LINE__ << ".");
 
 	if (outputCopula) {
 		string fName;
@@ -238,6 +297,7 @@ int main(int argc, char *argv[]) {
 			     << endl << e.what() << endl;
 		}
 	}
+	ECHO ("at " << __FILE__ << ", l. " << __LINE__ << ".");
 
 
 	// -------------------------------------------------------------------
