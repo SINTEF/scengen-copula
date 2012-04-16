@@ -28,8 +28,8 @@ CopInfoData::CopInfoData(std::string const & tgFName)
 		read_tg_file(tgFName); // fills hData
 	}
 	catch(exception& e) {
-		cerr << "Error: Could not open target file `" << tgFName << "'" << endl;
-		cerr << "       The error message was: " << e.what() << endl;
+		cerr << "Error: while reading target file `" << tgFName << "'!" << endl;
+		//cerr << "       The error message was: " << e.what() << endl;
 		throw; // re-throw the exception
 	}
 
@@ -122,15 +122,20 @@ void CopInfoData::read_tg_file(string const & tgFName)
 	// read the input file
 	std::ifstream tgDistF(tgFName.c_str());
 	if (!tgDistF) {
-		throw ios_base::failure("Could not open input file " + tgFName + "!");
+		throw ios_base::failure("Could not open input file `" + tgFName + "'!");
 	}
 	tgDistF >> nPts >> nVars;
+	if (!tgDistF.good())
+		throw ios_base::failure("Wrong or missing data in `" + tgFName + "'!");
 
 	hData.resize(nVars,nPts);
 	// read from the file - margins are in columns -> must transpose!
 	for (DimT j = 0; j < nPts; ++j) {
 		for (DimT i = 0; i < nVars; ++i) {
 			tgDistF >> hData(i, j);
+			if (!tgDistF.good())
+				throw ios_base::failure("Wrong or missing data in `"
+				                        + tgFName + "'!");
 		}
 	}
 }

@@ -3,12 +3,26 @@
 
 #include <boost/numeric/ublas/symmetric.hpp>  // for correlation matrices
 #include <boost/numeric/ublas/triangular.hpp> // pts. to target 2D copulas
+#include <map>
 
 #include "common.hpp"
 #include "cop2Dinfo.hpp"
 
 
 namespace CopulaDef{
+
+/// \name objects for the copula name map, used in the main code
+///@{
+	/// enum for the known copula types; 0 means unknown
+	enum CopTypeIDs {cUnknown, cSample, cNormal, cIndep};
+
+	/// type for the copula map
+	typedef std::map<std::string, CopTypeIDs> CopNameMapT;
+
+	/// this fills the copula map with the known copula types
+	void make_cop_name_map(CopNameMapT & cMap);
+///@}
+
 
 /// class describing the target copula (multivariate)
 class CopulaInfo {
@@ -27,6 +41,23 @@ public:
 	/// cdf at vector \a u = (u_1, .. , u_n)
 	/** should throw an error if used on classes with ::haveCdf == false **/
 	virtual double cdf(VectorD const u) const = 0;
+
+	DimT dim() const { return nVars; }      ///< get dimension of the copula
+	bool has_cdf() const { return hasCdf; } ///< check if we have ::cdf()
+
+	typedef boost::shared_ptr<CopulaInfo> Ptr; ///< smart pointer to the class
+};
+
+
+// ----------------------------------------------------------------------------
+/// class for multivariate independent copula
+class CopIndep : public CopulaInfo {
+public:
+	CopIndep(DimT const N)
+	: CopulaInfo(N, true) {}
+
+	/// cdf at vector \a u = (u_1, .. , u_n)
+	double cdf(VectorD const u) const;
 
 	DimT dim() const { return nVars; }      ///< get dimension of the copula
 	bool has_cdf() const { return hasCdf; } ///< check if we have ::cdf()

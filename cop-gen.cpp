@@ -24,9 +24,6 @@ using namespace MarginDistrib;
 namespace prOpt = boost::program_options; // short-cut name
 
 
-enum CopTypeIDs {cUnknown, cSample, cNormal};
-
-
 int main(int argc, char *argv[]) {
 
 	/*
@@ -56,7 +53,8 @@ int main(int argc, char *argv[]) {
 
 	stringstream helpHeader;
 	helpHeader << "Copula generation code by Michal Kaut" << endl << endl
-	           << "Usage: " << argv[0] << " [options] nmb-scens" << endl
+	           << "Usage: " << argv[0] << " --cop-type <value> [--input <file>]"
+	           << " [options] nmb-scens" << endl
 	           << " Help: " << argv[0] << " --help" << endl;
 
 	// NEW: re-implementing using boost::program_options
@@ -147,7 +145,6 @@ int main(int argc, char *argv[]) {
 			This means that we have to check all the special options first,
 			before checking the correctness of the input.
 		*/
-
 		// deal with options that need extra action
 		if (optV.count("version")) {
 			cout << "This code was built at " << __TIME__ << ", " << __DATE__
@@ -198,16 +195,10 @@ int main(int argc, char *argv[]) {
 	// -------------------------------------------------------------------
 	// setup copula objects + generate the copula scenarios
 
-	/// \todo this should go somewhere else!?!
-	/*
-	std::map<CopTypeIDs, string> copNameMap;
-	copNameMap[cSample] = "sample";
-	copNameMap[cNormal] = "normal";
-	*/
-	std::map<string, CopTypeIDs> copNameMap;
-	std::map<string, CopTypeIDs>::iterator cIt;
-	copNameMap["sample"] = cSample;
-	copNameMap["normal"] = cNormal;
+	// copula name map, to convert copula name (string) to copula ID
+	CopNameMapT copNameMap;
+	CopNameMapT::iterator cIt;
+	make_cop_name_map(copNameMap);
 
 	CopInfoBy2D::Ptr p2tgCop;
 	MarginsInfo::Ptr p2tgMargins;
@@ -246,17 +237,22 @@ int main(int argc, char *argv[]) {
 		break;
 	case cNormal: // "normal"
 		cout << "copula of type 'normal'" << endl;
+		if (margType == "") {
+			margType = "normal"; // default for sample copula
+		}
 		// create a new object of the specific class
+		p2tgCop.reset(new CopInfoNormal(copParamsF));
+		p2tgCop->setup_2d_targets();
 		{
 			CopInfoNormal * p2tgCopNormal = new CopInfoNormal(copParamsF);
 			p2tgCopNormal->setup_2d_targets();
 
 			p2tgCop.reset(p2tgCopNormal); // p2tgCop takes over the pointer
-
-			if (margType == "") {
-				margType = "normal"; // default for sample copula
-			}
 		}
+		break;
+	case cIndep: // independent margins
+		cout << "copula of type 'independent'" << endl;
+		cerr << "Not yet implemented, sorry .. " << endl; exit(1);
 		break;
 	default:
 		cerr << "ERROR: file " << __FILE__ << ", line " << __LINE__
@@ -269,11 +265,11 @@ int main(int argc, char *argv[]) {
 		     << "       The error message was: " << e.what() << endl;
 		exit(1);
 	}
-	ECHO ("at " << __FILE__ << ", l. " << __LINE__ << ".");
+	ECHO ("at " << __FILE__ << ", l. " << __LINE__);
 
 	CopulaSample copSc(p2tgCop, nSc, numCandPts);
 	copSc.gen_sample();
-	ECHO ("at " << __FILE__ << ", l. " << __LINE__ << ".");
+	ECHO ("at " << __FILE__ << ", l. " << __LINE__);
 
 	if (outputCopula) {
 		string fName;
@@ -297,7 +293,7 @@ int main(int argc, char *argv[]) {
 			     << endl << e.what() << endl;
 		}
 	}
-	ECHO ("at " << __FILE__ << ", l. " << __LINE__ << ".");
+	ECHO ("at " << __FILE__ << ", l. " << __LINE__);
 
 
 	// -------------------------------------------------------------------
@@ -316,7 +312,7 @@ int main(int argc, char *argv[]) {
 			}
 			catch(exception & e) {
 				cerr << "Error while reading the target means and std. devs "
-				     << "from file " << margParamsF << endl << e.what() << endl;
+				     << "from file " << margParamsF << endl;// << e.what() << endl;
 				throw; // re-throw the exception
 			}
 		}

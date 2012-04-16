@@ -1,3 +1,5 @@
+// implementation of class CopulaSample
+
 #include <iostream>
 #include <fstream>
 

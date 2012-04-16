@@ -12,7 +12,7 @@
 				<Option object_output=".obj\Debug\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="-c normal 100" />
+				<Option parameters="-c sample 100" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
@@ -45,6 +45,7 @@
 		<Unit filename="common.hpp" />
 		<Unit filename="cop-gen.cpp" />
 		<Unit filename="cop-info_hist-data.cpp" />
+		<Unit filename="cop-info_normal.cpp" />
 		<Unit filename="cop2Dinfo.cpp" />
 		<Unit filename="cop2Dinfo.hpp" />
 		<Unit filename="cop2Dsample.cpp" />
