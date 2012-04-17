@@ -10,6 +10,7 @@
 	#define BOOST_DISABLE_ASSERTS
 #endif
 #include <boost/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
 
 // ---------------------------------------------------------------------------
 // vector and matrix definitions, using boost::numeric::ublas

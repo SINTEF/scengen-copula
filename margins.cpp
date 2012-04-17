@@ -90,7 +90,7 @@ void NormalMargins::init_margins(UnivarMargin::SamplePP const postP)
 // ----------------------------------------------------------------------------
 // class SampleMargins
 
-SampleMargins::SampleMargins(MatrixD & samples,
+SampleMargins::SampleMargins(MatrixD const & samples,
                              UnivarMargin::SamplePP const postP)
 : MarginsInfo(samples.size1()), data(samples)
 {

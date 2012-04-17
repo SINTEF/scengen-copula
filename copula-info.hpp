@@ -49,6 +49,7 @@ public:
 };
 
 
+/*
 // ----------------------------------------------------------------------------
 /// class for multivariate independent copula
 class CopIndep : public CopulaInfo {
@@ -64,6 +65,7 @@ public:
 
 	typedef boost::shared_ptr<CopulaInfo> Ptr; ///< smart pointer to the class
 };
+*/
 
 
 // ----------------------------------------------------------------------------
@@ -107,6 +109,7 @@ public:
 	void attach_2d_target(Copula2D::Cop2DInfo * p2tg,
 	                      DimT const i, DimT const j) {
 		p2Info2D(i, j).reset(p2tg);
+		n2Dcops++;
 	}
 
 	/// attach one 2D copula info
@@ -117,6 +120,7 @@ public:
 	void attach_2d_target(Copula2D::Cop2DInfo::Ptr p2tg,
 	                      DimT const i, DimT const j) {
 		p2Info2D(i, j) = p2tg;
+		n2Dcops++;
 	}
 
 	Cop2DInfoPtMatrix & get_pts_to_2d_targets() {
@@ -150,6 +154,29 @@ public:
 
 
 // ----------------------------------------------------------------------------
+/// class for multivariate independent copula
+class CopInfoIndep : public CopInfoBy2D {
+private:
+	Copula2D::Cop2DIndep::Ptr p2bivarIndep;
+
+	/// fill #p2Info2D by pointers to #p2bivarIndep; called from constructors
+	void setup_2d_targets();
+
+public:
+	/// constructor with given dimension
+	CopInfoIndep(DimT const N);
+
+	/// constructor with file name of the target distribution
+	CopInfoIndep(std::string const & tgFName);
+
+	/// cdf at vector \a u = (u_1, .. , u_n)
+	double cdf(VectorD const u) const;
+
+	typedef boost::shared_ptr<CopulaInfo> Ptr; ///< smart pointer to the class
+};
+
+
+// ----------------------------------------------------------------------------
 /// target copula described by a historical data (sample)
 class CopInfoData : public CopInfoBy2D {
 protected:
@@ -174,6 +201,9 @@ protected:
 	/// fill \a hRanks and \a hU01 matrices
 	void fill_ranks_etc();
 
+	/// creates objects for the 2D targets; called from the constructors
+	void setup_2d_targets();
+
 public:
 	/// constructor with the target data as input
 	CopInfoData(MatrixI const & hDataMat);
@@ -185,9 +215,6 @@ public:
 	//CopInfoData(TMatrixI & ranksMat, bool const fillU01Data = true);
 
 	virtual ~CopInfoData() {}
-
-	/// creates objects for the 2D targets
-	void setup_2d_targets();
 
 	MatrixD & data_vals() { return hData; }
 	MatrixI & data_ranks() { return hRanks; }
@@ -203,7 +230,7 @@ MatrixI & cop_info_data_ranks(CopInfoData & copInfo);
 
 
 // ----------------------------------------------------------------------------
-/// target copula described by a historical data (sample)
+/// normal copula, i.e. a collection of bivariate normal copulas
 class CopInfoNormal : public CopInfoBy2D {
 private:
 	ublas::symmetric_matrix<double> correlMat; ///< correlation matrix
@@ -213,6 +240,9 @@ protected:
 	/// \note remember to encluse this in a try{} block!
 	void read_correl_mat(std::string const & tgFName);
 
+	/// creates objects for the 2D targets; called from the constructors
+	void setup_2d_targets();
+
 public:
 	/// constructor with the target data as input
 	CopInfoNormal(MatrixD const & correls);
@@ -221,9 +251,6 @@ public:
 	CopInfoNormal(std::string const & tgFName);
 
 	virtual ~CopInfoNormal() {}
-
-	/// creates objects for the 2D targets
-	void setup_2d_targets();
 
 	double cdf(VectorD const u) const {
 		throw std::logic_error("class CopInfoNormal does not have cdf()");

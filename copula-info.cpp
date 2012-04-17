@@ -22,9 +22,9 @@ void CopulaDef::make_cop_name_map(CopNameMapT & cMap) {
 
 
 // ---------------------------------------------------------------------------
-// class CopIndep
+// class CopInfoIndep
 
-double CopIndep::cdf(VectorD const u) const {
+double CopInfoIndep::cdf(VectorD const u) const {
 	assert (u.size() == nVars && "dimension check");
 
 	double F = u[0];
@@ -33,6 +33,51 @@ double CopIndep::cdf(VectorD const u) const {
 		F *= u[i];
 
 	return F;
+}
+
+
+void CopInfoIndep::setup_2d_targets()
+{
+	assert (nVars > 0 && "must have a known dimension by now");
+	if (p2Info2D.size1() != nVars || p2Info2D.size2() != nVars) {
+		if (p2Info2D.size1() * p2Info2D.size2() > 0) {
+			cerr << "Warning: resizing the matrix of 2D-copula objects!" << endl;
+		}
+		p2Info2D.resize(nVars, nVars);
+	}
+
+	p2bivarIndep = boost::make_shared<Copula2D::Cop2DIndep>();
+
+	DimT i, j;
+	for (i = 0; i < nVars; ++i) {
+		for (j = i + 1; j < nVars; ++j) {
+			p2Info2D(i, j) = p2bivarIndep;
+			n2Dcops++;
+		}
+	}
+}
+
+
+// constructor with dimension
+CopInfoIndep::CopInfoIndep(DimT const N)
+: CopInfoBy2D(N, true), p2bivarIndep(new Copula2D::Cop2DIndep())
+{
+	setup_2d_targets();
+}
+
+// constructor with file name of the target distribution
+CopInfoIndep::CopInfoIndep(std::string const & tgFName)
+: CopInfoBy2D(0, true)
+{
+	// read the input file
+	std::ifstream tgFStr(tgFName.c_str());
+	if (!tgFStr) {
+		throw std::ios_base::failure("Could not open input file `"
+		                             + tgFName + "'!");
+	}
+	tgFStr >> nVars; // the only value we need
+
+	setup_2d_targets();
 }
 
 

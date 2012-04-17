@@ -17,7 +17,8 @@ CopInfoData::CopInfoData(MatrixI const & hDataMat)
   nPts(hDataMat.size2()),
   hData(hDataMat), hRanks(nVars, nPts), hU01(nVars, nPts)
 {
-	fill_ranks_etc(); // fills hRanks and hU01
+	fill_ranks_etc();   // fills hRanks and hU01
+	setup_2d_targets(); // create the matrix of bivariate copula objects
 }
 
 
@@ -33,7 +34,8 @@ CopInfoData::CopInfoData(std::string const & tgFName)
 		throw; // re-throw the exception
 	}
 
-	fill_ranks_etc(); // fills hRanks and hU01
+	fill_ranks_etc();   // fills hRanks and hU01
+	setup_2d_targets(); // create the matrix of bivariate copula objects
 }
 
 
@@ -159,8 +161,15 @@ void CopInfoData::fill_ranks_etc()
 
 void CopInfoData::setup_2d_targets()
 {
+	assert (nVars > 0 && "must have a known dimension by now");
+	if (p2Info2D.size1() != nVars || p2Info2D.size2() != nVars) {
+		if (p2Info2D.size1() * p2Info2D.size2() > 0) {
+			cerr << "Warning: resizing the matrix of 2D-copula objects!" << endl;
+		}
+		p2Info2D.resize(nVars, nVars);
+	}
+
 	DimT i, j;
-	p2Info2D.resize(nVars, nVars);
 	for (i = 0; i < nVars; i++) {
 		for (j = i+1; j < nVars; j++) {
 			attach_2d_target(new Copula2D::Cop2DData(hData, i, j, this), i, j);

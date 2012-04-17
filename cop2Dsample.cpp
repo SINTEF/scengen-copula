@@ -366,7 +366,7 @@ double Cop2DSample::gen_heur()
 		i2jC[i] = j;
 		j2iC[j] = i;
 		ECHO ("Cop2DSample::gen_heur(): new link: (" << i << ", " << j
-					 << "); dist = " << minDist << endl);
+		      << "); dist = " << minDist << endl);
 
 		// update prevColCdf:
 		for (jj = j; jj < N; jj++) {
@@ -405,7 +405,7 @@ void Cop2DSample::CandList::insert_cand(int const index, double const error)
 		// we do not have enough candidates -> accept without conditions
 		add_item_to_list(index, error, true);
 	} else {
-		// we alsready have enough candidates
+		// we already have enough candidates
 		// -> add the new one only if it is good enough
 		if (error > list.back().value + maxDiff) {
 			return;

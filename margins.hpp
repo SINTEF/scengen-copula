@@ -42,10 +42,10 @@ public:
 class SampleMargins : public MarginsInfo {
 private:
 	void init_margins(UnivarMargin::SamplePP const postP);
-	MatrixD & data; // reference, since the data are with the copula class
+	MatrixD const & data; // reference, since the data are with the copula class
 
 public:
-	SampleMargins(MatrixD & samples,
+	SampleMargins(MatrixD const & samples,
 	              UnivarMargin::SamplePP const postP = UnivarMargin::PP_None);
 };
 

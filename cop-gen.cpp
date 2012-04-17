@@ -219,20 +219,16 @@ int main(int argc, char *argv[]) {
 		cout << "copula of type 'sample'" << endl;
 		// We need to use a block here, so we can have local variables;
 		// these are needed to access the model-specific methods
-		{
-			CopInfoData * p2tgCopData = new CopInfoData(copParamsF);
-			p2tgCopData->setup_2d_targets();
-
-			p2tgCop.reset(p2tgCopData); // p2tgCop takes over the pointer
-
-			if (margType == "") {
-				margType = "sample"; // default for sample cop. is sample margins
-			}
-			if (margType == "sample") {
-				// set the margins here, where we have the CopInfoData * pointer
-				// !using default for the second param -> no post-processing!
-				p2tgMargins.reset(new SampleMargins(p2tgCopData->data_vals()));
-			}
+		p2tgCop = boost::make_shared<CopInfoData>(copParamsF);
+		if (margType == "") {
+			margType = "sample"; // default for sample cop. is sample margins
+		}
+		if (margType == "sample") {
+			// for this, we need CopInfoData::data_vals(), which is specific to
+			// this class, i.e. does not exist in CopInfoBy2D -> use casting
+			//! using default for the second param -> no post-processing!
+			CopInfoData * p2tgCopData = static_cast<CopInfoData *> (p2tgCop.get());
+			p2tgMargins = boost::make_shared<SampleMargins>(p2tgCopData->data_vals());
 		}
 		break;
 	case cNormal: // "normal"
@@ -241,18 +237,12 @@ int main(int argc, char *argv[]) {
 			margType = "normal"; // default for sample copula
 		}
 		// create a new object of the specific class
-		p2tgCop.reset(new CopInfoNormal(copParamsF));
-		p2tgCop->setup_2d_targets();
-		{
-			CopInfoNormal * p2tgCopNormal = new CopInfoNormal(copParamsF);
-			p2tgCopNormal->setup_2d_targets();
-
-			p2tgCop.reset(p2tgCopNormal); // p2tgCop takes over the pointer
-		}
+		p2tgCop = boost::make_shared<CopInfoNormal>(copParamsF);
 		break;
 	case cIndep: // independent margins
 		cout << "copula of type 'independent'" << endl;
-		cerr << "Not yet implemented, sorry .. " << endl; exit(1);
+		// create a new object of the specific class
+		p2tgCop = boost::make_shared<CopInfoIndep>(copParamsF);
 		break;
 	default:
 		cerr << "ERROR: file " << __FILE__ << ", line " << __LINE__
