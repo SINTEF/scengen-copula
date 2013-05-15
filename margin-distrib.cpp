@@ -45,6 +45,10 @@ MarginNormal::MarginNormal(double const mu, double const sigma,
 double MarginNormal::inv_cdf(DimT const r, DimT const N) const
 {
 	if (useCondEV) {
+		// For normal distribution, the conditional mean on interval [a,b] is
+		// given by: -(f(b) - f(a)) / (F(b) - F(b)) = (f(a) - f(b)) / Pr([a,b]).
+		// This is a special property of normal distribution, following from the
+		// fact that integral of $x e^(-x^2/2)$ is $-e^(-x^2/2)$.
 		double p1 = static_cast<double>(r) / N;
 		double p2 = static_cast<double>(r + 1) / N;
 		double F1 = (r == 0     ? 0.0 : exp(-0.5 * pow(invCdf01F(p1), 2)));
