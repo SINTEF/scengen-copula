@@ -89,7 +89,13 @@ bool isEq(double const x, double const y)
 void get_ranks(const std::vector<double> &inputVect, std::vector<int> &ranks) {
 	// using the rank() from "ranker.h"
 	// this gives numbers from 1 to N, so we have to subtract 1!
-	rank(inputVect, ranks);
+	// the rank function support four different methods of resolving ties:
+	// - average - rank of equal values is the average of their ranks [default]
+	//           - can be non-integral; will be casted to the target type
+	// - min,max - rank of equal values is the min/max rank
+	// - random  - rank of equal values is not equal (depends on order?)
+	//! \todo do we always want the tie-resolving variant ("random")?
+	rank(inputVect, ranks, "random");
 	unsigned len = ranks.size();
 	for (unsigned i = 0; i < len; i++) {
 		ranks[i]--;

@@ -7,9 +7,9 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="bin\Debug\copula-gen" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="bin\Debug" />
-				<Option object_output=".obj\Debug\" />
+				<Option output="bin/Debug/copula-gen" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/Debug" />
+				<Option object_output=".obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Option parameters="-c indep 50" />
@@ -18,9 +18,9 @@
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="bin\Release\copula-gen" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="bin\Release" />
-				<Option object_output=".obj\Release\" />
+				<Option output="bin/Release/copula-gen" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/Release" />
+				<Option object_output=".obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -30,6 +30,26 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="UnitTest-Rel">
+				<Option output="bin/Release/copula-gen_test" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/Release" />
+				<Option object_output=".obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-O3" />
+					<Add option="-std=gnu++11" />
+					<Add option="-DNDEBUG" />
+					<Add option="-DGTEST_OS_WINDOWS_MINGW=1" />
+					<Add directory="../scen-gen_copulas" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="gtest" />
 				</Linker>
 			</Target>
 		</Build>
@@ -43,22 +63,76 @@
 		</Linker>
 		<Unit filename="common.cpp" />
 		<Unit filename="common.hpp" />
-		<Unit filename="cop-gen.cpp" />
-		<Unit filename="cop-info_hist-data.cpp" />
-		<Unit filename="cop-info_normal.cpp" />
-		<Unit filename="cop2Dinfo.cpp" />
-		<Unit filename="cop2Dinfo.hpp" />
-		<Unit filename="cop2Dsample.cpp" />
-		<Unit filename="cop2Dsample.hpp" />
-		<Unit filename="copula-info.cpp" />
-		<Unit filename="copula-info.hpp" />
-		<Unit filename="copula-sample.cpp" />
-		<Unit filename="copula-sample.hpp" />
-		<Unit filename="margin-distrib.cpp" />
-		<Unit filename="margin-distrib.hpp" />
-		<Unit filename="margins.cpp" />
-		<Unit filename="margins.hpp" />
-		<Unit filename="ranker.h" />
+		<Unit filename="cop-gen.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="cop-info_hist-data.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="cop-info_normal.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="cop2Dinfo.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="cop2Dinfo.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="cop2Dsample.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="cop2Dsample.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="copula-info.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="copula-info.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="copula-sample.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="copula-sample.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="margin-distrib.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="margin-distrib.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="margins.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="margins.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="ranker.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="tests/common-test.cpp">
+			<Option target="UnitTest-Rel" />
+		</Unit>
+		<Unit filename="tests/unit-tests.cpp">
+			<Option target="UnitTest-Rel" />
+		</Unit>
 		<Extensions>
 			<envvars />
 			<code_completion />
