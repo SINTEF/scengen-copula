@@ -9,6 +9,7 @@ namespace MarginDistrib {
 class MarginsInfo {
 protected:
 	DimT nM; ///< number of margins
+	/// pointers to the univariate margins (they provide CDF etc)
 	ublas::vector<UnivarMargin::Ptr> p2margins;
 
 public:
