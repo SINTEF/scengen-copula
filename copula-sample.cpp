@@ -65,9 +65,8 @@ double CopulaSample::gen_new_margin(DimT const marg)
 			cop2DId << "sample_" << i << "_" << marg;
 			p2sample2D[i][marg] = new Cop2DSample(nSc, p2tgInfo(i, marg).get(),
 			                                      cop2DId.str());
-			#ifndef NDEBUG
-				cout << "Created new Cop2DSample with id = " << cop2DId.str() << endl;
-			#endif
+			TRACE (TrDetail2, "Created new Cop2DSample with id = "
+			       << cop2DId.str());
 			// initialize the 2D-sample generator with scenarios of the known margin
 			p2sample2D[i][marg]->set_scen_of_marg_1(sample[i], p2prob);
 		}
@@ -138,13 +137,11 @@ double CopulaSample::gen_new_margin(DimT const marg)
 		        && "we should have found something...");
 		candScens.get_rand_cand(s, minDist);
 
-		#ifndef NDEBUG
-			cout << "CopulaSample::gen_new_margin(" << marg
-			     << "): new link: iR=" << iR << ", s=" << s
-			     << "; dist = " << minDist << " (min dist = "
-			     << candScens.get_best_cand_value() << ")" << endl << endl;
-			cout.flush();
-		#endif
+		TRACE (TrInfo2, "CopulaSample::gen_new_margin(" << marg
+			    << "): new link: iR=" << iR << ", s=" << s
+			    << "; dist = " << minDist << " (min dist = "
+			    << candScens.get_best_cand_value() << ")" << endl);
+
 		scProb = (p2prob == NULL ? 1.0 / nSc : p2prob[s]);
 		totDist += scProb * minDist;
 		sample[marg][s] = iR;
@@ -193,6 +190,10 @@ double CopulaSample::gen_sample()
 	marg = 0;
 	for (s = 0; s < nSc; s++) {
 		/// \todo Once this works, test it with $nSc - s$ or random numbers
+		/// \todo Make this work with random order, to add the possibility
+		///       to shuffle scenarios. An alternative is to shuffle the
+		///       output, but it is not so easy as we store the results in
+		///       the wrong order (by margin, not by scenario)
 		sample[marg][s] = s; // alternative is to use random numbers
 	}
 	haveSc4Marg[marg] = true;
@@ -229,6 +230,7 @@ void CopulaSample::print_as_txt(string const fName, bool const scaleTo01,
 			throw std::logic_error(
 				"Sorting of output by margins si not yet implemented!");
 		}
+		//! alt: create a matrix of output values and send it to oFile??
 		if (scaleTo01) {
 			for (s = 0; s < nSc; s++) {
 				for (marg = 0; marg < nVar - 1; marg++) {

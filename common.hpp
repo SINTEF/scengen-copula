@@ -149,13 +149,6 @@ bool isEq(double const x, double const y);
 #include <limits>
 const double DblInf = sqrt(std::numeric_limits<double>::max());
 
-// Debug messages
-// Note that the definition does not end with ";", so we need one when used!
-#ifndef NDEBUG
-	#define ECHO(message) cout << "DEBUG: " << message << endl; cout.flush()
-#else
-	#define ECHO(message)
-#endif
 
 // ---------------------------------------------------------------------------
 // misc. functions for the copula-generation code
@@ -200,10 +193,46 @@ inline int u012Rank(double const z, int const N) {
 	return static_cast<int>(ceil(N * (z - DblEps))) - 1;
 }
 
-
 /// fix mean and standard deviation (if given) of a sample (in-place)
 /** \note At the moment, this assumes equiprobable sample values **/
 void fix_mean_std(VectorD & sample, double mean, double stD = -1.0,
                   bool unbiasedStD = false);
+
+
+// ---------------------------------------------------------------------------
+// Output from the code (for info and debug)
+enum OutputLevel {
+	TrNone    =  0, // no output whatever happens
+	TrFatal   =  1, // report fatal errors (errors that stop execution)
+	TrError   =  2, // report all errors
+	TrWarn    =  3, // as above + warnings
+	TrInfo    =  4, // as above + info
+	TrInfo2   =  5, // as above + more info
+	TrInfo3   =  6, // as above + more info
+	TrDetail  =  7, // as above + more detailed info
+	TrDetail2 =  8, // as above + more detailed info
+	TrDetail3 =  9, // as above + more detailed info
+	TrAll     = 10  // absolute all messages
+};
+extern OutputLevel outLvl;
+// Note that the definitions do not end with ";", so we need one when used!
+// 'internal' macro, used by the others
+#define ECHO(message) std::cout << message << std::endl; std::cout.flush()
+// this will produce message in all profiles (debug and release)
+#define MSG(lvl, txt) if (lvl <= outLvl) { ECHO(txt); }
+// this will produce message only in debug profiles -> can be used in parts
+// where we do not waste time for checking outLvl in the release versions
+#ifndef NDEBUG
+	#define TRACE(lvl, txt) if (lvl <= outLvl) { ECHO(txt); }
+#else
+	#define TRACE(lvl, txt)
+#endif
+// this is for temporary tracing
+#define DBGOUT(txt) ECHO("DEBUG " << __FILE__ << "/l." << __LINE__ << ": " << txt)
+// macros for displaying variable values (stand-alone and one for use in cout)
+// see http://hamersun.blogspot.com/2010/09/
+#define DISPLAY(var) std::cout << #var " = " << var << std::endl
+#define VALUE(var) #var " = " << var
+
 
 #endif

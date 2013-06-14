@@ -311,12 +311,13 @@ double Cop2DSample::gen_heur()
 			   is taken to be valid in the whole box. evalPtPos comes into play
 			   through tgCdfOfR, where it is used in computing the evaluation pts.
 			*/
-			ECHO ("Cop2DSample::gen_heur(): i=" << i << ",j=0 ; jj=" << jj
-			      << "; prevColCdf[" << jj << "]=" << prevColCdf[jj]
-			      << ", tgCdfOfR(" << i << "," << jj << ")=" << tgCdfOfR(i, jj));
+			TRACE (TrDetail2, "Cop2DSample::gen_heur(): i=" << i << ",j=0 ; jj="
+			       << jj << "; prevColCdf[" << jj << "]=" << prevColCdf[jj]
+			       << ", tgCdfOfR(" << i << "," << jj << ")=" << tgCdfOfR(i, jj));
 			dist += cdfDist(prevColCdf[jj] + probCol, tgCdfOfR(i, jj));
 		}
-		ECHO ("Cop2DSample::gen_heur(): dist(" << i << "," << j << ") = " << dist);
+		TRACE (TrDetail, "Cop2DSample::gen_heur(): dist(" << i << "," << j
+		       << ") = " << dist);
 		if (j2iC[j] < 0) {
 			// j=0 is available, i.e. it is a valid choice
 			bestRows.push_back(j);
@@ -328,8 +329,8 @@ double Cop2DSample::gen_heur()
 			tgVal = tgCdfOfR(i, j-1);
 			dist += cdfDist(prevColCdf[j-1], tgVal)
 			        - cdfDist(prevColCdf[j-1] + probCol, tgVal);
-			ECHO ("Cop2DSample::gen_heur(): dist(" << i << "," << j << ") = "
-			      << dist);
+			TRACE (TrDetail, "Cop2DSample::gen_heur(): dist(" << i << "," << j
+			       << ") = " << dist);
 			if (j2iC[j] < 0) {
 				// j is an available row
 				if (dist < minDist - CdfDistEps) {
@@ -365,8 +366,8 @@ double Cop2DSample::gen_heur()
 		totDist += probCol * minDist;
 		i2jC[i] = j;
 		j2iC[j] = i;
-		ECHO ("Cop2DSample::gen_heur(): new link: (" << i << ", " << j
-		      << "); dist = " << minDist << endl);
+		TRACE (TrDetail, "Cop2DSample::gen_heur(): new link: (" << i << ", " << j
+		       << "); dist = " << minDist << endl);
 
 		// update prevColCdf:
 		for (jj = j; jj < N; jj++) {
@@ -375,8 +376,8 @@ double Cop2DSample::gen_heur()
 	}
 	assert (have_valid_cop() && "should have a valid copula sample now");
 
-	ECHO (endl << "Cop2DSample::gen_heur() finished with distance/error = "
-				<< totDist);
+	TRACE (TrInfo3, endl << "Cop2DSample::gen_heur() finished with "
+	                        "distance/error = " << totDist);
 
 	return totDist;
 }
@@ -420,10 +421,8 @@ void Cop2DSample::CandList::insert_cand(int const index, double const error)
 			list.pop_back(); // removes the last (i.e. worst) element
 		}
 	}
-	#ifndef NDEBUG
-		cout << "DEBUG: CandList::insert_cand - added item (" << index << ", "
-		     << error << ") to the canditate list" << endl;
-	#endif
+	TRACE (TrDetail, "DEBUG: CandList::insert_cand - added item (" << index
+	       << ", " << error << ") to the canditate list");
 }
 
 // ------------------------------------------------------------------------
@@ -448,10 +447,10 @@ void Cop2DSample::cdf_dist_of_col(int const i, VectorD const &prevColCdf,
 			for (jj = 0; jj < N; jj++) {
 				// point/link (i, 0) -> Cdf(i,jj) = prevColRCdf(jj) + prob[i]
 				dist += cdfDist(prevColCdf[jj] + probCol, tgCdfOfR(i, jj));
-				ECHO ("Cop2DSample::cdf_dist_of_col(" << i << "): j=0; jj=" << jj
-				      << "; prevColCdf[" << jj << "]=" << prevColCdf[jj]
-				      << ", tgCdfOfR(" << i << "," << jj << ")="
-				      << tgCdfOfR(i, jj));
+				TRACE (TrDetail3, "Cop2DSample::cdf_dist_of_col(" << i
+				       << "): j=0; jj=" << jj << "; prevColCdf[" << jj << "]="
+				       << prevColCdf[jj] << ", tgCdfOfR(" << i << "," << jj << ")="
+				       << tgCdfOfR(i, jj));
 			}
 		} else {
 			// using the recursive formula shown above
@@ -460,8 +459,8 @@ void Cop2DSample::cdf_dist_of_col(int const i, VectorD const &prevColCdf,
 			dist += cdfDist(prevColCdf[j-1], tgVal)
 			        - cdfDist(prevColCdf[j-1] + probCol, tgVal);
 		}
-		ECHO ("Cop2DSample::cdf_dist_of_col(" << i
-		      << "): dist(" << i << "," << j << ") = " << dist);
+		TRACE (TrDetail2, "Cop2DSample::cdf_dist_of_col(" << i
+		       << "): dist(" << i << "," << j << ") = " << dist);
 		if (rowFree == NULL || rowFree[j])
 			rowCdfDist[j] = dist;
 		else
@@ -489,10 +488,10 @@ void Cop2DSample::cdf_dist_of_row(int const j, VectorD const &prevRowCdf,
 			for (ii = 0; ii < N; ii++) {
 				// point/link (0, j) -> Cdf(ii,j) = prevRowRCdf(ii) + prob[j]
 				dist += cdfDist(prevRowCdf[ii] + probRow, tgCdfOfR(ii, j));
-				ECHO ("Cop2DSample::cdf_dist_of_row(" << j << "): i=0; ii=" << ii
-				      << "; prevRowCdf[" << ii << "]=" << prevRowCdf[ii]
-				      << ", tgCdfOfR(" << ii << "," << j << ")="
-				      << tgCdfOfR(ii, j));
+				TRACE (TrDetail3, "Cop2DSample::cdf_dist_of_row(" << j
+				       << "): i=0; ii=" << ii << "; prevRowCdf[" << ii << "]="
+				       << prevRowCdf[ii] << ", tgCdfOfR(" << ii << "," << j << ")="
+				       << tgCdfOfR(ii, j));
 			}
 		} else {
 			// using the recursive formula shown above
@@ -501,8 +500,8 @@ void Cop2DSample::cdf_dist_of_row(int const j, VectorD const &prevRowCdf,
 			dist += cdfDist(prevRowCdf[i-1], tgVal)
 			        - cdfDist(prevRowCdf[i-1] + probRow, tgVal);
 		}
-		ECHO ("Cop2DSample::cdf_dist_of_row(" << j
-		      << "): dist(" << i << "," << j << ") = " << dist);
+		TRACE (TrDetail2, "Cop2DSample::cdf_dist_of_row(" << j
+		       << "): dist(" << i << "," << j << ") = " << dist);
 		if (colFree == NULL || colFree[i])
 			colCdfDist[i] = dist;
 		else
@@ -522,7 +521,7 @@ bool Cop2DSample::add_link(int const colR, int const rowR)
 		return false;
 	}
 
-	ECHO (sampleId << " : new link (" << colR << "," << rowR << ")");
+	TRACE (TrDetail, sampleId << " : new link (" << colR << "," << rowR << ")");
 
 	i2jC[colR] = rowR;
 	j2iC[rowR] = colR;

@@ -24,6 +24,29 @@ using namespace MarginDistrib;
 namespace prOpt = boost::program_options; // short-cut name
 
 
+// output level
+#ifdef NDEBUG
+	OutputLevel defOutLvl = TrInfo;    // default value for release code
+#else
+	OutputLevel defOutLvl = TrDetail2; // default value for debug code
+#endif
+OutputLevel outLvl = defOutLvl; // can be changed later
+
+
+/**
+	TO-DO list
+	- \todo Add shuffling of the outputs, either by shuffling the first margin
+	        (this does not work now), or by shuffling the results at the end,
+	        either in the class or in the output methods (probably in the class,
+	        to ensure consistency in case of multiple outputs).
+	- \todo Add a generic class with mixed margins
+	- \todo Add margins controlled by moments
+	- \todo Add a possibility to input incomplete correlation matrix
+	        - this could be used to generate values for multiple periods at once,
+	          including auto-correlations!
+**/
+
+
 int main(int argc, char *argv[]) {
 
 	/*
@@ -50,6 +73,7 @@ int main(int argc, char *argv[]) {
 	int numCandPts = 1;         // minimal number of candidate scenarios
 	int randSeed;               // random seed
 	bool writeProbAllocData = false; // write data for the prob-alloc model?
+	int outLvlInt;   // output level as an integer (for easier processing)
 
 	stringstream helpHeader;
 	helpHeader << "Copula generation code by Michal Kaut" << endl << endl
@@ -66,6 +90,9 @@ int main(int argc, char *argv[]) {
 			("version,v", "print version string")
 			("help,h",    "produce help message")
 			("config", prOpt::value<string>(&configFName), "config file name")
+			("out-lvl,l", prOpt::value<int>(&outLvlInt)
+			              ->default_value(static_cast<int>(defOutLvl)),
+			              "level of output")
 			("all-help",  "help including hidden options")
 			;
 
@@ -178,6 +205,9 @@ int main(int argc, char *argv[]) {
 			// no info about marginal distributions -> output copula
 			outputCopula = true;
 		}
+
+		// post-processing
+		outLvl = static_cast<OutputLevel>(outLvlInt);
 	}
 	catch(exception& e) {
 		cerr << e.what() << endl;
@@ -216,7 +246,7 @@ int main(int argc, char *argv[]) {
 	try {
 	switch (copNameMap[copType]) {
 	case cSample: // "sample"
-		cout << "copula of type 'sample'" << endl;
+		MSG (TrInfo, "copula of type 'sample'");
 		// We need to use a block here, so we can have local variables;
 		// these are needed to access the model-specific methods
 		p2tgCop = boost::make_shared<CopInfoData>(copParamsF);
@@ -255,11 +285,9 @@ int main(int argc, char *argv[]) {
 		     << "       The error message was: " << e.what() << endl;
 		exit(1);
 	}
-	ECHO ("at " << __FILE__ << ", l. " << __LINE__);
 
 	CopulaSample copSc(p2tgCop, nSc, numCandPts);
 	copSc.gen_sample();
-	ECHO ("at " << __FILE__ << ", l. " << __LINE__);
 
 	if (outputCopula) {
 		string fName;
@@ -283,7 +311,6 @@ int main(int argc, char *argv[]) {
 			     << endl << e.what() << endl;
 		}
 	}
-	ECHO ("at " << __FILE__ << ", l. " << __LINE__);
 
 
 	// -------------------------------------------------------------------
@@ -320,7 +347,7 @@ int main(int argc, char *argv[]) {
 				                         + outputFName);
 			}
 			// output transposed, to get margins in columns instead of rows
-			oFile << trans(resValues) << endl;
+			oFile << trans(resValues); // no end-line needed here
 			oFile.close();
 		}
 		catch(exception & e) {

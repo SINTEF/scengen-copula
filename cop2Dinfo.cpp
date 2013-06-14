@@ -71,7 +71,7 @@ void Cop2DInfo::init_cdf_grid(DimT const N, double const posInInt)
 		gridPts(i) = (i + posInInt) / N;
 		assert (u_to_grid(gridPts(i)) == i && "sanity check");
 	}
-	ECHO ("posInInt = " << posInInt << "; gridPts = " << gridPts);
+	TRACE (TrDetail3, "posInInt = " << posInInt << "; gridPts = " << gridPts);
 
 	useGrid = false; // this forces calls to calc_cdf() from cdf()
 	calc_all_grid_cdfs();

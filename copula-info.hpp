@@ -237,7 +237,7 @@ private:
 
 protected:
 	/// read the correlation matrix from a file
-	/// \note remember to encluse this in a try{} block!
+	/// \note remember to enclose this in a try{} block!
 	void read_correl_mat(std::string const & tgFName);
 
 	/// creates objects for the 2D targets; called from the constructors
