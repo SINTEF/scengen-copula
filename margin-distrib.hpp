@@ -87,6 +87,27 @@ public:
 };
 
 
+// ----------------------------------------------------------------------------
+/// triangular distribution
+class MarginTriang : public UnivarMargin {
+private:
+	double min;
+	double max;
+	double mode;
+	bool useMinMax; ///< should scenarios always include min and max?
+
+public:
+	MarginTriang(double const minV, double const maxV, double const modeV,
+	             bool const useExtremes = false)
+	: UnivarMargin(), min(minV), max(maxV), mode(modeV), useMinMax(useExtremes)
+	{}
+
+	double inv_cdf(double const p) const;
+
+	double inv_cdf(DimT const r, DimT const N) const;
+};
+
+
 } // namespace MarginDistrib
 
 #endif

@@ -91,3 +91,26 @@ double MarginSample::inv_cdf(double const p) const
 	double pos = (p - p0) * nPts; // 1/(p1 - p0) = 1/(1 / nPts) = nPts
 	return pos * sortedS(i0) + (1 - pos) * sortedS(i0 + 1);
 }
+
+
+// ---------------------------------------------------------------------------
+// class MarginTriang
+
+double MarginTriang::inv_cdf(double const p) const
+{
+	// values used repeatedly -> make them static
+	static double modeCdf = (mode - min) / (max - min);
+	static double valMin = (max - min) * (mode - min);
+	static double valMax = (max - min) * (max - mode);
+
+	return (p < modeCdf ? min + sqrt(p * valMin)
+	                    : max - sqrt((1-p) * valMax));
+}
+
+double MarginTriang::inv_cdf(DimT const r, DimT const N) const
+{
+	if (useMinMax)
+		return inv_cdf((static_cast<double>(r)) / (N - 1));
+	else
+		return inv_cdf((static_cast<double>(r) + 0.5) / N);
+}
