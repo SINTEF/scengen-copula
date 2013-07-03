@@ -16,6 +16,11 @@ public:
 	MarginsInfo(DimT const nVars) : nM(nVars), p2margins(nVars) {}
 	virtual ~MarginsInfo() {}
 
+	/// convert ranks to distribution values
+	/**
+		\param[in]   ranks  matrix of ranks [nMargins * nScens]
+		\param[out] values  matrix of values [nMargins * nScens]
+	**/
 	void get_margin_distr(MatrixI const & ranks, MatrixD & values);
 
 	typedef boost::shared_ptr<MarginsInfo> Ptr;

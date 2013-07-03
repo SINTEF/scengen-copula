@@ -71,6 +71,7 @@ int main(int argc, char *argv[]) {
 	string outCopFName = "";    // output file name for the copula
 	bool copAsRanks = false;    // output copula in terms of ranks?
 	int numCandPts = 1;         // minimal number of candidate scenarios
+	bool sorted1stMarg = false; // should the first margin be sorted?
 	int randSeed;               // random seed
 	bool writeProbAllocData = false; // write data for the prob-alloc model?
 	int outLvlInt;   // output level as an integer (for easier processing)
@@ -102,13 +103,15 @@ int main(int argc, char *argv[]) {
 			("output,o", prOpt::value<string>(&outputFName)
 			             ->default_value("cop-gen.out"), "output file")
 			("rand-seed,s", prOpt::value<int>(&randSeed)
-			                ->default_value(-1), "random seed (-1 means random)")
+			                ->default_value(-1), "random seed (-1 means time-based)")
 			("save-cop", prOpt::bool_switch(&outputCopula),
 			             "save copula, in addition to the result")
 			("cop-output", prOpt::value<string>(&outCopFName),
-			               "output file for the copula\n(implies --save-cop)")
+			               "copula output file (implies --save-cop)")
 			("cop-as-ranks,r", prOpt::bool_switch(&copAsRanks),
 			                   "output copula as ranks, instead of U(0,1)")
+			("sort-marg-1", prOpt::bool_switch(&sorted1stMarg),
+			                "sort the output after the 1st marg")
 			;
 
 		// method-specific options - allowed from both sources
@@ -288,6 +291,10 @@ int main(int argc, char *argv[]) {
 
 	CopulaSample copSc(p2tgCop, nSc, numCandPts);
 	copSc.gen_sample();
+	// the first margin is sorted (see CopulaSample::gen_sample())
+	//  - if we do not want this, we have to shuffle it manually
+	if (!sorted1stMarg)
+		copSc.shuffle_results();
 
 	if (outputCopula) {
 		string fName;

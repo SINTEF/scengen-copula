@@ -189,11 +189,13 @@ double CopulaSample::gen_sample()
 	// initialize the first margin
 	marg = 0;
 	for (s = 0; s < nSc; s++) {
-		/// \todo Once this works, test it with $nSc - s$ or random numbers
+		/// \todo Once this works, test it with $nSc - s$ or random numbers.
 		/// \todo Make this work with random order, to add the possibility
 		///       to shuffle scenarios. An alternative is to shuffle the
 		///       output, but it is not so easy as we store the results in
-		///       the wrong order (by margin, not by scenario)
+		///       the wrong order (by margin, not by scenario).
+		/// \note For now, the values are shuffled at the end,
+		///       using CopulaSample::shuffle_results().
 		sample[marg][s] = s; // alternative is to use random numbers
 	}
 	haveSc4Marg[marg] = true;
@@ -314,5 +316,28 @@ void CopulaSample::write_gmp_data(string const fName)
 
 		oFile << endl << "end;" << endl;
 		oFile.close();
+	}
+}
+
+
+void CopulaSample::shuffle_results()
+{
+	// note: sample is 'std::vector<VectorI>' with dimensions [nVar x nSc]
+	DimT i, s;
+
+	// create the vector of shuffled ranks
+	VectorI rankOrder(nSc); // 'rankOrder(s) = k' means scen. s gets rank k
+	for (s = 0; s < nSc; ++s)
+		rankOrder(s) = s;
+	std::random_shuffle (rankOrder.begin(), rankOrder.end());
+
+	// we shuffle out-of-place, since it is much easier and less error-prone
+	VectorI tmpV;
+
+	for (i = 0; i < nVar; ++i) {
+		tmpV = sample[i]; // copy the values
+		VectorI & margS = sample[i]; // just a shortcut
+		for (s = 0; s < nSc; ++s)
+			margS(s) = tmpV(rankOrder(s));
 	}
 }

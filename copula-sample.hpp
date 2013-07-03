@@ -44,7 +44,11 @@ private:
 	double const *p2prob; ///< pointer to scen. probabilities (can be NULL)
 
 	/// This is the main matrix, including all the scenarios.
-	/// Why don't we use IMatrix - is it because we need to get the columns?
+	/**
+		Dimension is [nVar x nSc]
+
+		\note Why don't we use IMatrix - is it because we need to get the columns?
+	**/
 	std::vector<VectorI> sample;
 
 	/// used to control the level of stochasticity of the results
@@ -90,6 +94,9 @@ public:
 
 	/// write a data file for the probability-allocation model
 	void write_gmp_data(string const fName = "prob-alloc.dat");
+
+	/// shuffle the resulting matrix (otherwise, the first margin is sorted)
+	void shuffle_results();
 
 	//int tmp_get_res(int const i, int const s) { return sample[i][s]; }
 };
