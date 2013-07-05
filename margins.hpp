@@ -23,7 +23,19 @@ public:
 	**/
 	void get_margin_distr(MatrixI const & ranks, MatrixD & values);
 
+	/// get dimension
+	DimT dim() const { return nM; }
+
 	typedef boost::shared_ptr<MarginsInfo> Ptr;
+};
+
+
+class MixedMargins : public MarginsInfo {
+public:
+	MixedMargins(DimT const nVars) : MarginsInfo(nVars) {}
+
+	/// attach margin
+	void attach_margin(UnivarMargin::Ptr & p2marg, DimT const index);
 };
 
 

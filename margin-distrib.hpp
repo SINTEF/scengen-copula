@@ -96,11 +96,13 @@ private:
 	double mode;
 	bool useMinMax; ///< should scenarios always include min and max?
 
+	double modeCdf; ///< used for inverse cdf
+	double valMin;  ///< used for inverse cdf
+	double valMax;  ///< used for inverse cdf
+
 public:
 	MarginTriang(double const minV, double const maxV, double const modeV,
-	             bool const useExtremes = false)
-	: UnivarMargin(), min(minV), max(maxV), mode(modeV), useMinMax(useExtremes)
-	{}
+	             bool const useExtremes = false);
 
 	double inv_cdf(double const p) const;
 

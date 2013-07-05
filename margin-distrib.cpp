@@ -96,21 +96,27 @@ double MarginSample::inv_cdf(double const p) const
 // ---------------------------------------------------------------------------
 // class MarginTriang
 
+MarginTriang::MarginTriang(double const minV, double const maxV,
+                           double const modeV, bool const useExtremes)
+: UnivarMargin(), min(minV), max(maxV), mode(modeV), useMinMax(useExtremes),
+  modeCdf((modeV - minV) / (maxV - minV)),
+  valMin((maxV - minV) * (modeV - minV)),
+  valMax((maxV - minV) * (maxV - modeV))
+{
+	TRACE(TrDetail, "Created a new triangular margin with parameters ("
+	                << min << ", " << max << ", " << mode << ")");
+}
+
 double MarginTriang::inv_cdf(double const p) const
 {
-	// values used repeatedly -> make them static
-	static double modeCdf = (mode - min) / (max - min);
-	static double valMin = (max - min) * (mode - min);
-	static double valMax = (max - min) * (max - mode);
-
-	return (p < modeCdf ? min + sqrt(p * valMin)
-	                    : max - sqrt((1-p) * valMax));
+	double x = (p < modeCdf ? min + sqrt(p * valMin)
+	                        : max - sqrt((1-p) * valMax));
+	return x;
 }
 
 double MarginTriang::inv_cdf(DimT const r, DimT const N) const
 {
-	if (useMinMax)
-		return inv_cdf((static_cast<double>(r)) / (N - 1));
-	else
-		return inv_cdf((static_cast<double>(r) + 0.5) / N);
+	double p = (useMinMax ? (static_cast<double>(r)) / (N - 1)
+	                      : (static_cast<double>(r) + 0.5) / N);
+	return inv_cdf(p);
 }

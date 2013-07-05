@@ -323,6 +323,7 @@ int main(int argc, char *argv[]) {
 	// -------------------------------------------------------------------
 	// transform the margins to the target distributions
 	if (transfMargins) {
+		TRACE (TrDetail, ""); // empty line, for easier reading
 
 		// the sample margins have been set up together with the copula
 		if (margType == "sample" && copType != "sample") {
@@ -340,6 +341,38 @@ int main(int argc, char *argv[]) {
 				throw; // re-throw the exception
 			}
 		}
+
+/*
+		//! TEMP - testing the new mixed class with triangular data
+		{
+			DimT nMargs;
+			DimT i;
+			UnivarMargin::Ptr p2marg;
+
+			MatrixD margSpec;
+			std::ifstream margSpecF("test_triang.txt");
+			if (!margSpecF) {
+				throw std::ios_base::failure("Could not open input file `"
+				                             "test_triang.txt" "'!");
+			}
+			margSpecF >> nMargs;
+			if (nMargs != p2tgCop->dim())
+				throw std::runtime_error ("dimension inconsistency between "
+				                          "margins and copula specifications");
+			margSpec.resize(nMargs, 3);
+			margSpecF >> margSpec;
+
+			p2tgMargins = boost::make_shared<MixedMargins>(nMargs);
+			MixedMargins * p2MixedMargs
+				= dynamic_cast<MixedMargins *>(p2tgMargins.get());
+
+			for (i = 0; i < nMargs; ++i) {
+				p2marg = boost::make_shared<MarginTriang>
+				         (margSpec(i,0), margSpec(i,1), margSpec(i,2), true);
+				p2MixedMargs->attach_margin(p2marg, i);
+			}
+		}
+*/
 
 		MatrixI copRanks;
 		copSc.get_result_ranks(copRanks); // get the results in terms of ranks

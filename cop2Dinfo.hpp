@@ -258,7 +258,7 @@ public:
 	Cop2DNormal(double const rho);
 };
 
-
 } // namespace
+
 
 #endif

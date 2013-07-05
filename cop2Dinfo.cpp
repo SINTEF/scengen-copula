@@ -285,3 +285,19 @@ double Cop2DNormal::calc_cdf(double const u, double const v) const
 	double y = N01InvCdf(v);
 	return N01Cdf2D(x, y);
 }
+
+
+/// TEMP FIX!!!
+namespace boost {
+//! missing from the QuantLib library(?)
+//! http://quantlib.10058.n7.nabble.com/Quantlib-installation-error-td8263.html
+void assertion_failed_msg(char const * expr, char const * function,
+                          char const * file, char const *mm, long line)
+{
+	std::stringstream errMsg;
+	errMsg << "Error in function " << function << " in file `" << file
+	       << "', line:" << std::endl
+	       << "Boost assertion failed: " << expr << " with message: " << mm;
+	throw std::runtime_error(errMsg.str());
+}
+} // namespace

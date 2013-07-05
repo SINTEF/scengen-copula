@@ -32,6 +32,16 @@ void MarginsInfo::get_margin_distr(MatrixI const & ranks, MatrixD & values)
 
 
 // ----------------------------------------------------------------------------
+// class MixedMargins
+
+// attach margin
+void MixedMargins::attach_margin(UnivarMargin::Ptr & p2marg, DimT const index)
+{
+	p2margins[index] = p2marg;
+}
+
+
+// ----------------------------------------------------------------------------
 // class NormalMargins
 
 NormalMargins::NormalMargins(VectorD const & EVs, VectorD const & SDs,
