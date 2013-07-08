@@ -15,9 +15,10 @@ using std::endl;
 
 void CopulaDef::make_cop_name_map(CopNameMapT & cMap) {
 	// note: when listing the map, it goes from last to first
-	cMap["sample"] = cSample;
-	cMap["normal"] = cNormal;
-	cMap["indep"] = cIndep;
+	cMap["sample"] = CopTypeID::sample;
+	cMap["normal"] = CopTypeID::normal;
+	cMap["indep"] = CopTypeID::indep;
+	cMap["mixed"] = CopTypeID::mixed;
 }
 
 
@@ -117,4 +118,22 @@ void CopInfoBy2D::init_cdf_grids(VectorD const & gridPos)
 	}
 }
 */
+
+
+// ---------------------------------------------------------------------------
+// class CopInfoGen2D
+
+CopInfoGen2D::CopInfoGen2D(std::string const & tgFName)
+: CopInfoBy2D(0, false)
+{
+	// read the input file
+	std::ifstream tgFStr(tgFName.c_str());
+	if (!tgFStr) {
+		throw std::ios_base::failure("Could not open input file `"
+		                             + tgFName + "'!");
+	}
+	tgFStr >> nVars; // the first parameter is the dimension
+
+	throw std::logic_error("not yet implemented!");
+}
 

@@ -13,11 +13,11 @@ namespace CopulaDef{
 
 /// \name objects for the copula name map, used in the main code
 ///@{
-	/// enum for the known copula types; 0 means unknown
-	enum CopTypeIDs {cUnknown, cSample, cNormal, cIndep};
+	/// enum for the known copula types
+	enum class CopTypeID {sample, normal, indep, mixed, unknown};
 
 	/// type for the copula map
-	typedef std::map<std::string, CopTypeIDs> CopNameMapT;
+	typedef std::map<std::string, CopTypeID> CopNameMapT;
 
 	/// this fills the copula map with the known copula types
 	void make_cop_name_map(CopNameMapT & cMap);
@@ -195,7 +195,7 @@ private:
 
 protected:
 	/// read the target distribution from a file
-	/// \note remember to encluse this in a try{} block!
+	/// \note remember to enclose this in a try{} block!
 	void read_tg_file(std::string const & tgFName);
 
 	/// fill \a hRanks and \a hU01 matrices
@@ -256,6 +256,21 @@ public:
 		throw std::logic_error("class CopInfoNormal does not have cdf()");
 	}
 };
+
+
+// ----------------------------------------------------------------------------
+/// target copula given as a list of 2D copulas
+class CopInfoGen2D : public CopInfoBy2D {
+
+public:
+	/// constructor with the input file name as a param
+	CopInfoGen2D(std::string const & tgFName);
+
+	double cdf(VectorD const u) const {
+		throw std::logic_error("class CopInfoGen2D does not have cdf()");
+	}
+};
+
 
 } // namespace
 

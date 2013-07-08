@@ -228,19 +228,18 @@ int main(int argc, char *argv[]) {
 	// -------------------------------------------------------------------
 	// setup copula objects + generate the copula scenarios
 
-	// copula name map, to convert copula name (string) to copula ID
-	CopNameMapT copNameMap;
-	CopNameMapT::iterator cIt;
-	make_cop_name_map(copNameMap);
-
 	CopInfoBy2D::Ptr p2tgCop;
 	MarginsInfo::Ptr p2tgMargins;
 
+	CopNameMapT copNameMap;    ///< convert copula name to type
+	MargNameMapT margNameMap;  ///< convert margins name to type
+
 	// first check if the given copula type exists
+	make_cop_name_map(copNameMap);
 	if (copNameMap.count(copType) == 0) {
 		cerr << "Unknown copula type `" << copType << "' .. aborting!" << endl;
 		cout << "Known copula types are:";
-		for (cIt = copNameMap.begin(); cIt != copNameMap.end(); ++ cIt)
+		for (auto cIt = copNameMap.begin(); cIt != copNameMap.end(); ++ cIt)
 			cout << " " << cIt->first;
 		cout << endl;
 		exit(1);
@@ -248,10 +247,8 @@ int main(int argc, char *argv[]) {
 	// copula type is OK -> it is safe to use copNameMap[copType]
 	try {
 	switch (copNameMap[copType]) {
-	case cSample: // "sample"
+	case CopTypeID::sample: // "sample"
 		MSG (TrInfo, "copula of type 'sample'");
-		// We need to use a block here, so we can have local variables;
-		// these are needed to access the model-specific methods
 		p2tgCop = boost::make_shared<CopInfoData>(copParamsF);
 		if (margType == "") {
 			margType = "sample"; // default for sample cop. is sample margins
@@ -264,18 +261,23 @@ int main(int argc, char *argv[]) {
 			p2tgMargins = boost::make_shared<SampleMargins>(p2tgCopData->data_vals());
 		}
 		break;
-	case cNormal: // "normal"
-		cout << "copula of type 'normal'" << endl;
+	case CopTypeID::normal: // "normal"
+		MSG (TrInfo, "copula of type 'normal'");
 		if (margType == "") {
 			margType = "normal"; // default for sample copula
 		}
 		// create a new object of the specific class
 		p2tgCop = boost::make_shared<CopInfoNormal>(copParamsF);
 		break;
-	case cIndep: // independent margins
-		cout << "copula of type 'independent'" << endl;
+	case CopTypeID::indep: // independent margins
+		MSG (TrInfo, "copula of type 'independent'");
 		// create a new object of the specific class
 		p2tgCop = boost::make_shared<CopInfoIndep>(copParamsF);
+		break;
+	case CopTypeID::mixed: // generic mixed of 2D copulas
+		cout << "copula of type 'mixed 2D copulas'" << endl;
+		// create a new object of the specific class
+		p2tgCop = boost::make_shared<CopInfoGen2D>(copParamsF);
 		break;
 	default:
 		cerr << "ERROR: file " << __FILE__ << ", line " << __LINE__
@@ -288,6 +290,89 @@ int main(int argc, char *argv[]) {
 		     << "       The error message was: " << e.what() << endl;
 		exit(1);
 	}
+
+	// We need the margins first after we have generated the copula, but
+	// it is better to check here, so we can find an input error early..
+	if (transfMargins) {
+		// check that we have a known class of margins
+		make_marg_name_map(margNameMap);
+		if (margNameMap.count(margType) == 0) {
+			cerr << "Unknown margins type `" << margType << "' .. aborting!" << endl;
+			cout << "Known margins types are:";
+			for (auto mIt = margNameMap.begin(); mIt != margNameMap.end(); ++ mIt)
+				cout << " " << mIt->first;
+			cout << endl;
+			exit(1);
+		}
+
+		// margins type is OK -> it is safe to use margNameMap[margType]
+		try {
+		switch (margNameMap[margType]) {
+		case MargTypeID::sample: // "sample"
+			MSG (TrInfo, "margins of type 'sample'");
+			if (copNameMap[copType] != CopTypeID::sample) {
+				throw std::logic_error("Sample margins are supported only for "
+				                       "sample copula!");
+			}
+			{
+				// for this, we need CopInfoData::data_vals(), which is specific to
+				// this class, i.e. does not exist in CopInfoBy2D -> use casting
+				//! using default for the second param -> no post-processing!
+				CopInfoData * p2tgCopData = static_cast<CopInfoData *> (p2tgCop.get());
+				p2tgMargins = boost::make_shared<SampleMargins>(p2tgCopData->data_vals());
+			}
+			break;
+		case MargTypeID::normal: // "normal"
+			MSG (TrInfo, "margins of type 'normal'");
+			try {
+				//! !using default for the second param -> no post-processing!
+				p2tgMargins = boost::make_shared<NormalMargins>(margParamsF);
+			}
+			catch(exception & e) {
+				cerr << "Error while reading the target means and std. devs "
+				     << "from file " << margParamsF << endl;// << e.what() << endl;
+				throw; // re-throw the exception
+			}
+			break;
+		case MargTypeID::fixed: // generic mixed of 2D copulas
+			MSG (TrInfo, "margins of type 'fixed'");
+			// create a new object of the specific class
+			throw std::logic_error("not yet implemented");
+			break;
+		case MargTypeID::mixed: // generic mixed of 2D copulas
+			MSG (TrInfo, "margins of type 'mixed'");
+			// create a new object of the specific class
+			throw std::logic_error("not yet implemented");
+
+/* splitting ifstream by lines into a stream:
+			std::ifstream file("plop");
+			std::string   line;
+
+			while(std::getline(file, line))
+			{
+				 std::stringstream   linestream(line);
+				 int                 val1;
+				 int                 val2;
+
+				 // Read the integers using the operator >>
+				 linestream >> val1 >> val2;
+			}
+*/
+
+			break;
+		default:
+			cerr << "ERROR: file " << __FILE__ << ", line " << __LINE__
+				  << " .. should never be here!" << endl;
+			exit(1);
+		}
+		}
+		catch(exception& e) {
+			cerr << "Error: There was some problem initializing the margins!" << endl
+				  << "       The error message was: " << e.what() << endl;
+			exit(1);
+		}
+	}
+
 
 	CopulaSample copSc(p2tgCop, nSc, numCandPts);
 	copSc.gen_sample();
@@ -324,23 +409,6 @@ int main(int argc, char *argv[]) {
 	// transform the margins to the target distributions
 	if (transfMargins) {
 		TRACE (TrDetail, ""); // empty line, for easier reading
-
-		// the sample margins have been set up together with the copula
-		if (margType == "sample" && copType != "sample") {
-			throw std::logic_error("this combination is not supported");
-		}
-
-		if (margType == "normal") {
-			try {
-				// !using default for the second param -> no post-processing!
-				p2tgMargins.reset(new NormalMargins(margParamsF));
-			}
-			catch(exception & e) {
-				cerr << "Error while reading the target means and std. devs "
-				     << "from file " << margParamsF << endl;// << e.what() << endl;
-				throw; // re-throw the exception
-			}
-		}
 
 /*
 		//! TEMP - testing the new mixed class with triangular data

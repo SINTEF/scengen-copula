@@ -5,6 +5,17 @@
 
 using namespace MarginDistrib;
 
+// ---------------------------------------------------------------------------
+// generic routines
+
+void MarginDistrib::make_marg_name_map(MargNameMapT & mMap) {
+	// note: when listing the map, it goes from last to first
+	mMap["sample"] = MargTypeID::sample;
+	mMap["normal"] = MargTypeID::normal;
+	mMap["fixed"] = MargTypeID::fixed;
+	mMap["mixed"] = MargTypeID::mixed;
+}
+
 
 // ----------------------------------------------------------------------------
 // class MarginsInfo

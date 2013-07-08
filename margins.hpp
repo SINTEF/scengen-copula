@@ -3,8 +3,23 @@
 
 #include "margin-distrib.hpp"
 
+#include <map>
+
 
 namespace MarginDistrib {
+
+/// \name objects for the margin-type name map, used in the main code
+///@{
+	/// enum for the known multivariate margin specification types
+	enum class MargTypeID {normal, sample, fixed, mixed, unknown};
+
+	/// type for the copula map
+	typedef std::map<std::string, MargTypeID> MargNameMapT;
+
+	/// this fills the copula map with the known copula types
+	void make_marg_name_map(MargNameMapT & mMap);
+///@}
+
 
 class MarginsInfo {
 protected:
