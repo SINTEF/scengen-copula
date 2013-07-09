@@ -46,8 +46,18 @@ public:
 
 
 class MixedMargins : public MarginsInfo {
+private:
+	DistribNameMapT distrNameMap;
+
 public:
 	MixedMargins(DimT const nVars) : MarginsInfo(nVars) {}
+
+	/// constructor based on a file
+	/**
+		\param[in] tgFName  name of the input file
+		\param[in]   nVars  number of variables - optional, used for checking
+	**/
+	MixedMargins(std::string const & tgFName, DimT const nVars = 0);
 
 	/// attach margin
 	void attach_margin(UnivarMargin::Ptr & p2marg, DimT const index);

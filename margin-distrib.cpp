@@ -9,6 +9,22 @@ using std::endl;
 
 
 // ---------------------------------------------------------------------------
+// generic routines
+
+void MarginDistrib::make_distrib_name_map(DistribNameMapT & dMap) {
+	// note: when listing the map, it goes from last to first
+	dMap["m"] = MargDistribID::moments;
+	dMap["moments"] = MargDistribID::moments;
+	dMap["sample"] = MargDistribID::sample;
+	dMap["n"] = MargDistribID::normal;
+	dMap["normal"] = MargDistribID::normal;
+	dMap["t"] = MargDistribID::triang;
+	dMap["triang"] = MargDistribID::triang;
+	dMap["tX"] = MargDistribID::triangX;
+	dMap["triangX"] = MargDistribID::triangX;
+}
+
+// ---------------------------------------------------------------------------
 // class UnivarMargin
 
 void UnivarMargin::inv_cdf(VectorI const & ranks, VectorD & cdfs)
@@ -96,16 +112,30 @@ double MarginSample::inv_cdf(double const p) const
 // ---------------------------------------------------------------------------
 // class MarginTriang
 
-MarginTriang::MarginTriang(double const minV, double const maxV,
-                           double const modeV, bool const useExtremes)
-: UnivarMargin(), min(minV), max(maxV), mode(modeV), useMinMax(useExtremes),
-  modeCdf((modeV - minV) / (maxV - minV)),
-  valMin((maxV - minV) * (modeV - minV)),
-  valMax((maxV - minV) * (maxV - modeV))
+void MarginTriang::guts_of_constructor()
 {
+	modeCdf = (mode - min) / (max - min);
+	valMin = (max - min) * (mode - min);
+	valMax = (max - min) * (max - mode);
+
 	TRACE(TrDetail, "Created a new triangular margin with parameters ("
 	                << min << ", " << max << ", " << mode << ")");
 }
+
+MarginTriang::MarginTriang(double const minV, double const maxV,
+                           double const modeV, bool const useExtremes)
+: UnivarMargin(), min(minV), max(maxV), mode(modeV), useMinMax(useExtremes)
+{
+	guts_of_constructor();
+}
+
+MarginTriang::MarginTriang(std::stringstream & paramStr, bool const useExtremes)
+: UnivarMargin(), useMinMax(useExtremes)
+{
+	paramStr >> min >> max >> mode;
+	guts_of_constructor();
+}
+
 
 double MarginTriang::inv_cdf(double const p) const
 {

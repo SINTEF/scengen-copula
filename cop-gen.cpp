@@ -307,64 +307,53 @@ int main(int argc, char *argv[]) {
 
 		// margins type is OK -> it is safe to use margNameMap[margType]
 		try {
-		switch (margNameMap[margType]) {
-		case MargTypeID::sample: // "sample"
-			MSG (TrInfo, "margins of type 'sample'");
-			if (copNameMap[copType] != CopTypeID::sample) {
-				throw std::logic_error("Sample margins are supported only for "
-				                       "sample copula!");
+			switch (margNameMap[margType]) {
+			case MargTypeID::sample: // "sample"
+				MSG (TrInfo, "margins of type 'sample'");
+				if (copNameMap[copType] != CopTypeID::sample) {
+					throw std::logic_error("Sample margins are supported only for "
+					                       "sample copula!");
+				}
+				{
+					// for this, we need CopInfoData::data_vals(), which is specific to
+					// this class, i.e. does not exist in CopInfoBy2D -> use casting
+					//! using default for the second param -> no post-processing!
+					CopInfoData * p2tgCopData = static_cast<CopInfoData *> (p2tgCop.get());
+					p2tgMargins = boost::make_shared<SampleMargins>(p2tgCopData->data_vals());
+				}
+				break;
+			case MargTypeID::normal: // "normal"
+				MSG (TrInfo, "margins of type 'normal'");
+				try {
+					//! !using default for the second param -> no post-processing!
+					p2tgMargins = boost::make_shared<NormalMargins>(margParamsF);
+				}
+				catch(exception & e) {
+					cerr << "Error while reading the target means and std. devs "
+					     << "from file " << margParamsF << endl;// << e.what() << endl;
+					throw; // re-throw the exception
+				}
+				break;
+			case MargTypeID::fixed: // generic mixed of 2D copulas
+				MSG (TrInfo, "margins of type 'fixed'");
+				// create a new object of the specific class
+				throw std::logic_error("not yet implemented");
+				break;
+			case MargTypeID::mixed: // generic mixed of 2D copulas
+				MSG (TrInfo, "margins of type 'mixed'");
+				// create a new object of the specific class
+				p2tgMargins = boost::make_shared<MixedMargins>(margParamsF,
+				                                               p2tgCop->dim());
+				break;
+			default:
+				cerr << "ERROR: file " << __FILE__ << ", line " << __LINE__
+					  << " .. should never be here!" << endl;
+				exit(1);
+			} // switch
+			if (p2tgCop->dim() != p2tgMargins->dim()) {
+				throw std::runtime_error("Copula and margins have different "
+				                         "dimensions.");
 			}
-			{
-				// for this, we need CopInfoData::data_vals(), which is specific to
-				// this class, i.e. does not exist in CopInfoBy2D -> use casting
-				//! using default for the second param -> no post-processing!
-				CopInfoData * p2tgCopData = static_cast<CopInfoData *> (p2tgCop.get());
-				p2tgMargins = boost::make_shared<SampleMargins>(p2tgCopData->data_vals());
-			}
-			break;
-		case MargTypeID::normal: // "normal"
-			MSG (TrInfo, "margins of type 'normal'");
-			try {
-				//! !using default for the second param -> no post-processing!
-				p2tgMargins = boost::make_shared<NormalMargins>(margParamsF);
-			}
-			catch(exception & e) {
-				cerr << "Error while reading the target means and std. devs "
-				     << "from file " << margParamsF << endl;// << e.what() << endl;
-				throw; // re-throw the exception
-			}
-			break;
-		case MargTypeID::fixed: // generic mixed of 2D copulas
-			MSG (TrInfo, "margins of type 'fixed'");
-			// create a new object of the specific class
-			throw std::logic_error("not yet implemented");
-			break;
-		case MargTypeID::mixed: // generic mixed of 2D copulas
-			MSG (TrInfo, "margins of type 'mixed'");
-			// create a new object of the specific class
-			throw std::logic_error("not yet implemented");
-
-/* splitting ifstream by lines into a stream:
-			std::ifstream file("plop");
-			std::string   line;
-
-			while(std::getline(file, line))
-			{
-				 std::stringstream   linestream(line);
-				 int                 val1;
-				 int                 val2;
-
-				 // Read the integers using the operator >>
-				 linestream >> val1 >> val2;
-			}
-*/
-
-			break;
-		default:
-			cerr << "ERROR: file " << __FILE__ << ", line " << __LINE__
-				  << " .. should never be here!" << endl;
-			exit(1);
-		}
 		}
 		catch(exception& e) {
 			cerr << "Error: There was some problem initializing the margins!" << endl
@@ -408,39 +397,7 @@ int main(int argc, char *argv[]) {
 	// -------------------------------------------------------------------
 	// transform the margins to the target distributions
 	if (transfMargins) {
-		TRACE (TrDetail, ""); // empty line, for easier reading
-
-/*
-		//! TEMP - testing the new mixed class with triangular data
-		{
-			DimT nMargs;
-			DimT i;
-			UnivarMargin::Ptr p2marg;
-
-			MatrixD margSpec;
-			std::ifstream margSpecF("test_triang.txt");
-			if (!margSpecF) {
-				throw std::ios_base::failure("Could not open input file `"
-				                             "test_triang.txt" "'!");
-			}
-			margSpecF >> nMargs;
-			if (nMargs != p2tgCop->dim())
-				throw std::runtime_error ("dimension inconsistency between "
-				                          "margins and copula specifications");
-			margSpec.resize(nMargs, 3);
-			margSpecF >> margSpec;
-
-			p2tgMargins = boost::make_shared<MixedMargins>(nMargs);
-			MixedMargins * p2MixedMargs
-				= dynamic_cast<MixedMargins *>(p2tgMargins.get());
-
-			for (i = 0; i < nMargs; ++i) {
-				p2marg = boost::make_shared<MarginTriang>
-				         (margSpec(i,0), margSpec(i,1), margSpec(i,2), true);
-				p2MixedMargs->attach_margin(p2marg, i);
-			}
-		}
-*/
+		TRACE (TrDetail, endl << "Transforming to the target distribution.");
 
 		MatrixI copRanks;
 		copSc.get_result_ranks(copRanks); // get the results in terms of ranks

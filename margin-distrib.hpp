@@ -1,11 +1,27 @@
 #ifndef MARGIN_DISTRIB_HPP
 #define MARGIN_DISTRIB_HPP
 
-#include <ql/math/distributions/normaldistribution.hpp> // for normal distrib.
-
 #include "common.hpp"
 
+#include <ql/math/distributions/normaldistribution.hpp> // for normal distrib.
+
+#include <map>
+
+
 namespace MarginDistrib {
+
+/// \name objects for the margin-type name map, used in the main code
+///@{
+	/// enum for the known multivariate margin specification types
+	enum class MargDistribID {moments, normal, sample, triang, triangX, unknown};
+
+	/// type for the copula map
+	typedef std::map<std::string, MargDistribID> DistribNameMapT;
+
+	/// this fills the copula map with the known copula types
+	void make_distrib_name_map(DistribNameMapT & dMap);
+///@}
+
 
 // ----------------------------------------------------------------------------
 class UnivarMargin {
@@ -100,9 +116,13 @@ private:
 	double valMin;  ///< used for inverse cdf
 	double valMax;  ///< used for inverse cdf
 
+	void guts_of_constructor();
+
 public:
 	MarginTriang(double const minV, double const maxV, double const modeV,
 	             bool const useExtremes = false);
+
+	MarginTriang(std::stringstream & paramStr, bool const useExtremes = false);
 
 	double inv_cdf(double const p) const;
 
