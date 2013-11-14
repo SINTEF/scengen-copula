@@ -1,9 +1,35 @@
 #include <fstream>
 #include <ios>
+#include <map>
 
 #include "margins.hpp"
 
 using namespace MarginDistrib;
+
+
+// NB: not in the header file, i.e. local for this file
+MargType marg_type_from_string(std::string const id)
+{
+	// map for converting strings to MarginDistrib::MargType
+	// static, so we need to fill it only on the first call (see below)
+	std::map<std::string, MargType> static typeID;
+	if (typeID.size() == 0) {
+		// called for a first time -> fill with values
+		typeID["n"] = MargType::Normal;
+		typeID["normal"] = MargType::Normal;
+		typeID["d"] = MargType::Sample;
+		typeID["s"] = MargType::Sample;
+		typeID["sample"] = MargType::Sample;
+		typeID["t"] = MargType::Triang;
+		typeID["triang"] = MargType::Triang;
+		typeID["tx"] = MargType::Triang;
+		typeID["triangX"] = MargType::Triang;
+	}
+
+	if (typeID.count(id) == 0)
+		return MargType::Unknown;
+	return typeID[id];
+}
 
 
 // ----------------------------------------------------------------------------

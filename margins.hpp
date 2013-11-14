@@ -14,6 +14,7 @@ protected:
 
 public:
 	MarginsInfo(DimT const nVars) : nM(nVars), p2margins(nVars) {}
+	MarginsInfo(std::string fName);
 	virtual ~MarginsInfo() {}
 
 	/// convert ranks to distribution values
@@ -31,8 +32,12 @@ public:
 
 
 class MixedMargins : public MarginsInfo {
+
+private:
+	void read_from_file(std::string fName);
 public:
 	MixedMargins(DimT const nVars) : MarginsInfo(nVars) {}
+	MixedMargins(std::string fName);
 
 	/// attach margin
 	void attach_margin(UnivarMargin::Ptr & p2marg, DimT const index);

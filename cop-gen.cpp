@@ -61,6 +61,7 @@ int main(int argc, char *argv[]) {
 
 	// variables whose values is read from the command line
 	int nSc = 0;                // number of scenarios to generate
+	int dim = 0;                // dimension (only for independent copula)
 	string copType = "";        // type of the copula
 	string copParamsF = "";     // file with copula parameters
 	string margType = "";       // type of the margins
@@ -123,9 +124,11 @@ int main(int argc, char *argv[]) {
 			            ->default_value("cop-params.dat"),
 			            "input file: copula parameters")
 			("marg-type,m", prOpt::value<string>(&margType),
-			               "type of the marginal distributions")
+			                "type of the marginal distributions")
 			("marg-par,d", prOpt::value<string>(&margParamsF),
 			               "input file: params of marg. distrib.")
+			("dim", prOpt::value<int>(&dim),
+			        "dimension (for independent copula)")
 			;
 
 		// hidden options - allowed everywhere, but not shown to the user
@@ -265,7 +268,7 @@ int main(int argc, char *argv[]) {
 		}
 		break;
 	case cNormal: // "normal"
-		cout << "copula of type 'normal'" << endl;
+		MSG (TrInfo, "copula of type 'normal'");
 		if (margType == "") {
 			margType = "normal"; // default for sample copula
 		}
@@ -273,9 +276,15 @@ int main(int argc, char *argv[]) {
 		p2tgCop = boost::make_shared<CopInfoNormal>(copParamsF);
 		break;
 	case cIndep: // independent margins
-		cout << "copula of type 'independent'" << endl;
+		MSG (TrInfo, "copula of type 'independent'");
 		// create a new object of the specific class
-		p2tgCop = boost::make_shared<CopInfoIndep>(copParamsF);
+		if (dim > 0) {
+			// dimension provided -> use it
+			p2tgCop = boost::make_shared<CopInfoIndep>(dim);
+		} else {
+			// use the parameter file instead
+			p2tgCop = boost::make_shared<CopInfoIndep>(copParamsF);
+		}
 		break;
 	default:
 		cerr << "ERROR: file " << __FILE__ << ", line " << __LINE__
