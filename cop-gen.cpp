@@ -439,3 +439,64 @@ int main(int argc, char *argv[]) {
 
 	return 0;
 }
+
+
+/** \mainpage Moment-matching scenario generation heuristic
+
+	This code implements the copula-based scenario-generation method from
+	'<em>A copula-based heuristic for scenario generation</em>' by Michal Kaut,
+	published in <em>Computational Management Science</em>, Online First ed.,
+	2013; <a href="http://dx.doi.org/doi:10.1007/s10287-013-0184-4">
+	doi:110.1007/s10287-013-0184-4</a>. Most of the code was written by
+	Michal Kaut, except for the cubic_solve() function written by Diego Mathieu.
+
+	\section sec_usage Basic usage
+
+	\subsection sec_usage_cop Specifying the copula
+
+	The copula type/family is specified by option \c \--cop-type; its parameters
+	are then read from file given by option \c \--input, with default value
+	`cop-params.dat'.
+
+	At the moment, the code handles the following copula types:
+	- normal - the param. file contains the correlation matrix
+	- sample - the param. file contains a matrix of sample/historical values
+	           that the scenarios should replicate
+	- indep - independent random variables; the param. file contains only the
+	          dimension - an alternative is to give this directly using option
+	          \c \--dim, then the input file won't be read
+
+	\subsection sec_usage_marg Specifying marginal distributions
+
+	If we do not specify any marginal distribution, the code will output
+	the copula itself, possibly scaled to ranks using option \c \--cop-as-ranks.
+
+	TO DO
+
+	\section sec_license License
+
+	The code  is dual-licensed under the
+	<a href="http://creativecommons.org/licenses/LGPL/2.1/">
+	GNU Lesser General Public License (LGPL) version 2.1</a> and the
+	<a href="http://www.eclipse.org/legal/epl-v10.php">
+	Eclipse Public License (EPL)</a>.
+	As a recipient of the code, you may choose which license to receive it under.
+	<br />
+	Note that the EPL is not GPL-compatible. On the other hand, it is the
+	license used in most Coin-OR projects.
+
+	One important aspect of both licenses (so called "weak copyleft") is that
+	if you make any modification or addition to the code itself, you \b must
+	put your modification under the same license, the LGPL or EPL.
+
+	Note that it is explicitly <b>not needed</b> to put any application under
+	the LGPL or EPL, if that application is just \e using the code, without
+	making any changes to it.
+
+	Parts of the code may be available under other licenses that are
+	compatible with the LGPL and the EPL. For instance, source code that is
+	governed by licenses like BSD or MIT, or source code that has been put
+	into the Public Domain by its author can be used within the code. Files or
+	folders including such source code mention those other licenses explicitly.
+
+**/

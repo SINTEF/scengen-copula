@@ -241,11 +241,12 @@ void CopulaSample::print_as_txt(string const fName, bool const scaleTo01,
 				oFile << (static_cast<double>(sample[nVar - 1][s]) + 0.5) / nSc << endl;
 			}
 		} else {
+			// adding 1 to all values, to make ranks go from 1 to nSc
 			for (s = 0; s < nSc; s++) {
 				for (marg = 0; marg < nVar - 1; marg++) {
-					oFile << sample[marg][s] << "\t";
+					oFile << sample[marg][s] + 1 << "\t";
 				}
-				oFile << sample[nVar - 1][s] << endl;
+				oFile << sample[nVar - 1][s] + 1 << endl;
 			}
 		}
 		oFile.close();
