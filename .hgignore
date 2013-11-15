@@ -1,0 +1,4 @@
+syntax: glob
+copula-gen.depend
+copula-gen.layout
+bin/*

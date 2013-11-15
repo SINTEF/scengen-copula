@@ -1,5 +1,6 @@
 #include <fstream>
 #include <ios>
+#include <map>
 
 #include "margins.hpp"
 

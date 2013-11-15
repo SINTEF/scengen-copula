@@ -43,6 +43,11 @@ public:
 
 	virtual double inv_cdf(double const p) const = 0;
 
+	/// inverse CDF
+	/**
+		\param[in] r  rank: 0,...,N-1
+		\param[in] N  number of samples/scenarios
+	**/
 	virtual double inv_cdf(DimT const r, DimT const N) const {
 		return inv_cdf((static_cast<double>(r) + 0.5) / N);
 	}
@@ -126,7 +131,7 @@ public:
 
 	double inv_cdf(double const p) const;
 
-	double inv_cdf(DimT const r, DimT const N) const;
+	double inv_cdf(DimT const r, DimT const N) const; /// \todo add 'override';
 };
 
 

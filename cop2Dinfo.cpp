@@ -58,8 +58,8 @@ void Cop2DInfo::calc_all_grid_cdfs()
 void Cop2DInfo::init_cdf_grid(DimT const N, double const posInInt)
 {
 	if (gridN == N && gridPts.size() == N && isEq(gridPts[0], posInInt / N)) {
-		cerr << "Info: init_cdf_grid() called again with the same params!"
-		     << endl;
+		// this happens with independent copula, which re-uses the 2D object
+		TRACE (TrInfo, "init_cdf_grid() called again with the same params");
 		return; // the grid already exists, with the same specs.
 	}
 	// \todo bound checking

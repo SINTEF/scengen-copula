@@ -29,6 +29,7 @@ protected:
 
 public:
 	MarginsInfo(DimT const nVars) : nM(nVars), p2margins(nVars) {}
+	MarginsInfo(std::string fName);
 	virtual ~MarginsInfo() {}
 
 	/// convert ranks to distribution values
