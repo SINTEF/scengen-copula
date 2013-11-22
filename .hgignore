@@ -4,3 +4,5 @@ copula-gen.layout
 bin/*
 .obj/*
 copula-gen.cscope_file_list
+doc/html/*
+doc/latex/*
