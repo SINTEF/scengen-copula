@@ -48,8 +48,7 @@ DimT const MaxVecLen = std::numeric_limits<VectorD::size_type>::max();
 	{
 		// Note: the vector_expression<VT> has only one method "()", which
 		// returns "& VT" or "const & VT" - a ref. to the included vector object.
-		typename VT::const_iterator it;
-		for (it = v().begin(); it != v().end(); ++it) {
+		for (auto it = v().begin(); it != v().end(); ++it) {
 			os << *it << " ";
 		}
 		return os;
@@ -62,10 +61,8 @@ DimT const MaxVecLen = std::numeric_limits<VectorD::size_type>::max();
 	{
 		// Note: the matrix_expression<MT> has only one method "()", which
 		// returns "& MT" or "const & MT" - a ref. to the included matrix object.
-		typename MT::const_iterator1 it1;
-		typename MT::const_iterator2 it2;
-		for (it1 = M().begin1(); it1 != M().end1(); ++it1) {
-			for (it2 = it1.begin(); it2 != it1.end(); ++it2) {
+		for (auto it1 = M().begin1(); it1 != M().end1(); ++it1) {
+			for (auto it2 = it1.begin(); it2 != it1.end(); ++it2) {
 				os << *it2 << "\t";
 			}
 			os << std::endl;

@@ -8,24 +8,24 @@
 #include "copula-sample.hpp"
 #include "margins.hpp"
 
-using namespace ScenGenCop;
+// output/verbosity level - must exist; the value can be changed
+OutputLevel outLvl = static_cast<OutputLevel>(ScenGenCop::defVerb);
 
 
-// output level - has to be defined
-#ifdef NDEBUG
-	OutputLevel defOutLvl = TrInfo;    // default value for release code
-#else
-	OutputLevel defOutLvl = TrDetail2; // default value for debug code
-#endif
-OutputLevel outLvl = defOutLvl;       // so it can be changed later
-
-
-int gen_scen_normal(ublas::vector<double> const & tgMean,
-                    ublas::vector<double> const & tgStD,
-                    ublas::matrix<double> const & tgCorr,
-                    unsigned const nSc,
-                    ublas::matrix<double> & scens)
+// generate scenarios from normal distribution
+double ScenGenCop::gen_scen_normal(ublas::vector<double> const & tgMean,
+                       ublas::vector<double> const & tgStD,
+                       ublas::matrix<double> const & tgCorr,
+                       unsigned const nSc,
+                       ublas::matrix<double> & scens,
+                       bool const varInC,
+                       unsigned const verb)
 {
+	if (verb > OutputLevel::TrAll)
+		outLvl = OutputLevel::TrAll;
+	else
+		outLvl = static_cast<OutputLevel>(verb);
+
 	auto p2tgCop = boost::make_shared<CopulaDef::CopInfoNormal>(tgCorr);
 	auto p2tgMargins
 		= boost::make_shared<MarginDistrib::NormalMargins>(tgMean, tgStD);
@@ -33,12 +33,21 @@ int gen_scen_normal(ublas::vector<double> const & tgMean,
 	// generate scenarios for the copula
 	// TO DO: add possibility for shuffling?
 	CopulaScen::CopulaSample copSc(p2tgCop, nSc);
-	copSc.gen_sample();
+	double scCopDist = copSc.gen_sample();
 
 	// transform margins to the target distribution
 	MatrixI copRanks;
 	copSc.get_result_ranks(copRanks); // get the results in terms of ranks
-	p2tgMargins->get_margin_distr(copRanks, scens); // convert to the target
 
-	return 0;
+	// convert to the target distribution
+	if (varInC) {
+		// want variables in columns -> have to transpose the results
+		MatrixD trScens;
+		p2tgMargins->get_margin_distr(copRanks, trScens);
+		scens = ublas::trans(trScens);
+	} else {
+		p2tgMargins->get_margin_distr(copRanks, scens);
+	}
+
+	return scCopDist;
 }

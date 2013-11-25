@@ -1,4 +1,4 @@
-#include "common.hpp"
+#include "../common.hpp"
 #include <gtest/gtest.h>
 
 //! this file uses C++11 features (vector assignment)!

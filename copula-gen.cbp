@@ -53,7 +53,7 @@
 				</Linker>
 			</Target>
 			<Target title="lib_Debug">
-				<Option output="bin/Debug/copula-gen" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Debug/libscen-gen_cop" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="bin/Debug" />
 				<Option object_output=".obj/Debug/" />
 				<Option type="3" />
@@ -63,11 +63,12 @@
 				<Option createStaticLib="1" />
 				<Compiler>
 					<Add option="-g" />
-					<Add option="-DBUILD_DLL" />
+					<Add option="-fvisibility=hidden" />
+					<Add option="-DBUILDING_DLL" />
 				</Compiler>
 			</Target>
 			<Target title="lib_Release">
-				<Option output="bin/Release/copula-gen" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Release/libscen-gen_cop" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="bin/Release" />
 				<Option object_output=".obj/Release/" />
 				<Option type="3" />
@@ -77,11 +78,49 @@
 				<Compiler>
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
-					<Add option="-DBUILD_DLL" />
+					<Add option="-fvisibility=hidden" />
+					<Add option="-DBUILDING_DLL" />
 					<Add option="-DNDEBUG" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="lib-driver_Deb">
+				<Option output="bin/Debug/scen-gen_cop_ex" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/Debug" />
+				<Option object_output=".obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
+				<Option parameters="-c sample -i truthtree.txt -m sample --sort-marg 15" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Option projectLibDirsRelation="1" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<Linker>
+					<Add library="scen-gen_cop" />
+					<Add directory="./bin/Debug" />
+				</Linker>
+			</Target>
+			<Target title="lib-driver_Rel">
+				<Option output="bin/Release/scen-gen_cop_ex" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/Release" />
+				<Option object_output=".obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-O3" />
+					<Add option="-DNDEBUG" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="scen-gen_cop" />
+					<Add directory="./bin/Release" />
 				</Linker>
 			</Target>
 		</Build>
@@ -94,11 +133,37 @@
 			<Add library="boost_program_options" />
 			<Add library="QuantLib" />
 		</Linker>
-		<Unit filename="common.cpp" />
-		<Unit filename="common.hpp" />
+		<Unit filename="common.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="common.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
 		<Unit filename="cop-gen.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
+		</Unit>
+		<Unit filename="cop-gen_lib.cpp">
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="cop-gen_lib.hpp">
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+			<Option target="lib-driver_Deb" />
+			<Option target="lib-driver_Rel" />
+		</Unit>
+		<Unit filename="cop-gen_lib_ex.cpp">
+			<Option target="lib-driver_Deb" />
+			<Option target="lib-driver_Rel" />
 		</Unit>
 		<Unit filename="cop-info_hist-data.cpp">
 			<Option target="Debug" />
@@ -157,6 +222,10 @@
 		<Unit filename="copula-sample.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="dll_export_def.h">
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 		</Unit>
