@@ -27,6 +27,16 @@ void MarginDistrib::make_distrib_name_map(DistribNameMapT & dMap) {
 // ---------------------------------------------------------------------------
 // class UnivarMargin
 
+// inverse CDF
+double UnivarMargin::inv_cdf(DimT const r, DimT const N) const
+{
+	boost::optional<double> x = inv_cdf_r(r, N);
+	if (x)
+		return x.get(); // inv_cdf_r() returned some value
+	else
+		return inv_cdf((static_cast<double>(r) + 0.5) / N);
+}
+
 void UnivarMargin::inv_cdf(VectorI const & ranks, VectorD & cdfs)
 {
 	DimT N = ranks.size();
@@ -106,6 +116,24 @@ double MarginSample::inv_cdf(double const p) const
 	double p0 = (i0 + 0.5) / nPts;
 	double pos = (p - p0) * nPts; // 1/(p1 - p0) = 1/(1 / nPts) = nPts
 	return pos * sortedS(i0) + (1 - pos) * sortedS(i0 + 1);
+}
+
+
+// ---------------------------------------------------------------------------
+// class MarginMoments
+
+MarginMoments::MarginMoments(VectorD const & tgMoms, SamplePP const postP)
+: UnivarMargin(postP), moments(tgMoms), sortedVals()
+{}
+
+// inverse CDF using ranks and number of scenarios
+boost::optional<double>MarginMoments::inv_cdf_r(DimT const r, DimT const N) const
+{
+	if (sortedVals.size() == N) {
+		return sortedVals[r];
+	} else {
+		assert (false && "here we have to call the moment-matching code");
+	}
 }
 
 
