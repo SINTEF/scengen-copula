@@ -29,8 +29,8 @@ protected:
 	/// \name cdf-grid-related members
 	/**
 		For some copulas, the calculation of cdf(u,v) might be quite slow.
-		For this reason, the main algorithm computes pre-computes it and stores
-		it in a matrix, to avoid repeating calls. But this will still mean
+		For this reason, the main algorithm pre-computes the values and stores
+		them in a matrix, to avoid repeating calls. But this will still mean
 		repeating calculation in cases where we use the same Cop2DInfo object
 		for several pairs of variables. For this reason, it is better to store
 		the values inside the class...
@@ -40,23 +40,24 @@ protected:
 		bool customGridPts; ///< custom/non-standard grid positions
 		DimT gridN;         ///< size of the grid
 		VectorD gridPts;    ///< points of the grid - values from [0,1]
-		MatrixD gridCdf;    ///< the computed cdf values (values from [0,1])
+		MatrixF gridCdf;    ///< the computed cdf values (values from [0,1])
 
 		/// convert a value from [0,1] into the position on the grid
 		/// \warning at the moment, does not work if customGridPts = true!
 		DimT u_to_grid(double const u) const;
 
-		/// this fill the grid with cdf values
+		/// this fills the grid with cdf values
 		/** assumes values in gridPts; allocates gridCdf if needed **/
 		virtual void calc_all_grid_cdfs();
 	///@}
 
 public:
 	Cop2DInfo()
-	: useGrid(false), customGridPts(false), gridN(0)
-	{}
+	: useGrid(false), customGridPts(false), gridN(0) {}
+	//{ std::cout << "inside Cop2DInfo()"<< std::endl; }
 
 	virtual ~Cop2DInfo() {}
+	//{ std::cout << "inside ~Cop2DInfo(), with gridCdf " << gridCdf.size1() << "x" << gridCdf.size2() << std::endl; }
 
 	/// smart pointer to the class
 	typedef boost::shared_ptr<Cop2DInfo> Ptr;
@@ -89,7 +90,19 @@ public:
 		**/
 		virtual void init_cdf_grid(VectorD const & gridPos);
 
-		MatrixD const & get_cdf_grid() const { return gridCdf; }
+		MatrixF const & get_cdf_grid() const { return gridCdf; }
+
+		/// delete the grid, to free some memory
+		/**
+			\todo improve the implementation, add a usage counter
+
+			\warning This is a temporary fix, to decrease memory usage.
+				It will create problems if the object is shared by several margin
+				pairs - though this is currently implemented only for indep. cop.
+				To avoid it, we should add a usage counter - or maybe use the
+				counter provided by boost::shared_ptr?
+		**/
+		void clear_cdf_grid();
 	///@}
 
 	//void attach_multivar_info(CopulaDef::CopInfoBy2D * const p2tg,

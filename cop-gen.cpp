@@ -406,7 +406,7 @@ int main(int argc, char *argv[]) {
 	// -------------------------------------------------------------------
 	// transform the margins to the target distributions
 	if (transfMargins) {
-		TRACE (TrDetail, endl << "Transforming to the target distribution.");
+		MSG (TrInfo3, endl << "Transforming to the target distribution.");
 
 		MatrixI copRanks;
 		copSc.get_result_ranks(copRanks); // get the results in terms of ranks

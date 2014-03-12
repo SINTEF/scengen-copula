@@ -256,6 +256,7 @@ double Cop2DSample::grid_prob_box(int const i0, int const j0,
 
 	\todo Deal with equal values -> choose randomly between them!
 */
+/*
 double Cop2DSample::gen_heur()
 {
 	int i, j, jj;
@@ -275,7 +276,7 @@ double Cop2DSample::gen_heur()
 	VectorD prevColCdf = ublas::zero_vector<double>(N); //N, 0.0);
 
 	/// list of rows ('j') that minimize the distance
-	/** using std::vector, so we can du .reserve() and .push_back() **/
+	//! using std::vector, so we can du .reserve() and .push_back()
 	std::vector<DimT> bestRows;
 	bestRows.reserve(10); // this should be enough to prevent reallocations(?)
 
@@ -287,30 +288,29 @@ double Cop2DSample::gen_heur()
 		minDist = N * cdfDist(0.0, 1.0); // we should always find something better
 		bestRows.clear();
 
-		/*
-			The error/distance of putting the point at (i,j) is
-			dist(i,j) = sum_{k=0}^{j-1} d(F(i-1,k), T(i,k))
-			            + sum_{k=j}^{n-1} d(F(i-1,k) + 1/n, T(i,k))
-			where: d() is the distance measure  = cdfDist()
-			     : F() is the sample (rank) Cdf -> prevColRCdf[] is F(i-1,*)
-			     : T() is the target (rank) Cdf = tgRankCdf[][]
-			     : all scenarios have prob. 1/n
-			We use the fact that for j>0 we have the following:
-			dist(i,j) = dist(i,j-1) + d(F(i-1,j-1), T(i,j-1))
-			                        - d(F(i-1,j-1) + 1/n, T(i,j-1))
-			It means that we have to treat j=0 separately to get dist(i,0)
-		*/
+		//	The error/distance of putting the point at (i,j) is
+		//	dist(i,j) = sum_{k=0}^{j-1} d(F(i-1,k), T(i,k))
+		//	            + sum_{k=j}^{n-1} d(F(i-1,k) + 1/n, T(i,k))
+		//	where: d() is the distance measure  = cdfDist()
+		//	     : F() is the sample (rank) Cdf -> prevColRCdf[] is F(i-1,*)
+		//	     : T() is the target (rank) Cdf = tgRankCdf[][]
+		//	     : all scenarios have prob. 1/n
+		//	We use the fact that for j>0 we have the following:
+		//	dist(i,j) = dist(i,j-1) + d(F(i-1,j-1), T(i,j-1))
+		//	                        - d(F(i-1,j-1) + 1/n, T(i,j-1))
+		//	It means that we have to treat j=0 separately to get dist(i,0)
+
 		j = 0;
 		// compute dist(i, 0):
 		dist = 0;
 		for (jj = 0; jj < N; jj++) {
 			// RCdf(i,jj) = prevColRCdf(jj) + 1 for all jj - we have point (i, 0)
-			/* comment and edit 2010-01-26:
-			   evalPtPos should not matter for the actual cdf - we just take the
-			   previous one and increase it by the column probability; the value
-			   is taken to be valid in the whole box. evalPtPos comes into play
-			   through tgCdfOfR, where it is used in computing the evaluation pts.
-			*/
+			// comment and edit 2010-01-26:
+			//   evalPtPos should not matter for the actual cdf - we just take the
+			//   previous one and increase it by the column probability; the value
+			//   is taken to be valid in the whole box. evalPtPos comes into play
+			//   through tgCdfOfR, where it is used in computing the evaluation pts.
+
 			TRACE (TrDetail2, "Cop2DSample::gen_heur(): i=" << i << ",j=0 ; jj="
 			       << jj << "; prevColCdf[" << jj << "]=" << prevColCdf[jj]
 			       << ", tgCdfOfR(" << i << "," << jj << ")=" << tgCdfOfR(i, jj));
@@ -381,7 +381,7 @@ double Cop2DSample::gen_heur()
 
 	return totDist;
 }
-
+*/
 
 // ------------------------------------------------------------------------
 
