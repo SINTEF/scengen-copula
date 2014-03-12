@@ -109,13 +109,25 @@ private:
 	DimT nSc;                       ///< number of scenarios
 
 	/// read the target moments from a file
-	void read_from_file(std::string fName);
+	/**
+		\param[in]  fName  name of the file with the moments
+		\param[in] matFmt  does the input file use the (old) matrix-style format?
+	**/
+	void read_from_file(std::string fName, bool const matFmt = false);
 
 	/// initialize the univariate classes (generate scenarios)
 	void init_margins();
 
 public:
-	MarginsByMoments(std::string fName, DimT const nScen, int const FoM = 0);
+	/// constructor with file name and other parameters
+	/**
+		\param[in]  fName  name of the file with the moments
+		\param[in]  nScen  number of scenarios to generate
+		\param[in]    FoM  format of moments in the input files
+		\param[in] matFmt  does the input file use the (old) matrix-style format?
+	**/
+	MarginsByMoments(std::string fName, DimT const nScen, int const FoM = 0,
+	                 bool const matFmt = false);
 };
 
 

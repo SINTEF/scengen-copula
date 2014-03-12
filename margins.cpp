@@ -211,21 +211,33 @@ void SampleMargins::init_margins(UnivarMargin::SamplePP const postP)
 // class MarginsByMoments
 
 MarginsByMoments::MarginsByMoments(std::string fName, DimT const nScen,
-                                   int const FoM)
+                                   int const FoM, bool const matFmt)
 : MarginsInfo(0), formOfMoments(FoM), nSc(nScen)
 {
-	read_from_file(fName);
+	read_from_file(fName, matFmt);
 	init_margins();
 }
 
-void MarginsByMoments::read_from_file(std::string fName)
+void MarginsByMoments::read_from_file(std::string fName, bool const matFmt)
 {
 	// read the input file
 	std::ifstream inFile(fName.c_str());
 	if (!inFile) {
 		throw std::ios_base::failure("Could not open input file " + fName + "!");
 	}
-	// the first datum is the number of variables
+	if (matFmt) {
+		// using the (old) matrix-style input format:
+		// 	4	dim
+		// 	one moment per line (4 lines)
+		inFile >> nM;
+		if (nM != 4)
+			throw std::runtime_error("the matrix-style format for moments implies "
+			                         "that the first number is 4");
+	} else {
+		// the new format is:
+		// 	dim
+		// 	one margin per line (4 columns)
+	}
 	inFile >> nM;
 	if (nM <= 0) {
 		throw std::range_error("number of margins must be positive");
@@ -233,13 +245,24 @@ void MarginsByMoments::read_from_file(std::string fName)
 	p2margins.resize(nM);
 	tgMoments.resize(nM);
 
-	// the rest of the file consists of the moments,
-	// with one margin per line
+	// read the values
 	DimT i, j;
-	for (i = 0; i < nM; ++i) {
-		tgMoments[i].resize(4);
-		for (j = 0; j < 4; ++j)
-			inFile >> tgMoments[i](j);
+	if (matFmt) {
+		// one moment per line (4 lines)
+		for (i = 0; i < nM; ++i)
+			tgMoments[i].resize(4);
+		for (j = 0; j < 4; ++j) {
+			for (i = 0; i < nM; ++i) {
+				inFile >> tgMoments[i](j);
+			}
+		}
+	} else {
+		// one margin per line (4 columns)
+		for (i = 0; i < nM; ++i) {
+			tgMoments[i].resize(4);
+			for (j = 0; j < 4; ++j)
+				inFile >> tgMoments[i](j);
+		}
 	}
 }
 

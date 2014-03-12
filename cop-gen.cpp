@@ -79,6 +79,7 @@ int main(int argc, char *argv[]) {
 
 	// method-specific parameters
 	int formatOfMoments = 0;    // format of moments for margin given by moments
+	bool matFileFmt = false;    // use the matrix-style input-file format
 
 	stringstream helpHeader;
 	helpHeader << "Copula generation code by Michal Kaut" << endl << endl
@@ -134,6 +135,8 @@ int main(int argc, char *argv[]) {
 			        "dimension (for independent copula)")
 			("form-of-moms,f", prOpt::value<int>(&formatOfMoments),
 			                   "format of moments (for margins)")
+			("mat-file-fmt", prOpt::bool_switch(&matFileFmt),
+			                 "use matrix-style input data files")
 			;
 
 		// hidden options - allowed everywhere, but not shown to the user
@@ -352,7 +355,8 @@ int main(int argc, char *argv[]) {
 				MSG (TrInfo, "margins of type 'four moments'");
 				// create a new object of the specific class
 				p2tgMargins = boost::make_shared<MarginsByMoments>(margParamsF, nSc,
-				                                                   formatOfMoments);
+				                                                   formatOfMoments,
+				                                                   matFileFmt);
 				break;
 			case MargTypeID::fixed: // generic mixed of 2D copulas
 				MSG (TrInfo, "margins of type 'fixed'");

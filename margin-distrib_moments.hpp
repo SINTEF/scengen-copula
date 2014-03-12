@@ -35,10 +35,6 @@ private:
 public:
 	//MarginMoments(VectorD const & tgMoms, int const FoM = 0);
 	MarginMoments(VectorD const & tgMoms, DimT const nSc, int const FoM = 0);
-
-	/// \todo test if this is used, otherwise make protected and optional!
-	double inv_cdf(double const p) const override
-	{ assert(false && "oops - this one is in use after all"); }
 };
 
 } // namespace
