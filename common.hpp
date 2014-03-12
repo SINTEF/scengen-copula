@@ -191,9 +191,16 @@ inline int u012Rank(double const z, int const N) {
 }
 
 /// fix mean and standard deviation (if given) of a sample (in-place)
-/** \note At the moment, this assumes equiprobable sample values **/
-void fix_mean_std(VectorD & sample, double mean, double stD = -1.0,
-                  bool unbiasedStD = false);
+/**
+	\param          sample  the sample to fix
+	\param[in]        mean  the target mean
+	\param[in]         stD  the target std. deviation; -1 means do not fix
+	\param[in] unbiasedStD  should we use the unbiased std. dev. estimator?
+
+	\note At the moment, this assumes equiprobable sample values
+**/
+void fix_mean_std(VectorD & sample, double const mean, double const stD = -1.0,
+                  bool const unbiasedStD = false);
 
 
 // ---------------------------------------------------------------------------

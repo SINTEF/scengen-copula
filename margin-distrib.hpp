@@ -145,33 +145,6 @@ public:
 
 
 // ----------------------------------------------------------------------------
-/// margin specified by four moments
-/**
-	This needs the moment-matching library by Michal Kaut
-**/
-class MarginMoments : public UnivarMargin {
-private:
-	VectorD moments;     ///< the first four moments
-	VectorD sortedVals;  ///< the generated values, sorted
-
-	/// inverse CDF using ranks and number of scenarios
-	/**
-		Here we call the moment-matching method (since we do not know the
-		number of scenarios one construction)
-
-		\param[in] r  rank: 0,...,N-1
-		\param[in] N  number of samples/scenarios
-	**/
-	boost::optional<double> inv_cdf_r(DimT const r, DimT const N) const;
-
-public:
-	MarginMoments(VectorD const & tgMoms, SamplePP const postP = PP_None);
-
-	double inv_cdf(double const p) const;
-};
-
-
-// ----------------------------------------------------------------------------
 /// triangular distribution
 class MarginTriang : public UnivarMargin {
 private:

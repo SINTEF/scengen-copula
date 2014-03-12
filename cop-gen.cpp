@@ -77,6 +77,9 @@ int main(int argc, char *argv[]) {
 	bool writeProbAllocData = false; // write data for the prob-alloc model?
 	int outLvlInt;   // output level as an integer (for easier processing)
 
+	// method-specific parameters
+	int formatOfMoments = 0;    // format of moments for margin given by moments
+
 	stringstream helpHeader;
 	helpHeader << "Copula generation code by Michal Kaut" << endl << endl
 	           << "Usage: " << argv[0] << " --cop-type <value> [--input <file>]"
@@ -129,6 +132,8 @@ int main(int argc, char *argv[]) {
 			               "input file: params of marg. distrib.")
 			("dim", prOpt::value<int>(&dim),
 			        "dimension (for independent copula)")
+			("form-of-moms,f", prOpt::value<int>(&formatOfMoments),
+			                   "format of moments (for margins)")
 			;
 
 		// hidden options - allowed everywhere, but not shown to the user
@@ -342,6 +347,12 @@ int main(int argc, char *argv[]) {
 					     << "from file " << margParamsF << endl;// << e.what() << endl;
 					throw; // re-throw the exception
 				}
+				break;
+			case MargTypeID::moments: // margins using moment matching
+				MSG (TrInfo, "margins of type 'four moments'");
+				// create a new object of the specific class
+				p2tgMargins = boost::make_shared<MarginsByMoments>(margParamsF, nSc,
+				                                                   formatOfMoments);
 				break;
 			case MargTypeID::fixed: // generic mixed of 2D copulas
 				MSG (TrInfo, "margins of type 'fixed'");

@@ -120,24 +120,6 @@ double MarginSample::inv_cdf(double const p) const
 
 
 // ---------------------------------------------------------------------------
-// class MarginMoments
-
-MarginMoments::MarginMoments(VectorD const & tgMoms, SamplePP const postP)
-: UnivarMargin(postP), moments(tgMoms), sortedVals()
-{}
-
-// inverse CDF using ranks and number of scenarios
-boost::optional<double>MarginMoments::inv_cdf_r(DimT const r, DimT const N) const
-{
-	if (sortedVals.size() == N) {
-		return sortedVals[r];
-	} else {
-		assert (false && "here we have to call the moment-matching code");
-	}
-}
-
-
-// ---------------------------------------------------------------------------
 // class MarginTriang
 
 void MarginTriang::guts_of_constructor()

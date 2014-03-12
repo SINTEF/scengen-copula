@@ -11,7 +11,7 @@ namespace MarginDistrib {
 /// \name objects for the margin-type name map, used in the main code
 ///@{
 	/// enum for the known multivariate margin specification types
-	enum class MargTypeID {normal, sample, fixed, mixed, unknown};
+	enum class MargTypeID {normal, sample, moments, fixed, mixed, unknown};
 
 	/// type for the copula map
 	typedef std::map<std::string, MargTypeID> MargNameMapT;
@@ -29,7 +29,7 @@ protected:
 
 public:
 	MarginsInfo(DimT const nVars) : nM(nVars), p2margins(nVars) {}
-	MarginsInfo(std::string fName);
+	//MarginsInfo(std::string fName);
 	virtual ~MarginsInfo() {}
 
 	/// convert ranks to distribution values
@@ -92,6 +92,32 @@ public:
 	SampleMargins(MatrixD const & samples,
 	              UnivarMargin::SamplePP const postP = UnivarMargin::PP_None);
 };
+
+
+/// class for all margins specified by their moments
+/**
+	\warning needs the moment-matching library by Michal Kaut
+
+	\todo make it a class derived from fixed margins?
+
+	\note this is just a wrapper, the actual work is done by the univariate class
+**/
+class MarginsByMoments : public MarginsInfo {
+private:
+	std::vector<VectorD> tgMoments; ///< target moments
+	int formOfMoments;              ///< format of moments, values as in HKW
+	DimT nSc;                       ///< number of scenarios
+
+	/// read the target moments from a file
+	void read_from_file(std::string fName);
+
+	/// initialize the univariate classes (generate scenarios)
+	void init_margins();
+
+public:
+	MarginsByMoments(std::string fName, DimT const nScen, int const FoM = 0);
+};
+
 
 } // namespace MarginDistrib
 
