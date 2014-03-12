@@ -16,6 +16,9 @@
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
+				<Linker>
+					<Add library="external\scen-gen_HKW\bin\Debug\libscen-gen_HKW.a" />
+				</Linker>
 			</Target>
 			<Target title="Release">
 				<Option output="bin/Release/copula-gen" prefix_auto="1" extension_auto="1" />
@@ -30,6 +33,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add library="external\scen-gen_HKW\bin\Release\libscen-gen_HKW.a" />
 				</Linker>
 			</Target>
 			<Target title="UnitTest-Rel">
@@ -238,6 +242,20 @@
 		<Unit filename="margin-distrib.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="margin-distrib_moments.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="margin-distrib_moments.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 		</Unit>
