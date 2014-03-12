@@ -81,7 +81,7 @@ public:
 	void print_2D_as_txt(int const i, int const j,
 	                     string const fName, bool const scaleTo01,
 	                     bool const sortByScen = false)
-	{ p2sample2D[i][j]->print_as_txt(fName, scaleTo01, sortByScen); }
+	{ p2sample2D(i,j)->print_as_txt(fName, scaleTo01, sortByScen); }
 
 	/// print the whole matrix as text
 	/**
