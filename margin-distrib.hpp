@@ -1,3 +1,12 @@
+/** \file
+	Classes for univariate distribution functions
+
+	\note We can use the following libraries (permissible license):
+	- QuantLib
+	- boost::math - but this lacks bivariate normal..
+
+**/
+
 #ifndef MARGIN_DISTRIB_HPP
 #define MARGIN_DISTRIB_HPP
 

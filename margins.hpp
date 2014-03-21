@@ -89,6 +89,7 @@ private:
 	MatrixD const & data; // reference, since the data are with the copula class
 
 public:
+	/// constructor with the target samples (matrix is [nVar * nPts])
 	SampleMargins(MatrixD const & samples,
 	              UnivarMargin::SamplePP const postP = UnivarMargin::PP_None);
 };

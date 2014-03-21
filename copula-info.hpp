@@ -205,7 +205,7 @@ protected:
 	void setup_2d_targets();
 
 public:
-	/// constructor with the target data as input
+	/// constructor with the target data as input (matrix is [nVar * nPts])
 	CopInfoData(MatrixI const & hDataMat);
 
 	/// constructor with file name of the target distribution
