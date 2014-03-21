@@ -23,6 +23,7 @@ typedef ublas::vector<double> VectorD;
 typedef ublas::matrix<double> MatrixD;
 typedef ublas::vector<int> VectorI;
 typedef ublas::matrix<int> MatrixI;
+typedef ublas::matrix<float> MatrixF; // for really big matrices, saves 50% ram
 typedef boost::shared_ptr<MatrixI> MatrixIPtr;
 typedef VectorD::size_type DimT;
 DimT const MaxVecLen = std::numeric_limits<VectorD::size_type>::max();
@@ -98,6 +99,7 @@ DimT const MaxVecLen = std::numeric_limits<VectorD::size_type>::max();
 // ---------------------------------------------------------------------------
 // at a couple of places, we use the boost multi_array for more flexibility
 #include <boost/multi_array.hpp>
+/* ONE CANNOT DERIVE FROM MULTI_ARRAY!
 template <typename T>
 class Array2D : public boost::multi_array<T, 2> {
 	private:
@@ -112,6 +114,26 @@ class Array2D : public boost::multi_array<T, 2> {
 		Array2D (DimT const nR, DimT const nC, int const i0)
 			: boost::multi_array<T, 2>(boost::extents[ERange(i0,nR)]
 			                                         [ERange(i0,nC)]) {}
+};
+*/
+template <typename T>
+class Array2D {
+	private:
+		typedef boost::multi_array_types::extent_range ERange;
+		boost::multi_array<T, 2> data;
+
+	public:
+		Array2D (DimT const nR, DimT const nC)
+		: data(boost::extents[nR][nC]) {}
+
+		Array2D (DimT const nR, DimT const nC, int const i0)
+		: data(boost::extents[ERange(i0,nR)][ERange(i0,nC)]) {}
+
+		T const & operator()(DimT const nR, DimT const nC) const
+		{ return data[nR][nC]; }
+
+		T & operator()(DimT const nR, DimT const nC)
+		{ return data[nR][nC]; }
 };
 
 
@@ -191,9 +213,16 @@ inline int u012Rank(double const z, int const N) {
 }
 
 /// fix mean and standard deviation (if given) of a sample (in-place)
-/** \note At the moment, this assumes equiprobable sample values **/
-void fix_mean_std(VectorD & sample, double mean, double stD = -1.0,
-                  bool unbiasedStD = false);
+/**
+	\param          sample  the sample to fix
+	\param[in]        mean  the target mean
+	\param[in]         stD  the target std. deviation; -1 means do not fix
+	\param[in] unbiasedStD  should we use the unbiased std. dev. estimator?
+
+	\note At the moment, this assumes equiprobable sample values
+**/
+void fix_mean_std(VectorD & sample, double const mean, double const stD = -1.0,
+                  bool const unbiasedStD = false);
 
 
 // ---------------------------------------------------------------------------

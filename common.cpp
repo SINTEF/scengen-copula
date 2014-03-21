@@ -198,7 +198,8 @@ double vec_std_dev(ublas::vector<T> const & v, double const mean,
 template double vec_std_dev(VectorD const &, double const, bool const);
 
 
-void fix_mean_std(VectorD & sample, double mean, double stD, bool unbiasedStD)
+void fix_mean_std(VectorD & sample, double const mean, double const stD,
+                  bool const unbiasedStD)
 {
 	double curMean = vec_mean(sample);
 	if (stD < 0.0) { // this means std. dev. not given -> fix only the mean

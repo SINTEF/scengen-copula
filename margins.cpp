@@ -3,6 +3,7 @@
 #include <map>
 
 #include "margins.hpp"
+#include "margin-distrib_moments.hpp"
 
 using namespace MarginDistrib;
 using std::cout;
@@ -18,6 +19,7 @@ void MarginDistrib::make_marg_name_map(MargNameMapT & mMap) {
 	mMap["normal"] = MargTypeID::normal;
 	mMap["fixed"] = MargTypeID::fixed;
 	mMap["mixed"] = MargTypeID::mixed;
+	mMap["moments"] = MargTypeID::moments;
 }
 
 
@@ -202,4 +204,73 @@ void SampleMargins::init_margins(UnivarMargin::SamplePP const postP)
 	for (i = 0; i < nM; ++i) {
 		p2margins(i).reset(new MarginSample(ublas::row(data, i), postP));
 	}
+}
+
+
+// --------------------------------------------------------------------------
+// class MarginsByMoments
+
+MarginsByMoments::MarginsByMoments(std::string fName, DimT const nScen,
+                                   int const FoM, bool const matFmt)
+: MarginsInfo(0), formOfMoments(FoM), nSc(nScen)
+{
+	read_from_file(fName, matFmt);
+	init_margins();
+}
+
+void MarginsByMoments::read_from_file(std::string fName, bool const matFmt)
+{
+	// read the input file
+	std::ifstream inFile(fName.c_str());
+	if (!inFile) {
+		throw std::ios_base::failure("Could not open input file " + fName + "!");
+	}
+	if (matFmt) {
+		// using the (old) matrix-style input format:
+		// 	4	dim
+		// 	one moment per line (4 lines)
+		inFile >> nM;
+		if (nM != 4)
+			throw std::runtime_error("the matrix-style format for moments implies "
+			                         "that the first number is 4");
+	} else {
+		// the new format is:
+		// 	dim
+		// 	one margin per line (4 columns)
+	}
+	inFile >> nM;
+	if (nM <= 0) {
+		throw std::range_error("number of margins must be positive");
+	}
+	p2margins.resize(nM);
+	tgMoments.resize(nM);
+
+	// read the values
+	DimT i, j;
+	if (matFmt) {
+		// one moment per line (4 lines)
+		for (i = 0; i < nM; ++i)
+			tgMoments[i].resize(4);
+		for (j = 0; j < 4; ++j) {
+			for (i = 0; i < nM; ++i) {
+				inFile >> tgMoments[i](j);
+			}
+		}
+	} else {
+		// one margin per line (4 columns)
+		for (i = 0; i < nM; ++i) {
+			tgMoments[i].resize(4);
+			for (j = 0; j < 4; ++j)
+				inFile >> tgMoments[i](j);
+		}
+	}
+}
+
+void MarginsByMoments::init_margins()
+{
+	DimT i;
+	for (i = 0; i < nM; ++i) {
+		p2margins(i).reset(new MarginMoments(tgMoments[i], nSc, formOfMoments));
+	}
+
 }

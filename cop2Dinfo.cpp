@@ -102,6 +102,12 @@ void Cop2DInfo::init_cdf_grid(VectorD const & gridPos)
 }
 
 
+void Cop2DInfo::clear_cdf_grid()
+{
+	gridCdf.resize(0, 0, false); // clear() does not free memory?!
+	useGrid = false;
+}
+
 // -----------------------------------------------------------------------
 // Clayton copula
 
@@ -204,7 +210,7 @@ void Cop2DData::calc_all_grid_cdfs()
 	// gridRCdf.resize(boost::extents[ExtRange(-1,gridN)][ExtRange(-1,gridN)]);
 	for (i = -1; i < (int) gridN; i++) {
 		for (j = -1; j < (int) gridN; j++) {
-			gridRCdf[i][j] = 0; // initialization .. should NOT be necessary!
+			gridRCdf(i,j) = 0; // initialization .. should NOT be necessary!
 		}
 	}
 
@@ -220,7 +226,7 @@ void Cop2DData::calc_all_grid_cdfs()
 		for (s = 0; s < nPts; s++) {
 			i = u012Rank( rank2U01(margRanks1(s), nPts), gridN );
 			j = u012Rank( rank2U01(margRanks2(s), nPts), gridN );
-			gridRCdf[i][j] ++;
+			gridRCdf(i,j) ++;
 		}
 	} else {
 		// we do not have access to ranks -> have to compute them first
@@ -252,10 +258,10 @@ void Cop2DData::calc_all_grid_cdfs()
 	for (i = 0; i < (int) gridN; i++) {
 		int colCount = 0;
 		for (j = 0; j < (int) gridN; j++) {
-			// at this point, gridRCdf[i][j] includes the rank pdf from above
-			colCount += gridRCdf[i][j];
-			gridRCdf[i][j] = gridRCdf[i-1][j] + colCount;
-			// at this point, gridRCdf[i][j] includes the rank cdf!
+			// at this point, gridRCdf(i,j) includes the rank pdf from above
+			colCount += gridRCdf(i,j);
+			gridRCdf(i,j) = gridRCdf(i-1,j) + colCount;
+			// at this point, gridRCdf(i,j) includes the rank cdf!
 		}
 	}
 
@@ -263,7 +269,7 @@ void Cop2DData::calc_all_grid_cdfs()
 	gridCdf.resize(gridN, gridN);
 	for (i = 0; i < (int) gridN; ++i) {
 		for (j = 0; j < (int) gridN; ++j) {
-			gridCdf(i, j) = (double) gridRCdf[i][j] / (double) nPts; // was: gridN;
+			gridCdf(i, j) = (double) gridRCdf(i,j) / (double) nPts; // was: gridN;
 		}
 	}
 }

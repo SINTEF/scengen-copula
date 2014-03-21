@@ -24,7 +24,7 @@ CopulaSample::CopulaSample(CopulaDef::CopInfoBy2D::Ptr p2tg, DimT const S,
 	DimT i, j;
 	for (i = 0; i < nVar; i++) {
 		for (j = 0; j < nVar; j++) {
-			p2sample2D[i][j] = NULL;
+			p2sample2D(i,j) = NULL;
 		}
 		sample[i].resize(nSc);
 	}
@@ -63,12 +63,12 @@ double CopulaSample::gen_new_margin(DimT const marg)
 			// create a new copula-2D-sample object
 			stringstream cop2DId; // using stringstream to get simple conversions
 			cop2DId << "sample_" << i << "_" << marg;
-			p2sample2D[i][marg] = new Cop2DSample(nSc, p2tgInfo(i, marg).get(),
+			p2sample2D(i, marg) = new Cop2DSample(nSc, p2tgInfo(i, marg).get(),
 			                                      cop2DId.str());
 			TRACE (TrDetail2, "Created new Cop2DSample with id = "
 			       << cop2DId.str());
 			// initialize the 2D-sample generator with scenarios of the known margin
-			p2sample2D[i][marg]->set_scen_of_marg_1(sample[i], p2prob);
+			p2sample2D(i, marg)->set_scen_of_marg_1(sample[i], p2prob);
 		}
 	}
 	DimT nTg2Dcops = tg2Dcopulas.size();
@@ -103,7 +103,7 @@ double CopulaSample::gen_new_margin(DimT const marg)
 	// compute a safe upper bound for the distance:
 	double maxMinDist = 0.0;
 	for (tg = 0; tg < nTg2Dcops; tg++) {
-		maxMinDist += p2sample2D[oldMargins[tg]][marg]->cdfDist(0.0, 1.0);
+		maxMinDist += p2sample2D(oldMargins[tg], marg)->cdfDist(0.0, 1.0);
 	}
 	maxMinDist *= nSc;
 
@@ -116,7 +116,7 @@ double CopulaSample::gen_new_margin(DimT const marg)
 		for (tg = 0; tg < nTg2Dcops; tg++) {
 			// get the dist for the rows
 			/// \todo check this!
-			p2sample2D[oldMargins[tg]][marg]->cdf_dist_of_row(iR, prevRowCdf[tg],
+			p2sample2D(oldMargins[tg], marg)->cdf_dist_of_row(iR, prevRowCdf[tg],
 			                                                  colCdfDist[tg]);
 		}
 
@@ -158,7 +158,7 @@ double CopulaSample::gen_new_margin(DimT const marg)
 			}
 
 			// update p2sample2D
-			bool linkAdded = p2sample2D[i][marg]->add_link(j, iR);
+			bool linkAdded = p2sample2D(i, marg)->add_link(j, iR);
 			assert (linkAdded && "This should always succeed...");
 
 			// update also the [marg][i] copula sample? !!!
@@ -169,9 +169,11 @@ double CopulaSample::gen_new_margin(DimT const marg)
 	// cleaning
 	for (i = 0; i < nVar; ++i) {
 		for (j = 0; j < nVar; ++j) {
-			if (p2sample2D[i][marg] != NULL) {
-				delete p2sample2D[i][marg];
-				p2sample2D[i][marg] = NULL;
+			if (p2sample2D(i, marg) != NULL) {
+				delete p2sample2D(i, marg);
+				p2sample2D(i, marg) = NULL;
+				//! temp - should be done more carefully
+				p2tgInfo(i, marg)->clear_cdf_grid();
 			}
 		}
 	}
@@ -200,9 +202,12 @@ double CopulaSample::gen_sample()
 	}
 	haveSc4Marg[marg] = true;
 
+	MSG (TrInfo, "Starting copula generation.")
 	for (marg = 1; marg < nVar; marg++) {
+		MSG (TrInfo2, " - adding margin " << marg + 1 << " of " << nVar);
 		totDist += gen_new_margin(marg);
 	}
+	MSG (TrInfo, "Finished generating the copula.")
 
 	return totDist;
 }

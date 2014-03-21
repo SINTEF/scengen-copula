@@ -27,21 +27,34 @@ void MarginDistrib::make_distrib_name_map(DistribNameMapT & dMap) {
 // ---------------------------------------------------------------------------
 // class UnivarMargin
 
-void UnivarMargin::inv_cdf(VectorI const & ranks, VectorD & cdfs)
+// inverse CDF
+double UnivarMargin::inv_cdf(DimT const r, DimT const N) const
+{
+	boost::optional<double> x = inv_cdf_r(r, N);
+	if (! x) {
+		// inv_cdf_r() did returned empty value
+		x = inv_cdf((static_cast<double>(r) + 0.5) / N);
+		if (! x)
+			throw std::logic_error("no inverse cdf defined for the margin!");
+	}
+	return x.get();
+}
+
+void UnivarMargin::inv_cdf(VectorI const & ranks, VectorD & values)
 {
 	DimT N = ranks.size();
 	if (N == 0)
 		throw std::logic_error("called inv_cdf with zero-sized input vector!");
-	if (cdfs.size() != N) {
-		if (cdfs.size() > 0)
-			cerr << "vector cdfs in inv_cdf has a wrong size -> resizing" << endl;
-		cdfs.resize(N);
+	if (values.size() != N) {
+		if (values.size() > 0)
+			cerr << "vector values in inv_cdf has a wrong size -> resizing" << endl;
+		values.resize(N);
 	}
 	for (DimT i = 0; i < N; ++i) {
-		cdfs(i) = inv_cdf(ranks(i), N);
+		values(i) = inv_cdf(ranks(i), N);
 	}
 	if (fixEV) {
-		fix_mean_std(cdfs, mean, (fixSD ? stDev : -1.0));
+		fix_mean_std(values, mean, (fixSD ? stDev : -1.0));
 	}
 }
 
@@ -92,7 +105,7 @@ MarginSample::MarginSample(VectorD const & sample, SamplePP const postP)
 	std::sort(sortedS.begin(), sortedS.end());
 }
 
-double MarginSample::inv_cdf(double const p) const
+boost::optional<double> MarginSample::inv_cdf(double const p) const
 {
 	// the sample values are at points (i + 0.5)/nPts, for 0 <= i < nPts
 	DimT i0;
@@ -136,8 +149,7 @@ MarginTriang::MarginTriang(std::stringstream & paramStr, bool const useExtremes)
 	guts_of_constructor();
 }
 
-
-double MarginTriang::inv_cdf(double const p) const
+boost::optional<double> MarginTriang::inv_cdf(double const p) const
 {
 	double x = (p < modeCdf ? min + sqrt(p * valMin)
 	                        : max - sqrt((1-p) * valMax));
@@ -148,5 +160,5 @@ double MarginTriang::inv_cdf(DimT const r, DimT const N) const
 {
 	double p = (useMinMax ? (static_cast<double>(r)) / (N - 1)
 	                      : (static_cast<double>(r) + 0.5) / N);
-	return inv_cdf(p);
+	return inv_cdf(p).get();
 }

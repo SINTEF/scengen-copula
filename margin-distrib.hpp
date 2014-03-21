@@ -15,8 +15,10 @@
 #include <ql/math/distributions/normaldistribution.hpp> // for normal distrib.
 
 #include <map>
+#include <boost/optional.hpp>
 
 
+/// classes and methods related to the marginal distributions
 namespace MarginDistrib {
 
 /// \name objects for the margin-type name map, used in the main code
@@ -33,12 +35,37 @@ namespace MarginDistrib {
 
 
 // ----------------------------------------------------------------------------
+/// base class for all the marginal-distribution classes (pure virtual)
 class UnivarMargin {
 protected:
 	bool fixEV;   ///< should we fix the exp. val. (when used on vector)?
 	bool fixSD;   ///< should we fix the std. dev. (when used on vector)?
 	double mean;  ///< mean
 	double stDev; ///< standard deviation
+
+	/// inverse CDF using ranks and number of scenarios
+	/**
+		This enables the margin-distribution classes to implement inverse CDF
+		using ranks, should this be easier/faster than using values from (0,1).
+		By default, this returns an empty value.
+
+		\param[in] r  rank: 0,...,N-1
+		\param[in] N  number of samples/scenarios
+	**/
+	virtual boost::optional<double> inv_cdf_r(DimT const r, DimT const N) const {
+		return boost::optional<double>();
+	}
+
+	/// inverse CDF with single argument (the percentile)
+	/**
+		This should be overwritten by classes where this version is preferable.
+		By default, this returns an empty value.
+
+		\param[in] p the percentile
+	**/
+	virtual boost::optional<double> inv_cdf(double const p) const {
+		return boost::optional<double>();
+	}
 
 public:
 	/// postprocess applied to inv_cdf of a whole margin
@@ -50,24 +77,36 @@ public:
 	{}
 	virtual ~UnivarMargin() {}
 
-	virtual double inv_cdf(double const p) const = 0;
-
 	/// inverse CDF
 	/**
+		By default, this is a wrapper around the protected methods.
+		It uses the rank-based version if it is available,
+		then the percentile-based one. (It will throw if none is available.)
+
 		\param[in] r  rank: 0,...,N-1
 		\param[in] N  number of samples/scenarios
 	**/
-	virtual double inv_cdf(DimT const r, DimT const N) const {
-		return inv_cdf((static_cast<double>(r) + 0.5) / N);
-	}
+	virtual double inv_cdf(DimT const r, DimT const N) const;
 
-	virtual void inv_cdf(VectorI const & ranks, VectorD & cdfs);
+	/// inverse CDF, for all scenarios at once
+	/**
+		The default implementation simply calls the univariate version
+		element-by-element.
+
+		\param[in]   ranks  input values (percentiles)
+		\param[out] values  output values (actual values from the distribution)
+	**/
+	virtual void inv_cdf(VectorI const & ranks, VectorD & values);
 
 	typedef boost::shared_ptr<UnivarMargin> Ptr;
 };
 
 
 // ----------------------------------------------------------------------------
+/// margin with normal distribution
+/**
+	uses objects from the open-source QuantLib library
+**/
 class MarginNormal : public UnivarMargin {
 private:
 	/// object that computes the inverse - mean and std. dev. given at constr.
@@ -92,28 +131,44 @@ private:
 		double const evMult; ///< constant used in the calculation
 	///@}
 
+	boost::optional<double> inv_cdf(double const p) const override
+	{ return invCdfF(p); }
+
 public:
 	MarginNormal(double const mu, double const sigma,
 	             SamplePP const postP = PP_None,
 	             bool const condEVInv = false);
 	~MarginNormal() {}
 
-	double inv_cdf(double const p) const { return invCdfF(p); }
-
-	double inv_cdf(DimT const r, DimT const N) const;
+	double inv_cdf(DimT const r, DimT const N) const override;
 };
 
 
 // ----------------------------------------------------------------------------
+/// margin specified by a sample, i.e. a list of equiprobable values
+/**
+	The inverse CDF uses a linear interpolation of the inverse empirical CDF
+**/
 class MarginSample : public UnivarMargin {
 private:
 	VectorD sortedS; ///< sorted sample
 	DimT nPts;       ///< number of sample points
 
+	/// inverse CDF using ranks and number of scenarios
+	/**
+		This is used in the case the number of scenarios is the same as the
+		number of samples points \a nPts.
+
+		\param[in] r  rank: 0,...,N-1
+		\param[in] N  number of samples/scenarios
+	**/
+	boost::optional<double> inv_cdf_r(DimT const r, DimT const N) const override
+	{ return (N == nPts ? sortedS[r] : boost::optional<double>()); }
+
+	boost::optional<double> inv_cdf(double const p) const override;
+
 public:
 	MarginSample(VectorD const & sample, SamplePP const postP = PP_None);
-
-	double inv_cdf(double const p) const;
 };
 
 
@@ -132,15 +187,15 @@ private:
 
 	void guts_of_constructor();
 
+	boost::optional<double> inv_cdf(double const p) const override;
+
 public:
 	MarginTriang(double const minV, double const maxV, double const modeV,
 	             bool const useExtremes = false);
 
 	MarginTriang(std::stringstream & paramStr, bool const useExtremes = false);
 
-	double inv_cdf(double const p) const;
-
-	double inv_cdf(DimT const r, DimT const N) const; /// \todo add 'override';
+	double inv_cdf(DimT const r, DimT const N) const override;
 };
 
 

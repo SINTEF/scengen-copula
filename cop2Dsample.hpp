@@ -41,7 +41,7 @@ private:
 	//@}
 
 	/// reference to a matrix of pre-computed cdf values - points to *p2tgInfo
-	MatrixD const & tgCdfOfR;
+	MatrixF const & tgCdfOfR;
 
 	/// \name connection to scenarios of the main alg.
 	//@{
@@ -140,7 +140,7 @@ public:
 	Cop2DSample(int const nSamples, Cop2DInfo *const p2TgCop,
 	            string const id = "");
 
-	~Cop2DSample() {};
+	~Cop2DSample() {} //std::cout << "inside ~Cop2DSample()" << std::endl; };
 
 	/// set the scenarios for the 'i' variable
 	/**
@@ -166,7 +166,7 @@ public:
 	                        double const *p2scProb = NULL);
 
 	/// the main heuristics (not used from the multi-variate code)
-	double gen_heur();
+	//double gen_heur();
 
 
 	/// \name classes used by both the 2D and multi-var generators
