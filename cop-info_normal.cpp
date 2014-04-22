@@ -38,24 +38,9 @@ void CopInfoNormal::read_correl_mat(std::string const & tgFName)
 		throw std::ios_base::failure("Could not open input file `"
 		                             + tgFName + "'!");
 	}
-	tgCorrF >> correlMat; // this should read the matrix, including dimensions
+	get_correl_matrix_from_stream(tgCorrF, correlMat);
 
-	nVars = correlMat.size1();
-	assert (correlMat.size2() == nVars && "must be a square matrix");
-
-	#ifndef NDEBUG
-		for (DimT i = 0; i < nVars; ++i) {
-			if (! isEq(correlMat(i, i), 1.0)) {
-				throw std::range_error("correl(i,i) must be 1");
-			}
-			for (DimT j = 0; j < i; ++j) {
-				double rho = correlMat(i, j);
-				if (rho < -1 || rho > 1 || !isEq(rho, correlMat(j, i))) {
-					throw std::range_error("error in the correlation matrix");
-				}
-			}
-		}
-	#endif
+	tgCorrF.close();
 }
 
 

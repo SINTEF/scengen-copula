@@ -1,8 +1,11 @@
 #ifndef COP_2D_INFO_HPP
 #define COP_2D_INFO_HPP
 
+#include "bivariate_student.h"
+
 // QuantLib libraries used for the normal copula
 #include <ql/math/distributions/bivariatenormaldistribution.hpp>
+#include <ql/math/distributions/studenttdistribution.hpp>
 
 #include "common.hpp"
 
@@ -253,6 +256,13 @@ public:
 
 
 /// Normal copula
+/**
+	\note I have not found any library providing the copula cdf, so I use the
+	      bivariate distribution and then inverse of the marginal cdfs.
+	      For the former, the only implementation with suitable license is from
+	      QuantLib; for the latter, we use QuantLib, but boost have the function
+	      as well...
+**/
 class Cop2DNormal : public Cop2DInfo {
 private:
 	double correl;  ///< correlation
@@ -269,6 +279,33 @@ private:
 
 public:
 	Cop2DNormal(double const rho);
+};
+
+
+/// Bivariate Student-t copula
+/**
+	I have not found any library (with suitable license) providing bivariate
+	student copula, nor bivariate student distribution. As a result, I had
+	implemented the distribution myself and then compute the copula cdf()
+	using the univariate inverse CDF from QuantLib.
+	(There is also one in boost, but we are already using QuantLib for other
+	things...)
+**/
+class Cop2DStudent : public Cop2DInfo {
+private:
+	double correl;  ///< correlation
+	unsigned dof;   ///< degree of freedom
+
+	///class providing bivariate student cdf
+	BivariateCumulativeStudentDistribution tCdf2D;
+
+	/// QuantLib object for the inverse cdf
+	QuantLib::InverseCumulativeStudent tInvCdf;
+
+	double calc_cdf(double const u, double const v) const;
+
+public:
+	Cop2DStudent(unsigned degF, double const rho);
 };
 
 } // namespace

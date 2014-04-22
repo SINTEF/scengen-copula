@@ -280,6 +280,14 @@ int main(int argc, char *argv[]) {
 		// create a new object of the specific class
 		p2tgCop = boost::make_shared<CopInfoNormal>(copParamsF);
 		break;
+	case CopTypeID::student: // student's t-copula
+		MSG (TrInfo, "copula of type 'student'");
+		if (margType == "") {
+			margType = "student"; // default for sample copula
+		}
+		// create a new object of the specific class
+		p2tgCop = boost::make_shared<CopInfoStudentb>(copParamsF);
+		break;
 	case CopTypeID::indep: // independent margins
 		MSG (TrInfo, "copula of type 'independent'");
 		// create a new object of the specific class

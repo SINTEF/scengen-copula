@@ -18,7 +18,35 @@ void CopulaDef::make_cop_name_map(CopNameMapT & cMap) {
 	cMap["sample"] = CopTypeID::sample;
 	cMap["normal"] = CopTypeID::normal;
 	cMap["indep"] = CopTypeID::indep;
+	cMap["student"] = CopTypeID::student;
+	cMap["t"] = CopTypeID::student;
 	cMap["mixed"] = CopTypeID::mixed;
+}
+
+
+// ---------------------------------------------------------------------------
+// class CopulaInfo
+void CopulaInfo::get_correl_matrix_from_stream(
+	std::istream & is, ublas::symmetric_matrix<double> X)
+{
+	is >> X; // this should read the matrix, including dimensions
+
+	nVars = X.size1();
+	assert (X.size2() == nVars && "must be a square matrix");
+
+	#ifndef NDEBUG
+		for (DimT i = 0; i < nVars; ++i) {
+			if (! isEq(X(i, i), 1.0)) {
+				throw std::range_error("correl(i,i) must be 1");
+			}
+			for (DimT j = 0; j < i; ++j) {
+				double rho = X(i, j);
+				if (rho < -1 || rho > 1 || !isEq(rho, X(j, i))) {
+					throw std::range_error("error in the correlation matrix");
+				}
+			}
+		}
+	#endif
 }
 
 

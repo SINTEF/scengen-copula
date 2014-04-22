@@ -14,7 +14,7 @@ namespace CopulaDef{
 /// \name objects for the copula name map, used in the main code
 ///@{
 	/// enum for the known copula types
-	enum class CopTypeID {sample, normal, indep, mixed, unknown};
+	enum class CopTypeID {sample, normal, indep, student, mixed, unknown};
 
 	/// type for the copula map
 	typedef std::map<std::string, CopTypeID> CopNameMapT;
@@ -30,7 +30,13 @@ private:
 
 protected:
 	DimT nVars;   ///< number of random variables
-	bool hasCdf; ///< do we have a formula for multivariate cdf?
+	bool hasCdf;  ///< do we have a formula for multivariate cdf?
+
+	/// \name misc methods used by derived classes
+	///@{
+		void get_correl_matrix_from_stream(std::istream & is,
+		                                   ublas::symmetric_matrix<double> X);
+	///@}
 
 public:
 	CopulaInfo(DimT const N, bool const hasMvarCdf)
@@ -233,15 +239,16 @@ MatrixI & cop_info_data_ranks(CopInfoData & copInfo);
 /// normal copula, i.e. a collection of bivariate normal copulas
 class CopInfoNormal : public CopInfoBy2D {
 private:
-	ublas::symmetric_matrix<double> correlMat; ///< correlation matrix
 
 protected:
+	ublas::symmetric_matrix<double> correlMat; ///< correlation matrix
+
 	/// read the correlation matrix from a file
 	/// \note remember to enclose this in a try{} block!
 	void read_correl_mat(std::string const & tgFName);
 
 	/// creates objects for the 2D targets; called from the constructors
-	void setup_2d_targets();
+	virtual void setup_2d_targets();
 
 public:
 	/// constructor with the target data as input
@@ -254,6 +261,45 @@ public:
 
 	double cdf(VectorD const u) const {
 		throw std::logic_error("class CopInfoNormal does not have cdf()");
+	}
+};
+
+
+// ----------------------------------------------------------------------------
+/// student-t copula, i.e. a collection of bivariate student-t copulas
+/**
+	\note Deriving from the normal copula, to get some of the methods
+**/
+class CopInfoStudent : public CopInfoNormal {
+private:
+	unsigned dof;                              ///< degree of freedom
+
+protected:
+	/// creates objects for the 2D targets; called from the constructors
+	void setup_2d_targets() override;
+
+	/// read the parameters (dof and correlation matrix) from a file
+	/// \note remember to enclose this in a try{} block!
+	void get_params_from_file(std::string const & tgFName);
+
+public:
+	/// constructor with the target data as input
+	CopInfoStudent(unsigned degF, MatrixD const & correls);
+
+	/// constructor with dof and name of file with the correlation matrix
+	CopInfoStudent(unsigned degF, std::string const & tgFName);
+
+	/// constructor with name of the parameter file
+	/**
+		the first number in the file is interpreted as the dof,
+		the rest as the correlation matrix
+	**/
+	CopInfoStudent(std::string const & tgFName);
+
+	virtual ~CopInfoStudent() {}
+
+	double cdf(VectorD const u) const {
+		throw std::logic_error("class CopInfoStudent does not have cdf()");
 	}
 };
 

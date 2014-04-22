@@ -159,6 +159,8 @@
 			<Add library="QuantLib" />
 			<Add directory="external/scen-gen_HKW/bin/$(TG_TYPE)" />
 		</Linker>
+		<Unit filename="bivariate_student.cpp" />
+		<Unit filename="bivariate_student.h" />
 		<Unit filename="common.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
@@ -203,6 +205,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 		</Unit>
+		<Unit filename="cop-info_student.cpp" />
 		<Unit filename="cop2Dinfo.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />

@@ -291,3 +291,18 @@ double Cop2DNormal::calc_cdf(double const u, double const v) const
 	double y = N01InvCdf(v);
 	return N01Cdf2D(x, y);
 }
+
+
+// -----------------------------------------------------------------------
+// Student-t copula
+Cop2DStudent::Cop2DStudent(unsigned degF, double const rho)
+: correl(rho), dof(degF), tCdf2D(degF, rho), tInvCdf(degF)
+{}
+
+
+double Cop2DStudent::calc_cdf(double const u, double const v) const
+{
+	double x = tInvCdf(u);
+	double y = tInvCdf(v);
+	return tCdf2D(x, y);
+}
