@@ -250,6 +250,20 @@ protected:
 	/// creates objects for the 2D targets; called from the constructors
 	virtual void setup_2d_targets();
 
+	/// default constructor - needed from derived classes
+	/*
+		This does not work, as it needs an empty constructor of CopInfoBy2D,
+		which does not exist.
+		A better option could be to have constructors using open input streams
+		and external functions to create objects based on a file name.
+		This way, we could read some parts of the file before calling the
+		constructors, something not possible from within the class(?)
+		Notes: - the functions should/could be templated
+		       - these constructors could be protected, or perhaps even private,
+		         with the external functions declared as friends?
+	*/
+	CopInfoNormal() = default;
+
 public:
 	/// constructor with the target data as input
 	CopInfoNormal(MatrixD const & correls);

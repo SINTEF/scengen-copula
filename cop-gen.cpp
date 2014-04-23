@@ -78,8 +78,9 @@ int main(int argc, char *argv[]) {
 	int outLvlInt;   // output level as an integer (for easier processing)
 
 	// method-specific parameters
-	int formatOfMoments = 0;    // format of moments for margin given by moments
-	bool matFileFmt = false;    // use the matrix-style input-file format
+	int formatOfMoments = 0;   // format of moments for margin given by moments
+	bool matFileFmt = false;   // use the matrix-style input-file format
+	boost::optional<unsigned> studentDoF; // Student's copula: degrees of freedom
 
 	stringstream helpHeader;
 	helpHeader << "Copula generation code by Michal Kaut" << endl << endl
@@ -137,6 +138,9 @@ int main(int argc, char *argv[]) {
 			                   "format of moments (for margins)")
 			("mat-file-fmt", prOpt::bool_switch(&matFileFmt),
 			                 "use matrix-style input data files")
+			("dof", prOpt::value<unsigned>(&studentDoF)
+			        ->default_value(boost::optional<unsigned>()),
+			        "student copula: degrees of freedom")
 			;
 
 		// hidden options - allowed everywhere, but not shown to the user
@@ -286,7 +290,14 @@ int main(int argc, char *argv[]) {
 			margType = "student"; // default for sample copula
 		}
 		// create a new object of the specific class
-		p2tgCop = boost::make_shared<CopInfoStudentb>(copParamsF);
+		if (studentDoF) {
+			// dof provided explicitely -> file includes only correlations
+			p2tgCop = boost::make_shared<CopInfoStudent>(studentDoF.get(),
+			                                             copParamsF);
+		} else {
+			// dof not provided -> file must include both dof and correlations
+			p2tgCop = boost::make_shared<CopInfoStudent>(copParamsF);
+		}
 		break;
 	case CopTypeID::indep: // independent margins
 		MSG (TrInfo, "copula of type 'independent'");
