@@ -13,9 +13,13 @@
 #include "common.hpp"
 
 #include <ql/math/distributions/normaldistribution.hpp> // for normal distrib.
+#include <boost/math/distributions/beta.hpp>
+#include <boost/math/distributions/lognormal.hpp>
+#include <boost/math/distributions/poisson.hpp>
 
 #include <map>
 #include <boost/optional.hpp>
+#include <sstream>
 
 
 /// classes and methods related to the marginal distributions
@@ -24,7 +28,9 @@ namespace MarginDistrib {
 /// \name objects for the margin-type name map, used in the main code
 ///@{
 	/// enum for the known multivariate margin specification types
-	enum class MargDistribID {moments, normal, sample, triang, triangX, unknown};
+	enum class MargDistribID {moments, normal, sample, triang, triangX,
+	                          exponential, beta, lognormal, poisson, uniform,
+	                          unknown};
 
 	/// type for the copula map
 	typedef std::map<std::string, MargDistribID> DistribNameMapT;
@@ -127,17 +133,24 @@ private:
 	**/
 	///@{
 		QuantLib::InverseCumulativeNormal invCdf01F; ///< N(0,1) inverse - needed
-		bool useCondEV;      ///< use conditional means?
-		double const evMult; ///< constant used in the calculation
+		bool useCondEV; ///< use conditional means?
+		double evMult;  ///< constant used in the calculation
 	///@}
 
 	boost::optional<double> inv_cdf(double const p) const override
 	{ return invCdfF(p); }
 
 public:
+	/// constructors with parameters
 	MarginNormal(double const mu, double const sigma,
 	             SamplePP const postP = PP_None,
 	             bool const condEVInv = false);
+
+	/// constructor with string stream with mean and standard deviation
+	MarginNormal(std::stringstream & paramStr,
+	             SamplePP const postP = PP_None,
+	             bool const condEVInv = false);
+
 	~MarginNormal() {}
 
 	double inv_cdf(DimT const r, DimT const N) const override;
@@ -193,9 +206,128 @@ public:
 	MarginTriang(double const minV, double const maxV, double const modeV,
 	             bool const useExtremes = false);
 
+	/// constructor with parameters in a string stream
 	MarginTriang(std::stringstream & paramStr, bool const useExtremes = false);
 
 	double inv_cdf(DimT const r, DimT const N) const override;
+};
+
+
+// ----------------------------------------------------------------------------
+/// triangular distribution
+class MarginExp : public UnivarMargin {
+private:
+	double lambda;
+
+	void guts_of_constructor();
+
+	boost::optional<double> inv_cdf(double const p) const override;
+
+public:
+	MarginExp(double const scale);
+
+	/// constructor with parameters in a string stream
+	MarginExp(std::stringstream & paramStr);
+};
+
+
+// ----------------------------------------------------------------------------
+/// beta distribution
+class MarginBeta : public UnivarMargin {
+private:
+	double alpha;  ///< param. alpha of the beta distribution
+	double beta;   ///< param. beta of the beta distribution
+	bool scaled;   ///< do we use the scaled version of the distribution
+	double a = 0;      ///< param. a of the scaled version of beta distribution
+	double b = 1;      ///< param. b of the scaled version of beta distribution
+	double supLen = 1; ///< length of the support of the scaled version; = b - a
+
+	/// distribution object - computes cdf etc
+	std::unique_ptr<boost::math::beta_distribution<>> p2Dist;
+
+	boost::optional<double> inv_cdf(double const p) const override;
+
+public:
+	/// constructor for the standard beta distribution
+	MarginBeta(double const pAlpha, double const pBeta);
+
+	/// constructor for the scaled beta distribution
+	MarginBeta(double const pAlpha, double const pBeta,
+	           double const min, double const max);
+
+	/// constructor with parameters in a string stream
+	MarginBeta(std::stringstream & paramStr);
+};
+
+
+// ----------------------------------------------------------------------------
+/// log-normal distribution
+class MarginLognormal : public UnivarMargin {
+private:
+	double mu;    ///< param. mu - mean of log(X)
+	double sigma; ///< param. sigma - standard dev. of log(X)
+
+	/// distribution object - computes cdf etc
+	std::unique_ptr<boost::math::lognormal_distribution<>> p2Dist;
+
+	boost::optional<double> inv_cdf(double const p) const override;
+
+public:
+	/// constructor with the parameters provided
+	MarginLognormal(double const loc, double const scale);
+
+	/// constructor with parameters in a string stream
+	MarginLognormal(std::stringstream & paramStr);
+};
+
+
+// ----------------------------------------------------------------------------
+/// Poisson distribution
+class MarginPoisson : public UnivarMargin {
+private:
+	double lambda; ///< param. lambda, the mean
+
+	/// Poisson distribution with inverse cdf rounding to the nearest integer
+	/**
+		By default, the \c quantile function rounds 'outwards', while for us
+		it is probably better to round to the nearest integer.
+		See http://www.boost.org/doc/libs/1_55_0/libs/math/doc/html/math_toolkit/pol_tutorial/understand_dis_quant.html.
+	**/
+	typedef boost::math::poisson_distribution<double,
+	        boost::math::policies::policy<
+	          boost::math::policies::discrete_quantile<
+	            boost::math::policies::integer_round_nearest> > >
+	        boostPoissonDistrib;
+	/// distribution object - computes cdf etc
+	std::unique_ptr<boostPoissonDistrib> p2Dist;
+
+	boost::optional<double> inv_cdf(double const p) const override;
+
+public:
+	/// constructor with the parameters provided
+	MarginPoisson(double const mean);
+
+	/// constructor with parameters in a string stream
+	MarginPoisson(std::stringstream & paramStr);
+};
+
+
+// ----------------------------------------------------------------------------
+/// continuous uniform distribution
+class MarginUniformC : public UnivarMargin {
+private:
+	double a;  ///< param. a of the distribution = min
+	double b;  ///< param. a of the distribution = max
+	double supLen = 1; ///< length of the support = b - a
+
+	boost::optional<double> inv_cdf(double const p) const override;
+
+public:
+	/// constructor for the standard beta distribution
+	MarginUniformC(double const min, double const max);
+
+	/// constructor with parameters in a string stream
+	MarginUniformC(std::stringstream & paramStr);
 };
 
 

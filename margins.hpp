@@ -56,9 +56,11 @@ public:
 	/// constructor based on a file
 	/**
 		\param[in] tgFName  name of the input file
+		\param[in]  nScens  number of scenarios - optional, but needed for moments
 		\param[in]   nVars  number of variables - optional, used for checking
 	**/
-	MixedMargins(std::string const & tgFName, DimT const nVars = 0);
+	MixedMargins(std::string const & tgFName, DimT const nScens = 0,
+	             DimT const nVars = 0);
 
 	/// attach margin
 	void attach_margin(UnivarMargin::Ptr & p2marg, DimT const index);

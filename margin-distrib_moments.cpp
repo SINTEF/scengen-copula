@@ -37,6 +37,21 @@ MarginMoments::MarginMoments(VectorD const & tgMoms, DimT const nSc,
 	gen_scen(nSc);
 }
 
+// constructor with parameters in a string stream
+MarginMoments::MarginMoments(std::stringstream & paramStr, DimT const nSc)
+: UnivarMargin()
+{
+	moments.resize(4);
+	for (int m = 0; m < 4; ++m)
+		paramStr >> moments(m);
+	if (paramStr.eof())
+		formOfMoms = 0;
+	else
+		paramStr >> formOfMoms;
+
+	gen_scen(nSc);
+}
+
 
 boost::optional<double> MarginMoments::inv_cdf_r(DimT const r, DimT const N) const
 {

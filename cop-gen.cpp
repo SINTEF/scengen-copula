@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
 	// method-specific parameters
 	int formatOfMoments = 0;   // format of moments for margin given by moments
 	bool matFileFmt = false;   // use the matrix-style input-file format
-	boost::optional<unsigned> studentDoF; // Student's copula: degrees of freedom
+	unsigned studentDoF = 0;   // Student's copula: degrees of freedom
 
 	stringstream helpHeader;
 	helpHeader << "Copula generation code by Michal Kaut" << endl << endl
@@ -138,8 +138,7 @@ int main(int argc, char *argv[]) {
 			                   "format of moments (for margins)")
 			("mat-file-fmt", prOpt::bool_switch(&matFileFmt),
 			                 "use matrix-style input data files")
-			("dof", prOpt::value<unsigned>(&studentDoF)
-			        ->default_value(boost::optional<unsigned>()),
+			("dof", prOpt::value<unsigned>(&studentDoF)->default_value(0),
 			        "student copula: degrees of freedom")
 			;
 
@@ -290,10 +289,9 @@ int main(int argc, char *argv[]) {
 			margType = "student"; // default for sample copula
 		}
 		// create a new object of the specific class
-		if (studentDoF) {
+		if (studentDoF > 0) {
 			// dof provided explicitely -> file includes only correlations
-			p2tgCop = boost::make_shared<CopInfoStudent>(studentDoF.get(),
-			                                             copParamsF);
+			p2tgCop = boost::make_shared<CopInfoStudent>(studentDoF, copParamsF);
 		} else {
 			// dof not provided -> file must include both dof and correlations
 			p2tgCop = boost::make_shared<CopInfoStudent>(copParamsF);
@@ -385,7 +383,7 @@ int main(int argc, char *argv[]) {
 			case MargTypeID::mixed: // generic mixed of 2D copulas
 				MSG (TrInfo, "margins of type 'mixed'");
 				// create a new object of the specific class
-				p2tgMargins = boost::make_shared<MixedMargins>(margParamsF,
+				p2tgMargins = boost::make_shared<MixedMargins>(margParamsF, nSc,
 				                                               p2tgCop->dim());
 				break;
 			default:

@@ -22,6 +22,13 @@ void MarginDistrib::make_distrib_name_map(DistribNameMapT & dMap) {
 	dMap["triang"] = MargDistribID::triang;
 	dMap["tX"] = MargDistribID::triangX;
 	dMap["triangX"] = MargDistribID::triangX;
+	dMap["exponential"] = MargDistribID::exponential;
+	dMap["exp"] = MargDistribID::exponential;
+	dMap["beta"] = MargDistribID::beta;
+	dMap["lognormal"] = MargDistribID::lognormal;
+	dMap["poisson"] = MargDistribID::poisson;
+	dMap["Poisson"] = MargDistribID::poisson;
+	dMap["uniform"] = MargDistribID::uniform;
 }
 
 // ---------------------------------------------------------------------------
@@ -63,12 +70,23 @@ void UnivarMargin::inv_cdf(VectorI const & ranks, VectorD & values)
 // class MarginNormal
 
 MarginNormal::MarginNormal(double const mu, double const sigma,
-                           SamplePP const postP,
-                           bool const condEVInv)
+                           SamplePP const postP, bool const condEVInv)
 : UnivarMargin(postP, mu, sigma),
   invCdfF(mu, sigma), invCdf01F(0.0, 1.0), useCondEV(condEVInv),
-  evMult(1.0 / sqrt(2 * 3.1415926535898) * sigma)
+  evMult(sigma / sqrt(2 * 3.1415926535898))
 {}
+
+MarginNormal::MarginNormal(std::stringstream & paramStr,
+                           SamplePP const postP, bool const condEVInv)
+: UnivarMargin(postP, 0, 1),
+  invCdfF(0, 1), invCdf01F(0.0, 1.0), useCondEV(condEVInv),
+  evMult(1.0 / sqrt(2 * 3.1415926535898))
+{
+	double mu, sigma;
+	paramStr >> mu >> sigma;
+	invCdfF = QuantLib::InverseCumulativeNormal(mu, sigma);
+	evMult *= sigma;
+}
 
 
 double MarginNormal::inv_cdf(DimT const r, DimT const N) const
@@ -161,4 +179,132 @@ double MarginTriang::inv_cdf(DimT const r, DimT const N) const
 	double p = (useMinMax ? (static_cast<double>(r)) / (N - 1)
 	                      : (static_cast<double>(r) + 0.5) / N);
 	return inv_cdf(p).get();
+}
+
+
+// ---------------------------------------------------------------------------
+// class MarginExp
+
+MarginExp::MarginExp(double const rate)
+: UnivarMargin(), lambda(rate)
+{
+	if (lambda <=0)
+		throw std::range_error("parameter lambda is out of range");
+}
+
+MarginExp::MarginExp(std::stringstream & paramStr)
+: UnivarMargin()
+{
+	paramStr >> lambda;
+	if (lambda <=0)
+		throw std::range_error("parameter lambda is out of range");
+}
+
+boost::optional<double> MarginExp::inv_cdf(double const p) const
+{
+	return -log(1 - p) / lambda;
+}
+
+
+// ---------------------------------------------------------------------------
+// class MarginBeta
+
+// constructor for the standard beta distribution
+MarginBeta::MarginBeta(double const pAlpha, double const pBeta)
+: UnivarMargin(), alpha(pAlpha), beta(pBeta), scaled(false),
+  p2Dist(new boost::math::beta_distribution<>(pAlpha, pBeta))
+{}
+
+/// constructor for the standard beta distribution
+MarginBeta::MarginBeta(double const pAlpha, double const pBeta,
+                       double const min, double const max)
+: UnivarMargin(), alpha(pAlpha), beta(pBeta), scaled(true),
+  a(min), b(max), supLen(max - min),
+  p2Dist(new boost::math::beta_distribution<>(pAlpha, pBeta))
+{}
+
+MarginBeta::MarginBeta(std::stringstream & paramStr)
+: UnivarMargin(), p2Dist()
+{
+	paramStr >> alpha >> beta;
+	p2Dist.reset(new boost::math::beta_distribution<>(alpha, beta));
+	if (!paramStr.eof()) {
+		scaled = true;
+		paramStr >> a >> b;
+		supLen = b - a;
+	}
+}
+
+boost::optional<double> MarginBeta::inv_cdf(double const p) const
+{
+	double x = quantile(*p2Dist, p);
+	if (scaled)
+		x = a + supLen * x;
+	return x;
+}
+
+
+// ---------------------------------------------------------------------------
+// class MarginLognormal
+
+// constructor for the standard Lognormal distribution
+MarginLognormal::MarginLognormal(double const loc, double const scale)
+: UnivarMargin(), mu(loc), sigma(scale),
+  p2Dist(new boost::math::lognormal_distribution<>(loc, scale))
+{}
+
+MarginLognormal::MarginLognormal(std::stringstream & paramStr)
+: UnivarMargin(), p2Dist()
+{
+	paramStr >> mu >> sigma;
+	p2Dist.reset(new boost::math::lognormal_distribution<>(mu, sigma));
+}
+
+boost::optional<double> MarginLognormal::inv_cdf(double const p) const
+{
+	return quantile(*p2Dist, p);
+}
+
+
+// ---------------------------------------------------------------------------
+// class MarginPoisson
+
+// constructor for the standard Poisson distribution
+MarginPoisson::MarginPoisson(double const mean)
+: UnivarMargin(), lambda(mean),
+  p2Dist(new boostPoissonDistrib(mean))
+{}
+
+MarginPoisson::MarginPoisson(std::stringstream & paramStr)
+: UnivarMargin(), p2Dist()
+{
+	paramStr >> lambda;
+	p2Dist.reset(new boostPoissonDistrib(lambda));
+}
+
+boost::optional<double> MarginPoisson::inv_cdf(double const p) const
+{
+	return quantile(*p2Dist, p);
+}
+
+
+// ---------------------------------------------------------------------------
+// class MarginUniformC
+
+// constructor for the standard beta distribution
+MarginUniformC::MarginUniformC(double const min, double const max)
+: UnivarMargin(), a(min), b(max), supLen(max - min)
+{}
+
+// constructor with parameters in a string stream
+MarginUniformC::MarginUniformC(std::stringstream & paramStr)
+: UnivarMargin()
+{
+	paramStr >> a >> b;
+	supLen = b - a;
+}
+
+boost::optional<double> MarginUniformC::inv_cdf(double const p) const
+{
+	return a + p * supLen;
 }

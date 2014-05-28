@@ -173,7 +173,11 @@ double CopulaSample::gen_new_margin(DimT const marg)
 				delete p2sample2D(i, marg);
 				p2sample2D(i, marg) = NULL;
 				//! temp - should be done more carefully
-				p2tgInfo(i, marg)->clear_cdf_grid();
+				// TEST TEMP
+				// - delete the whole object, of not shared with other cop. pairs
+				// - test that this releases the memory!
+				//p2tgInfo(i, marg)->clear_cdf_grid();
+				p2tgInfo(i, marg).reset();
 			}
 		}
 	}

@@ -15,6 +15,7 @@ CopInfoNormal::CopInfoNormal(MatrixD const & correls)
 	setup_2d_targets(); // create the matrix of bivariate copula objects
 }
 
+
 CopInfoNormal::CopInfoNormal(std::string const & tgFName)
 : CopInfoBy2D(0, false)
 {
@@ -33,14 +34,15 @@ CopInfoNormal::CopInfoNormal(std::string const & tgFName)
 void CopInfoNormal::read_correl_mat(std::string const & tgFName)
 {
 	// read the input file
-	std::ifstream tgCorrF(tgFName.c_str());
-	if (!tgCorrF) {
+	std::ifstream tgCorrStr(tgFName.c_str());
+	if (!tgCorrStr) {
 		throw std::ios_base::failure("Could not open input file `"
 		                             + tgFName + "'!");
 	}
-	get_correl_matrix_from_stream(tgCorrF, correlMat);
+	get_correl_matrix_from_stream(tgCorrStr, correlMat);
+	DBGSHOW (TrDetail3, correlMat);
 
-	tgCorrF.close();
+	tgCorrStr.close();
 }
 
 

@@ -35,6 +35,9 @@ private:
 public:
 	//MarginMoments(VectorD const & tgMoms, int const FoM = 0);
 	MarginMoments(VectorD const & tgMoms, DimT const nSc, int const FoM = 0);
+
+	/// constructor with parameters in a string stream, plus a number of scens.
+	MarginMoments(std::stringstream & paramStr, DimT const nSc);
 };
 
 } // namespace

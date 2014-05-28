@@ -56,7 +56,6 @@ std::istream & operator>> (std::istream & is, ublas::symmetric_matrix<T> & M)
 	// using >> for a standard matrix
 	typename ublas::matrix<T> tmpM(M.size1(), M.size2());
 	is >> tmpM;
-	TRACE (TrDetail2, "tmpM = " << tmpM);
 	DimT N = tmpM.size1();
 	assert (tmpM.size2() == N && "must be a square matrix");
 
@@ -67,6 +66,7 @@ std::istream & operator>> (std::istream & is, ublas::symmetric_matrix<T> & M)
 			assert (isEq(tmpM(j, i), M(i, j)) && "must be symmetric");
 		}
 	}
+	TRACE (TrDetail2, "symmetric matrix read from a stream: " << endl << M);
 	return is;
 }
 

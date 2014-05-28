@@ -1,8 +1,9 @@
-#include <iostream>
-#include <fstream>
-
 #include "common.hpp"
 #include "copula-info.hpp"
+#include "cop2Dinfo.hpp"
+
+#include <iostream>
+#include <fstream>
 
 using namespace CopulaDef;
 using std::cout;
@@ -27,7 +28,7 @@ void CopulaDef::make_cop_name_map(CopNameMapT & cMap) {
 // ---------------------------------------------------------------------------
 // class CopulaInfo
 void CopulaInfo::get_correl_matrix_from_stream(
-	std::istream & is, ublas::symmetric_matrix<double> X)
+	std::istream & is, ublas::symmetric_matrix<double> & X)
 {
 	is >> X; // this should read the matrix, including dimensions
 
@@ -161,6 +162,95 @@ CopInfoGen2D::CopInfoGen2D(std::string const & tgFName)
 		                             + tgFName + "'!");
 	}
 	tgFStr >> nVars; // the first parameter is the dimension
+
+	Copula2D::Cop2DNameMapT copNameMap;  ///< convert copula name to type
+	make_2d_cop_name_map(copNameMap);
+	Copula2D::Cop2DInfo::Ptr p2tgCop;
+
+	while (! tgFStr.eof()) {
+		DimT i, j;
+		tgFStr >> i >> j;
+		std::string copType;
+		tgFStr >> copType;
+
+		if (copNameMap.count(copType) == 0) {
+			cerr << "Unknown 2D copula type `" << copType << "' .. aborting!" << endl;
+			cout << "Known copula types are:";
+			for (auto cIt = copNameMap.begin(); cIt != copNameMap.end(); ++ cIt)
+				cout << " " << cIt->first;
+			cout << endl;
+			exit(1);
+		}
+		// copula type is OK -> it is safe to use copNameMap[copType]
+		double dblP1, dblP2;
+		unsigned uintP1;
+		try {
+		// NB: Cop2DTypeID = {indep, Clayton, Gumbel, Frank, Nelsen2, Nelsen18,
+		//                    MarshallOlkin, data, normal, student};
+		switch (copNameMap[copType]) {
+		case Copula2D::Cop2DTypeID::indep: // independent margins
+			MSG (TrInfo, "2D copula of type 'independent'");
+			p2tgCop = boost::make_shared<Copula2D::Cop2DIndep>();
+			break;
+		case Copula2D::Cop2DTypeID::Clayton: // independent margins
+			MSG (TrInfo, "2D copula of type 'Clayton'");
+			tgFStr >> dblP1; // correlation
+			p2tgCop = boost::make_shared<Copula2D::Cop2DClayton>(dblP1);
+			break;
+		case Copula2D::Cop2DTypeID::Gumbel: // independent margins
+			MSG (TrInfo, "2D copula of type 'Gumbel'");
+			tgFStr >> dblP1; // correlation
+			p2tgCop = boost::make_shared<Copula2D::Cop2DGumbel>(dblP1);
+			break;
+		case Copula2D::Cop2DTypeID::Frank: // independent margins
+			MSG (TrInfo, "2D copula of type 'Frank'");
+			tgFStr >> dblP1; // correlation
+			p2tgCop = boost::make_shared<Copula2D::Cop2DFrank>(dblP1);
+			break;
+		case Copula2D::Cop2DTypeID::Nelsen2: // independent margins
+			MSG (TrInfo, "2D copula of type 'Nelsen-2'");
+			tgFStr >> dblP1; // correlation
+			p2tgCop = boost::make_shared<Copula2D::Cop2DNelsen2>(dblP1);
+			break;
+		case Copula2D::Cop2DTypeID::Nelsen18: // independent margins
+			MSG (TrInfo, "2D copula of type 'Nelsen-18'");
+			tgFStr >> dblP1; // correlation
+			p2tgCop = boost::make_shared<Copula2D::Cop2DNelsen18>(dblP1);
+			break;
+		case Copula2D::Cop2DTypeID::MarshallOlkin: // independent margins
+			MSG (TrInfo, "2D copula of type 'Marshall-Olkin'");
+			tgFStr >> dblP1 >> dblP2; // correlation
+			p2tgCop = boost::make_shared<Copula2D::Cop2DMarshallOlkin>(dblP1, dblP2);
+			break;
+		case Copula2D::Cop2DTypeID::data: // "sample"
+			MSG (TrInfo, "2D copula of type 'data'");
+			throw std::logic_error("not yet implemented!");
+			break;
+		case Copula2D::Cop2DTypeID::normal: // "normal"
+			MSG (TrInfo, "2D copula of type 'normal'");
+			tgFStr >> dblP1; // correlation
+			p2tgCop = boost::make_shared<Copula2D::Cop2DNormal>(dblP1);
+			break;
+		case Copula2D::Cop2DTypeID::student: // student's t-copula
+			MSG (TrInfo, "2D copula of type 'student'");
+			tgFStr >> dblP1 >> dblP2; // correlation and DOF
+			p2tgCop = boost::make_shared<Copula2D::Cop2DStudent>(dblP1, uintP1);
+			break;
+		default:
+			cerr << "ERROR: file " << __FILE__ << ", line " << __LINE__
+				  << " .. should never be here!" << endl;
+			exit(1);
+		}
+		}
+		catch(std::exception& e) {
+			cerr << "Error: There was some problem initializing bivariate copulas!"
+			     << endl << "       The error message was: " << e.what() << endl;
+			exit(1);
+		}
+		attach_2d_target(p2tgCop, i, j);
+	}
+
+
 
 	throw std::logic_error("not yet implemented!");
 }

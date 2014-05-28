@@ -9,6 +9,9 @@
 
 #include "common.hpp"
 
+#include <iostream>
+#include <map>
+
 
 // forward declarations, needed by the following class
 namespace CopulaDef {
@@ -19,6 +22,20 @@ namespace CopulaDef {
 }
 
 namespace Copula2D{
+
+/// \name objects for the copula name map, used in the main code
+///@{
+	/// enum for the known copula types
+	enum class Cop2DTypeID {indep, Clayton, Gumbel, Frank, Nelsen2, Nelsen18,
+	                        MarshallOlkin, data, normal, student};
+
+	/// type for the copula map
+	typedef std::map<std::string, Cop2DTypeID> Cop2DNameMapT;
+
+	/// this fills the copula map with the known copula types
+	void make_2d_cop_name_map(Cop2DNameMapT & cMap);
+///@}
+
 
 /// specifications of a bivariate copula, used as targets
 class Cop2DInfo {
@@ -104,8 +121,10 @@ public:
 				pairs - though this is currently implemented only for indep. cop.
 				To avoid it, we should add a usage counter - or maybe use the
 				counter provided by boost::shared_ptr?
+
+			\note Now replaced by the \c reset method from boost::shared_ptr
 		**/
-		void clear_cdf_grid();
+		//void clear_cdf_grid();
 	///@}
 
 	//void attach_multivar_info(CopulaDef::CopInfoBy2D * const p2tg,
@@ -163,6 +182,34 @@ private:
 
 public:
 	Cop2DClayton(const double theta);
+};
+
+
+/// The Gumbel copula
+/// copula x.x.x from Nelsen, pp. 11x
+class Cop2DGumbel : public Cop2DInfo {
+private:
+	double th;  ///< parameter theta of the copula; th in (0, 1]
+	double iTh; ///< 1 / th
+
+	double calc_cdf(const double u, const double v) const;
+
+public:
+	Cop2DGumbel(const double theta);
+};
+
+
+/// The Frank copula
+/// copula x.x.x from Nelsen, pp. 11x
+class Cop2DFrank : public Cop2DInfo {
+private:
+	double th; ///< parameter theta of the copula; th in R
+	double C;  ///< exp(-th)
+
+	double calc_cdf(const double u, const double v) const;
+
+public:
+	Cop2DFrank(const double theta);
 };
 
 

@@ -259,6 +259,10 @@ extern OutputLevel outLvl;
 // see http://hamersun.blogspot.com/2010/09/
 #define DISPLAY(var) std::cout << #var " = " << var << std::endl
 #define VALUE(var) #var " = " << var
-
-
+#ifndef NDEBUG
+	#define DBGSHOW(lvl, var) if (lvl <= outLvl) ECHO(VALUE(var))
+#else
+	#define DBGSHOW(lvl, var)
 #endif
+
+#endif  // header guard

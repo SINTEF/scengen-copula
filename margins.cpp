@@ -58,7 +58,8 @@ void MixedMargins::attach_margin(UnivarMargin::Ptr & p2marg, DimT const index)
 }
 
 // constructor from a file
-MixedMargins::MixedMargins(std::string const & tgFName, DimT const nVars)
+MixedMargins::MixedMargins(std::string const & tgFName, DimT const nScens,
+                           DimT const nVars)
 : MarginsInfo(nVars)
 {
 	std::ifstream margSpecF(tgFName);
@@ -94,28 +95,39 @@ MixedMargins::MixedMargins(std::string const & tgFName, DimT const nVars)
 			throw std::runtime_error("Unknown marginal distribution type `"
 			                         + distrID + "'");
 		}
+		MSG (TrInfo, "margin " << std::setw(floor(log10(nM)) + 1) << i+1
+		             << " of type '" << distrID << "'");
 
 		// distribution type is OK -> it is safe to use distrNameMap[distrID]
 		try {
 			UnivarMargin::Ptr p2marg;
 			switch (distrNameMap[distrID]) {
-			case MargDistribID::moments: // "sample"
-				MSG (TrInfo2, "margin of type 'sample'");
-				throw std::logic_error("not yet implemented");
+			case MargDistribID::moments: // "moments"
+				p2marg = boost::make_shared<MarginMoments>(paramStr, nScens);
 				break;
 			case MargDistribID::normal: // "normal"
-				MSG (TrInfo, "margin of type 'normal'");
-				throw std::logic_error("not yet implemented");
+				p2marg = boost::make_shared<MarginNormal>(paramStr);
 				break;
-			case MargDistribID::triang: // generic mixed of 2D copulas
-				MSG (TrInfo, "margin of type 'triangular'");
-				// create a new object of the specific class
+			case MargDistribID::triang: // triangular
 				p2marg = boost::make_shared<MarginTriang>(paramStr, false);
 				break;
-			case MargDistribID::triangX: // generic mixed of 2D copulas
-				MSG (TrInfo, "margins of type 'triangular with extremes'");
-				// create a new object of the specific class
+			case MargDistribID::triangX: // triangular with values at min & max
 				p2marg = boost::make_shared<MarginTriang>(paramStr, true);
+				break;
+			case MargDistribID::exponential: // exponential
+				p2marg = boost::make_shared<MarginExp>(paramStr);
+				break;
+			case MargDistribID::beta: // exponential
+					p2marg = boost::make_shared<MarginBeta>(paramStr);
+				break;
+			case MargDistribID::lognormal: // exponential
+					p2marg = boost::make_shared<MarginLognormal>(paramStr);
+				break;
+			case MargDistribID::poisson: // exponential
+					p2marg = boost::make_shared<MarginPoisson>(paramStr);
+				break;
+			case MargDistribID::uniform: // continuous uniform distribution
+					p2marg = boost::make_shared<MarginUniformC>(paramStr);
 				break;
 			default:
 				throw std::logic_error("Should never be here!");

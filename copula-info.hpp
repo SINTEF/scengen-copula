@@ -35,7 +35,7 @@ protected:
 	/// \name misc methods used by derived classes
 	///@{
 		void get_correl_matrix_from_stream(std::istream & is,
-		                                   ublas::symmetric_matrix<double> X);
+		                                   ublas::symmetric_matrix<double> & X);
 	///@}
 
 public:
@@ -262,11 +262,14 @@ protected:
 		       - these constructors could be protected, or perhaps even private,
 		         with the external functions declared as friends?
 	*/
-	CopInfoNormal() = default;
+	CopInfoNormal() : CopInfoBy2D(0) {}
 
 public:
 	/// constructor with the target data as input
 	CopInfoNormal(MatrixD const & correls);
+
+	/// constructor with an open input stream
+	//CopInfoNormal(istream & is);
 
 	/// constructor with file name of the target distribution
 	CopInfoNormal(std::string const & tgFName);

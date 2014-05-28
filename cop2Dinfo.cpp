@@ -12,6 +12,37 @@ using namespace std;
 using namespace Copula2D;
 
 
+// ---------------------------------------------------------------------------
+// generic routines
+
+// NB: Cop2DTypeID = {indep, Clayton, Gumbel, Frank, Nelsen2, Nelsen18,
+//                    MarshallOlkin, data, normal, student};
+void Copula2D::make_2d_cop_name_map(Cop2DNameMapT & cMap) {
+	// note: when listing the map, it goes from last to first
+	cMap["indep"]   = Cop2DTypeID::indep;
+	cMap["Clayton"] = Cop2DTypeID::Clayton;
+	cMap["clayton"] = Cop2DTypeID::Clayton;
+	cMap["Gumbel"]  = Cop2DTypeID::Gumbel;
+	cMap["gumbel"]  = Cop2DTypeID::Gumbel;
+	cMap["Frank"]   = Cop2DTypeID::Frank;
+	cMap["frank"]   = Cop2DTypeID::Frank;
+	cMap["Nelsen-2"]       = Cop2DTypeID::Nelsen2;
+	cMap["nelsen-2"]       = Cop2DTypeID::Nelsen2;
+	cMap["Nelsen-18"]      = Cop2DTypeID::Nelsen18;
+	cMap["nelsen-18"]      = Cop2DTypeID::Nelsen18;
+	cMap["Marshall-Olkin"] = Cop2DTypeID::MarshallOlkin;
+	cMap["marshall-olkin"] = Cop2DTypeID::MarshallOlkin;
+	cMap["M-O"]     = Cop2DTypeID::MarshallOlkin;
+	cMap["m-o"]     = Cop2DTypeID::MarshallOlkin;
+	cMap["data"]    = Cop2DTypeID::data;
+	cMap["sample"]  = Cop2DTypeID::data;
+	cMap["normal"]  = Cop2DTypeID::normal;
+	cMap["student"] = Cop2DTypeID::student;
+	cMap["Student"] = Cop2DTypeID::student;
+	cMap["t"]       = Cop2DTypeID::student;
+}
+
+
 // -----------------------------------------------------------------------
 // Cop2DInfo base class
 DimT Cop2DInfo::u_to_grid(double const u) const
@@ -102,11 +133,14 @@ void Cop2DInfo::init_cdf_grid(VectorD const & gridPos)
 }
 
 
+/*
 void Cop2DInfo::clear_cdf_grid()
 {
 	gridCdf.resize(0, 0, false); // clear() does not free memory?!
 	useGrid = false;
 }
+*/
+
 
 // -----------------------------------------------------------------------
 // Clayton copula
@@ -128,6 +162,49 @@ double Cop2DClayton::calc_cdf(const double u, double const v) const
 		return u * v;
 	} else {
 		return pow(max(pow(u, -th) + pow(v, -th) - 1.0, 0.0), -1.0 / th);
+	}
+}
+
+
+// -----------------------------------------------------------------------
+// Gumbel copula
+
+Cop2DGumbel::Cop2DGumbel(double const theta)
+: Cop2DInfo(), th(theta), iTh(1 / theta)
+{
+throw std::logic_error("not yet implemented!");
+	if (th < 1) {
+		cerr << "ERROR: Parameter theta out of range!";
+		exit(1);
+	}
+}
+
+double Cop2DGumbel::calc_cdf(const double u, double const v) const
+{
+	return exp(-pow(pow(-log(u), th) + pow(-log(v), th), iTh));
+}
+
+
+// -----------------------------------------------------------------------
+// Frank copula
+
+Cop2DFrank::Cop2DFrank(double const theta)
+: Cop2DInfo(), th(theta), C(exp(-theta) - 1)
+{
+	if (th < -1) {
+		cerr << "ERROR: Parameter theta out of range!";
+		exit(1);
+	}
+}
+
+double Cop2DFrank::calc_cdf(const double u, double const v) const
+{
+	if (fabs(th) < DblEps) {
+		// Frank cdf is undefined for theta = 0
+		// but the limit of the cdf for theta -> 0 is the indep. copula
+		return u * v;
+	} else {
+		return -1 * log(1 + (exp(-th * u) - 1) * (exp(-th * v) - 1) / C) / th;
 	}
 }
 
