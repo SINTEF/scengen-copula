@@ -172,7 +172,6 @@ double Cop2DClayton::calc_cdf(const double u, double const v) const
 Cop2DGumbel::Cop2DGumbel(double const theta)
 : Cop2DInfo(), th(theta), iTh(1 / theta)
 {
-throw std::logic_error("not yet implemented!");
 	if (th < 1) {
 		cerr << "ERROR: Parameter theta out of range!";
 		exit(1);

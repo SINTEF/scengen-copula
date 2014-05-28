@@ -12,7 +12,7 @@
 				<Option object_output=".obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="-c sample -i truthtree.txt -m sample --sort-marg 15" />
+				<Option parameters="-c mixed -i cop_mix.txt 1000" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
