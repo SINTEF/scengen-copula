@@ -186,7 +186,7 @@ public:
 
 
 /// The Gumbel copula
-/// copula x.x.x from Nelsen, pp. 11x
+/// copula 4.2.4 from Nelsen, pp. 116
 class Cop2DGumbel : public Cop2DInfo {
 private:
 	double th;  ///< parameter theta of the copula; th in (0, 1]
@@ -200,7 +200,7 @@ public:
 
 
 /// The Frank copula
-/// copula x.x.x from Nelsen, pp. 11x
+/// copula 4.2.5 from Nelsen, pp. 116
 class Cop2DFrank : public Cop2DInfo {
 private:
 	double th; ///< parameter theta of the copula; th in R

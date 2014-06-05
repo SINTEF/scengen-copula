@@ -39,7 +39,6 @@
 				</Environment>
 			</Target>
 			<Target title="Release_static">
-				<Option platforms="Unix;" />
 				<Option output="bin/Release/scen-gen_cop" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="bin/Release" />
 				<Option object_output=".obj/Release/" />
@@ -55,6 +54,9 @@
 					<Add option="-s" />
 					<Add directory="external/scen-gen_HKW/lib" />
 				</Linker>
+				<ExtraCommands>
+					<Add before="ar rcs external/scen-gen_HKW/lib/libscen-gen_HKW.a external/scen-gen_HKW/.obj/Release_DLL/*.o" />
+				</ExtraCommands>
 				<Environment>
 					<Variable name="TG_TYPE" value="Release" />
 				</Environment>
