@@ -16,6 +16,7 @@
 #include <boost/math/distributions/beta.hpp>
 #include <boost/math/distributions/lognormal.hpp>
 #include <boost/math/distributions/poisson.hpp>
+#include <boost/math/distributions/students_t.hpp>
 
 #include <map>
 #include <boost/optional.hpp>
@@ -278,6 +279,39 @@ public:
 
 	/// constructor with parameters in a string stream
 	MarginLognormal(std::stringstream & paramStr);
+};
+
+
+// ----------------------------------------------------------------------------
+/// student's t-distribution
+class MarginStudent : public UnivarMargin {
+private:
+	unsigned dof;        ///< degrees of freedom
+	bool scaled = false; ///< is the distrib. scaled out of the standard form?
+
+	/// distribution object - computes cdf etc
+	std::unique_ptr<boost::math::students_t_distribution<>> p2Dist;
+
+	boost::optional<double> inv_cdf(double const p) const override;
+
+public:
+	/// constructor for the standard version
+	/**
+		\param[in]     v  degrees of freedom
+		\param[in] postP  post-processing option
+	**/
+	MarginStudent(unsigned const v, SamplePP const postP = PP_None);
+
+	/// constructor for the scaled version
+	/**
+		\param[in]     v  degrees of freedom
+		\param[in]    mu  mean of the scaled version
+		\param[in] sigma  standard deviation of the scaled version
+	**/
+	MarginStudent(unsigned const v, double const mu, double const sigma);
+
+	/// constructor with parameters in a string stream
+	MarginStudent(std::stringstream & paramStr);
 };
 
 

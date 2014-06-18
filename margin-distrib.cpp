@@ -267,6 +267,40 @@ boost::optional<double> MarginLognormal::inv_cdf(double const p) const
 
 
 // ---------------------------------------------------------------------------
+// class MarginStudent
+
+// constructor for the standard Lognormal distribution
+MarginStudent::MarginStudent(unsigned const v, SamplePP const postP)
+: UnivarMargin(postP),
+  p2Dist(new boost::math::students_t_distribution<>(v))
+{}
+
+MarginStudent::MarginStudent(unsigned const v,
+                             double const mu, double const sigma)
+: UnivarMargin(PP_fixBoth, mu, sigma), scaled(true),
+  p2Dist(new boost::math::students_t_distribution<>(v))
+{}
+
+MarginStudent::MarginStudent(std::stringstream & paramStr)
+: UnivarMargin(), p2Dist()
+{
+	paramStr >> dof;
+	p2Dist.reset(new boost::math::students_t_distribution<>(dof));
+	if (!paramStr.eof()) {
+		paramStr >> mean >> stDev;
+		if (paramStr.good()) {
+			scaled = true;
+		}
+	}
+}
+
+boost::optional<double> MarginStudent::inv_cdf(double const p) const
+{
+	return quantile(*p2Dist, p);
+}
+
+
+// ---------------------------------------------------------------------------
 // class MarginPoisson
 
 // constructor for the standard Poisson distribution
