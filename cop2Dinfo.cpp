@@ -72,20 +72,38 @@ double Cop2DInfo::cdf(double const u, double const v) const
 	}
 }
 
+double Cop2DInfo::cdfR(DimT const i, DimT const j) const
+{
+	if (useGrid) {
+		return gridCdf(i, j);
+	} else {
+		// handle boundaries manually - can be problematic in some cases!
+		if (i * j == 0) { return 0.0; }
+		if (i == gridN - 1) { return gridPts(j); }
+		if (j == gridN - 1) { return gridPts(i); }
+		return calc_cdf(gridPts(i), gridPts(j));
+	}
+}
+
 
 void Cop2DInfo::calc_all_grid_cdfs()
 {
+	assert (useGrid && "grid should be computed only if needed");
 	assert (gridN > 0 && gridPts.size() == gridN && "sanity checks");
 
+	useGrid = false; // needed to avoid cdf() trying to use the grid values
 	gridCdf.resize(gridN, gridN);
 	for (DimT i = 0; i < gridN; ++i) {
 		for (DimT j = 0; j < gridN; ++j) {
 			gridCdf(i, j) = cdf(gridPts(i), gridPts(j));
 		}
 	}
+	useGrid = true; // reset back
 }
 
 
+//! gridPts is used also when we do not use grid-based cdf!
+//! \todo rename useGrid to usedGridCdf? !!
 void Cop2DInfo::init_cdf_grid(DimT const N, double const posInInt)
 {
 	if (gridN == N && gridPts.size() == N && isEq(gridPts[0], posInInt / N)) {
@@ -104,22 +122,23 @@ void Cop2DInfo::init_cdf_grid(DimT const N, double const posInInt)
 	}
 	TRACE (TrDetail3, "posInInt = " << posInInt << "; gridPts = " << gridPts);
 
-	useGrid = false; // this forces calls to calc_cdf() from cdf()
-	calc_all_grid_cdfs();
-
-	useGrid = true;
+	if (useGrid) {
+		calc_all_grid_cdfs();
+	}
 }
 
 
 void Cop2DInfo::init_cdf_grid(VectorD const & gridPos)
 {
+	if (! useGrid) {
+		return;
+	}
 	if (gridN > 0)
 		cerr << "Warning: calling init_cdf_grid() with existing grid!" << endl;
 	// \todo bound checking
 
 	gridN = gridPos.size();
 	gridPts = gridPos;
-	useGrid = true;
 	customGridPts = true;
 
 	gridCdf.resize(gridN, gridN);

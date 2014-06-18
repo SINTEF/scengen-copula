@@ -43,6 +43,9 @@ private:
 	/// reference to a matrix of pre-computed cdf values - points to *p2tgInfo
 	MatrixF const & tgCdfOfR;
 
+	/// one column of stored cdf values (each uses twice, so this should help)
+	VectorD tgCdfOfCol;
+
 	/// \name connection to scenarios of the main alg.
 	//@{
 		/// pointer to scenario probabilities.
@@ -249,8 +252,9 @@ public:
 		            rows are available or not; in this case, the rowCdfDist for
 		            the rows with 'false' need not be defined.
 	**/
-	void cdf_dist_of_col(int const i, VectorD const &prevColCdf,
-	                     VectorD &rowCdfDist, bool rowFree[] = NULL);
+	// NEVER USED!
+	//void cdf_dist_of_col(int const i, VectorD const &prevColCdf,
+	//                     VectorD &rowCdfDist, bool rowFree[] = NULL);
 
 	/// Compute the cdf-distance of for a whole row, given Cdf of prev. row.
 	/**
@@ -264,8 +268,8 @@ public:
 	void cdf_dist_of_row(int const j, VectorD const &prevRowCdf,
 	                     VectorD &colCdfDist, bool colFree[] = NULL);
 
-	/// \todo do this; return false if this breaks another link
-	bool add_link(int const colR, int const rowR);
+	/// \todo do this; throw if this breaks another link
+	void add_link(int const colR, int const rowR);
 };
 
 } // namespace

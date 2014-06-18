@@ -399,13 +399,20 @@ int main(int argc, char *argv[]) {
 		catch(exception& e) {
 			cerr << "Error: There was some problem initializing the margins!" << endl
 				  << "       The error message was: " << e.what() << endl;
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 	}
 
 
 	CopulaSample copSc(p2tgCop, nSc, numCandPts);
-	copSc.gen_sample();
+	try {
+		copSc.gen_sample();
+	}
+	catch(exception& e) {
+		cerr << "ERROR: copula generation heuristic failed with the following "
+		        "       error message: '" << e.what() << "' .. aborting." << endl;
+		exit(EXIT_FAILURE);
+	}
 	// the first margin is sorted (see CopulaSample::gen_sample())
 	//  - if we do not want this, we have to shuffle it manually
 	if (!sorted1stMarg)

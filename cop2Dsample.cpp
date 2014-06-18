@@ -13,7 +13,7 @@ using namespace Copula2D;
 Cop2DSample::Cop2DSample(int const nSamples, Cop2DInfo * const p2TgCop,
                          string const id)
 : N(nSamples), i2jC(nSamples, -1), j2iC(nSamples, -1),
-  tgCdfOfR(p2TgCop->get_cdf_grid()),
+  tgCdfOfR(p2TgCop->get_cdf_grid()), tgCdfOfCol(nSamples),
   p2prob(NULL), scenOfMarg1R(0), //cumProb(N),
   //evalPtPos(1.0), copEvalPts(N),
   sampleId(id),
@@ -31,11 +31,11 @@ Cop2DSample::Cop2DSample(int const nSamples, Cop2DInfo * const p2TgCop,
 	}
 	*/
 
-	// initialize the cdf grid of the target info object
+	// initialize the cdf grid of the target info object (if required)
 	p2TgCop->init_cdf_grid(nSamples, 1.0);
 
 	// fill the matrix of target rank-cdf values
-	//fill_tgCdfOfR();
+	//fill_p2tgInfo->cdfR();
 }
 
 
@@ -326,7 +326,7 @@ double Cop2DSample::gen_heur()
 
 		for (j = 1; j < N; j++) {
 			// using the recursive formula shown above
-			tgVal = tgCdfOfR(i, j-1);
+			tgVal = p2tgInfo->cdfR(i, j-1);
 			dist += cdfDist(prevColCdf[j-1], tgVal)
 			        - cdfDist(prevColCdf[j-1] + probCol, tgVal);
 			TRACE (TrDetail, "Cop2DSample::gen_heur(): dist(" << i << "," << j
@@ -430,6 +430,8 @@ void Cop2DSample::CandList::insert_cand(int const index, double const error)
 
 /// \todo make this into a private method and call it also from the
 ///       \a gen_heur() method !!!
+/// \todo uses grid target cdf (p2tgInfo->cdfR), which might not exist!!!
+/*
 void Cop2DSample::cdf_dist_of_col(int const i, VectorD const &prevColCdf,
                                   VectorD &rowCdfDist, bool rowFree[])
 {
@@ -446,16 +448,16 @@ void Cop2DSample::cdf_dist_of_col(int const i, VectorD const &prevColCdf,
 		if (j == 0) {
 			for (jj = 0; jj < N; jj++) {
 				// point/link (i, 0) -> Cdf(i,jj) = prevColRCdf(jj) + prob[i]
-				dist += cdfDist(prevColCdf[jj] + probCol, tgCdfOfR(i, jj));
+				dist += cdfDist(prevColCdf[jj] + probCol, p2tgInfo->cdfR(i, jj));
 				TRACE (TrDetail3, "Cop2DSample::cdf_dist_of_col(" << i
 				       << "): j=0; jj=" << jj << "; prevColCdf[" << jj << "]="
-				       << prevColCdf[jj] << ", tgCdfOfR(" << i << "," << jj << ")="
-				       << tgCdfOfR(i, jj));
+				       << prevColCdf[jj] << ", p2tgInfo->cdfR(" << i << "," << jj << ")="
+				       << p2tgInfo->cdfR(i, jj));
 			}
 		} else {
 			// using the recursive formula shown above
 			// -> have to evaluate all j's, even if they won't be stored!
-			tgVal = tgCdfOfR(i, j-1);
+			tgVal = p2tgInfo->cdfR(i, j-1);
 			dist += cdfDist(prevColCdf[j-1], tgVal)
 			        - cdfDist(prevColCdf[j-1] + probCol, tgVal);
 		}
@@ -467,10 +469,12 @@ void Cop2DSample::cdf_dist_of_col(int const i, VectorD const &prevColCdf,
 			rowCdfDist[j] = DblInf;
 	}
 }
+*/
 
 
 /// \todo make this into a private method and call it also from the
 ///       \a gen_heur() method ???
+/// \todo uses grid target cdf (p2tgInfo->cdfR), which might not exist!!!
 void Cop2DSample::cdf_dist_of_row(int const j, VectorD const &prevRowCdf,
                                   VectorD &colCdfDist, bool colFree[])
 {
@@ -480,6 +484,17 @@ void Cop2DSample::cdf_dist_of_row(int const j, VectorD const &prevRowCdf,
 	int i, ii;
 	double tgVal;
 
+	// Pre-compute cdf for the whole column (values are used twice)
+	if ((int) tgCdfOfR.size1() == N && (int) tgCdfOfR.size2() == N) {
+		for (i = 0; i < N; ++i) {
+			tgCdfOfCol(i) = tgCdfOfR(i, j);
+		}
+	} else {
+		for (i = 0; i < N; ++i) {
+			tgCdfOfCol(i) = p2tgInfo->cdfR(i, j);
+		}
+	}
+
 	// Using the recursive formula
 	// -> have to treat (i,0) separately to start the recursion
 	double dist = 0;
@@ -487,16 +502,16 @@ void Cop2DSample::cdf_dist_of_row(int const j, VectorD const &prevRowCdf,
 		if (i == 0) {
 			for (ii = 0; ii < N; ii++) {
 				// point/link (0, j) -> Cdf(ii,j) = prevRowRCdf(ii) + prob[j]
-				dist += cdfDist(prevRowCdf[ii] + probRow, tgCdfOfR(ii, j));
+				dist += cdfDist(prevRowCdf[ii] + probRow, tgCdfOfCol(ii));
 				TRACE (TrDetail3, "Cop2DSample::cdf_dist_of_row(" << j
 				       << "): i=0; ii=" << ii << "; prevRowCdf[" << ii << "]="
-				       << prevRowCdf[ii] << ", tgCdfOfR(" << ii << "," << j << ")="
-				       << tgCdfOfR(ii, j));
+				       << prevRowCdf[ii] << ", tg-cdf(" << ii << "," << j << ")="
+				       << tgCdfOfCol(ii));
 			}
 		} else {
 			// using the recursive formula shown above
 			// -> have to evaluate all i's, even if they won't be stored!
-			tgVal = tgCdfOfR(i-1, j);
+			tgVal = tgCdfOfCol(i-1);
 			dist += cdfDist(prevRowCdf[i-1], tgVal)
 			        - cdfDist(prevRowCdf[i-1] + probRow, tgVal);
 		}
@@ -511,20 +526,24 @@ void Cop2DSample::cdf_dist_of_row(int const j, VectorD const &prevRowCdf,
 
 
 /// \todo do this; return false if this breaks another link
-bool Cop2DSample::add_link(int const colR, int const rowR)
+void Cop2DSample::add_link(int const colR, int const rowR)
 {
 	if (i2jC[colR] >= 0 || j2iC[rowR] >= 0) {
+		/*
 		cout.flush();
 		cerr << "Error in add_link(" << colR << "," << rowR
 		     << ") - link already exists!" << endl;
 		cerr.flush();
 		return false;
+		*/
+		std::stringstream sStr;
+		sStr << "Error in add_link(" << colR << "," << rowR
+		     << ") - link already exists!";
+		throw std::logic_error(sStr.str());
 	}
 
 	TRACE (TrDetail, sampleId << " : new link (" << colR << "," << rowR << ")");
 
 	i2jC[colR] = rowR;
 	j2iC[rowR] = colR;
-
-	return true;
 }

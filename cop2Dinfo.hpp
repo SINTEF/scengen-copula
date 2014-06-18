@@ -87,6 +87,9 @@ public:
 		/// cdf - uses the grid if available, calc_cdf(u,v) otherwise
 		virtual double cdf(double const u, double const v) const;
 
+		/// cdf with arguments as ranks- uses the grid if available
+		virtual double cdfR(DimT const i, DimT const v) const;
+
 		/// grid cdf, directly using indices of the grid (fastest)
 		/**
 			\warning no checking -> will fail on index errors!
@@ -99,6 +102,8 @@ public:
 		/**
 			\param[in] N size of the grid
 			\param[in] posInInt position of the grid points inside each interval
+
+			\note does nothing if \c useGrid is false
 		**/
 		virtual void init_cdf_grid(DimT const N, double const posInInt = 1.0);
 
@@ -107,6 +112,8 @@ public:
 			\param[in] gridPos  vector of position of the grid points
 			\note Since we use custom grid points, ::u_to_grid won't work and
 			      hence ::cdf fails -> have to use ::grid_cdf instead!
+
+			\note does nothing if \c useGrid is false
 		**/
 		virtual void init_cdf_grid(VectorD const & gridPos);
 
