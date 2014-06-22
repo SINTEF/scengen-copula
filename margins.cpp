@@ -76,9 +76,11 @@ MixedMargins::MixedMargins(std::string const & tgFName, DimT const nScens,
 	}
 	p2margins.resize(nM);
 
+	/*
 	if (distrNameMap.size() == 0) {
 		make_distrib_name_map(distrNameMap);
 	}
+	*/
 
 	std::string distrID;
 	std::string paramsAsString;
@@ -87,6 +89,7 @@ MixedMargins::MixedMargins(std::string const & tgFName, DimT const nScens,
 		std::getline(margSpecF, paramsAsString);
 		std::stringstream paramStr(paramsAsString);
 
+		/*
 		if (distrNameMap.count(distrID) == 0) {
 			cout << "Known distribution types are:";
 			for (auto dIt = distrNameMap.begin(); dIt != distrNameMap.end(); ++ dIt)
@@ -97,10 +100,15 @@ MixedMargins::MixedMargins(std::string const & tgFName, DimT const nScens,
 		}
 		MSG (TrInfo, "margin " << std::setw(floor(log10(nM)) + 1) << i+1
 		             << " of type '" << distrID << "'");
+		*/
 
 		// distribution type is OK -> it is safe to use distrNameMap[distrID]
 		try {
 			UnivarMargin::Ptr p2marg;
+
+			// NEW - NOT YET FINISHED!
+			p2marg.reset(UnivarMargin::make_new(distrID, paramStr, nScens));
+			/*
 			switch (distrNameMap[distrID]) {
 			case MargDistribID::moments: // "moments"
 				p2marg = boost::make_shared<MarginMoments>(paramStr, nScens);
@@ -132,6 +140,7 @@ MixedMargins::MixedMargins(std::string const & tgFName, DimT const nScens,
 			default:
 				throw std::logic_error("Should never be here!");
 			}
+			*/
 			attach_margin(p2marg, i);
 		}
 		catch(std::exception& e) {

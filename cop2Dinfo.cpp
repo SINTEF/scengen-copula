@@ -17,7 +17,8 @@ using namespace Copula2D;
 
 // NB: Cop2DTypeID = {indep, Clayton, Gumbel, Frank, Nelsen2, Nelsen18,
 //                    MarshallOlkin, data, normal, student};
-void Copula2D::make_2d_cop_name_map(Cop2DNameMapT & cMap) {
+/*
+void Copula2D::make_2d_cop_name_map(Cop2DNameMapT_Old & cMap) {
 	// note: when listing the map, it goes from last to first
 	cMap["indep"]   = Cop2DTypeID::indep;
 	cMap["Clayton"] = Cop2DTypeID::Clayton;
@@ -41,10 +42,72 @@ void Copula2D::make_2d_cop_name_map(Cop2DNameMapT & cMap) {
 	cMap["Student"] = Cop2DTypeID::student;
 	cMap["t"]       = Cop2DTypeID::student;
 }
+*/
 
 
 // -----------------------------------------------------------------------
 // Cop2DInfo base class
+// creates the map - new derived classes have to be added here!
+void Cop2DInfo::init_name_map() {
+	add_to_map<Cop2DIndep>("indep");
+//	add_to_map<Cop2DData>("data");
+//	add_to_map<Cop2DData>("sample");
+	add_to_map<Cop2DNormal>("normal");
+	add_to_map<Cop2DStudent>("student");
+	add_to_map<Cop2DStudent>("t");
+	add_to_map<Cop2DGumbel>("Gumbel");
+	add_to_map<Cop2DClayton>("Clayton");
+	add_to_map<Cop2DFrank>("Frank");
+	add_to_map<Cop2DNelsen2>("Nelsen-2");
+	add_to_map<Cop2DNelsen18>("Nelsen-18");
+	add_to_map<Cop2DMarshallOlkin>("Marshall-Olkin");
+	add_to_map<Cop2DMarshallOlkin>("M-O");
+}
+
+// template for adding new entries to the-name-map
+template <class T>
+void Cop2DInfo::add_to_map(string const & idStr)
+{
+	// throw an error if the element with the same id-string already exists
+	if (nameMap.count(idStr) > 0) {
+		throw std::logic_error("Tried to re-insert '" + idStr
+		                       + "' into the name map.");
+	}
+	// convert to lower case
+	string idStrLC = idStr;
+	for (auto & ltr: idStrLC)
+		ltr = std::tolower(ltr);
+	// add to the map (using the new C++11 method)
+	nameMap.emplace(idStrLC,
+	                [](std::istream & paramStr) {
+	                	return static_cast<Cop2DInfo*>(new T (paramStr));
+	                });
+}
+
+// creates a new object based on its name
+/// \todo checks if shapeName is in the map
+Cop2DInfo * Cop2DInfo::make_new(string const & copName,
+                                std::istream & paramStr)
+{
+	// create the map if it does not exist
+	// this way, we do not need to create the map manually
+	if (nameMap.size() == 0)
+		init_name_map();
+	// convert to lower case
+	string copNameLC = copName;
+	for (auto & ltr: copNameLC)
+		ltr = std::tolower(ltr);
+	if (nameMap.count(copNameLC) == 0) {
+		string errMsg = "Unknown copula type '" + copName + "'. "
+		                + "Supported copula ids are:";
+		for (auto nm : nameMap)
+			errMsg += " " + nm.first;
+		throw std::runtime_error (errMsg + ".");
+	}
+	return Cop2DInfo::nameMap.at(copNameLC)(paramStr);
+}
+
+
 DimT Cop2DInfo::u_to_grid(double const u) const
 {
 	assert (gridN > 0 && "grid must be set up prior to calling u_to_grid()");
@@ -160,6 +223,9 @@ void Cop2DInfo::clear_cdf_grid()
 }
 */
 
+// initialize the map - required!
+Cop2DNameMapT Cop2DInfo::nameMap;
+
 
 // -----------------------------------------------------------------------
 // Clayton copula
@@ -168,10 +234,23 @@ Cop2DClayton::Cop2DClayton(double const theta)
 : Cop2DInfo(), th(theta)
 {
 	if (th < -1) {
-		cerr << "ERROR: Parameter theta out of range!";
-		exit(1);
+		throw std::out_of_range("Clayton copula: parameter theta must be >= -1");
 	}
 }
+
+Cop2DClayton::Cop2DClayton(istream & paramStr)
+: Cop2DInfo()
+{
+	paramStr >> th;
+	if (! paramStr.good()) {
+		throw std::runtime_error
+			("error while reading parameters for the Clayton copula");
+	}
+	if (th < -1) {
+		throw std::out_of_range("Clayton copula: parameter theta must be >= -1");
+	}
+}
+
 
 double Cop2DClayton::calc_cdf(const double u, double const v) const
 {
@@ -192,10 +271,24 @@ Cop2DGumbel::Cop2DGumbel(double const theta)
 : Cop2DInfo(), th(theta), iTh(1 / theta)
 {
 	if (th < 1) {
-		cerr << "ERROR: Parameter theta out of range!";
-		exit(1);
+		throw std::out_of_range("Gumbel copula: parameter theta must be >= 1");
 	}
 }
+
+Cop2DGumbel::Cop2DGumbel(istream & paramStr)
+: Cop2DInfo()
+{
+	paramStr >> th;
+	if (! paramStr.good()) {
+		throw std::runtime_error
+			("error while reading parameters for the Gumbel copula");
+	}
+	if (th < 1) {
+		throw std::out_of_range("Gumbel copula: parameter theta must be >= 1");
+	}
+	iTh = 1 / th;
+}
+
 
 double Cop2DGumbel::calc_cdf(const double u, double const v) const
 {
@@ -210,10 +303,23 @@ Cop2DFrank::Cop2DFrank(double const theta)
 : Cop2DInfo(), th(theta), C(exp(-theta) - 1)
 {
 	if (th < -1) {
-		cerr << "ERROR: Parameter theta out of range!";
-		exit(1);
+		throw std::out_of_range("Frank copula: parameter theta must be >= -1");
 	}
 }
+
+Cop2DFrank::Cop2DFrank(istream & paramStr)
+: Cop2DInfo()
+{
+	paramStr >> th;
+	if (! paramStr.good()) {
+		throw std::runtime_error
+			("error while reading parameters for the Frank copula");
+	}
+	if (th < -1) {
+		throw std::out_of_range("Frank copula: parameter theta must be >= -1");
+	}
+}
+
 
 double Cop2DFrank::calc_cdf(const double u, double const v) const
 {
@@ -234,8 +340,20 @@ Cop2DNelsen2::Cop2DNelsen2(double const theta)
 : Cop2DInfo(), th(theta)
 {
 	if (th < 1) {
-		cerr << "ERROR: Parameter theta out of range!";
-		exit(1);
+		throw std::out_of_range("Nelsen-2 copula: parameter theta must be >= 1");
+	}
+}
+
+Cop2DNelsen2::Cop2DNelsen2(istream & paramStr)
+: Cop2DInfo()
+{
+	paramStr >> th;
+	if (! paramStr.good()) {
+		throw std::runtime_error
+			("error while reading parameters for the Nelsen-2 copula");
+	}
+	if (th < 1) {
+		throw std::out_of_range("Nelsen-2 copula: parameter theta must be >= 1");
 	}
 }
 
@@ -247,8 +365,20 @@ Cop2DNelsen18::Cop2DNelsen18(double const theta)
 : Cop2DInfo(), th(theta)
 {
 	if (th < 2) {
-		cerr << "ERROR: Parameter theta out of range!";
-		exit(1);
+		throw std::out_of_range("Nelsen-18 copula: parameter theta must be >= 2");
+	}
+}
+
+Cop2DNelsen18::Cop2DNelsen18(istream & paramStr)
+: Cop2DInfo()
+{
+	paramStr >> th;
+	if (! paramStr.good()) {
+		throw std::runtime_error
+			("error while reading parameters for the Nelsen-18 copula");
+	}
+	if (th < 2) {
+		throw std::out_of_range("Nelsen-18 copula: parameter theta must be >= 2");
 	}
 }
 
@@ -259,14 +389,33 @@ Cop2DMarshallOlkin::Cop2DMarshallOlkin(double const alpha_, double const beta_)
 : Cop2DInfo(), alpha(alpha_), beta(beta_)
 {
 	if (alpha < 0 || alpha > 1) {
-		cerr << "ERROR: Parameter alpha out of range!";
-		exit(1);
+		throw std::out_of_range
+			("Marshall-Olkin copula: param. alpha is out of range");
 	}
 	if (beta < 0 || beta > 1) {
-		cerr << "ERROR: Parameter beta out of range!";
-		exit(1);
+		throw std::out_of_range
+			("Marshall-Olkin copula: param. beta is out of range");
 	}
 }
+
+Cop2DMarshallOlkin::Cop2DMarshallOlkin(istream & paramStr)
+: Cop2DInfo()
+{
+	paramStr >> alpha >> beta;
+	if (! paramStr.good()) {
+		throw std::runtime_error
+			("error while reading parameters for the Marshall-Olkin copula");
+	}
+	if (alpha < 0 || alpha > 1) {
+		throw std::out_of_range
+			("Marshall-Olkin copula: param. alpha is out of range");
+	}
+	if (beta < 0 || beta > 1) {
+		throw std::out_of_range
+			("Marshall-Olkin copula: param. beta is out of range");
+	}
+}
+
 
 double Cop2DMarshallOlkin::calc_cdf(const double u, const double v) const
 {
@@ -373,31 +522,74 @@ void Cop2DData::calc_all_grid_cdfs()
 // -----------------------------------------------------------------------
 // Normal copula
 Cop2DNormal::Cop2DNormal(double const rho)
-: Cop2DInfo(), correl(rho), N01Cdf2D(rho)
+: Cop2DInfo(), correl(rho),
+  p2N01Cdf2D(new QuantLib::BivariateCumulativeNormalDistribution(rho))
 {
 	if (rho < -1 || rho > 1) {
 		throw std::out_of_range("correlation in normal copula out of range");
 	}
 }
 
+Cop2DNormal::Cop2DNormal(istream & paramStr)
+: Cop2DInfo()
+{
+	paramStr >> correl;
+	if (! paramStr.good()) {
+		throw std::runtime_error
+			("error while reading parameters for the Gumbel copula");
+	}
+	if (correl < -1 || correl > 1) {
+		throw std::out_of_range("correlation in normal copula out of range");
+	}
+	p2N01Cdf2D.reset(new QuantLib::BivariateCumulativeNormalDistribution(correl));
+}
+
+
 double Cop2DNormal::calc_cdf(double const u, double const v) const
 {
 	double x = N01InvCdf(u);
 	double y = N01InvCdf(v);
-	return N01Cdf2D(x, y);
+	return (*p2N01Cdf2D)(x, y);
 }
 
 
 // -----------------------------------------------------------------------
 // Student-t copula
 Cop2DStudent::Cop2DStudent(unsigned degF, double const rho)
-: correl(rho), dof(degF), tCdf2D(degF, rho), tInvCdf(degF)
-{}
+: correl(rho), dof(degF),
+  p2tCdf2D(new BivariateCumulativeStudentDistribution(degF, rho)),
+  p2tInvCdf(new QuantLib::InverseCumulativeStudent(degF))
+{
+	if (dof == 0) {
+		throw std::out_of_range("d.o.f. in student copula must be >= 1");
+	}
+	if (correl < -1 || correl > 1) {
+		throw std::out_of_range("correlation in student copula out of range");
+	}
+}
+
+Cop2DStudent::Cop2DStudent(istream & paramStr)
+: Cop2DInfo()
+{
+	paramStr >> dof >> correl;
+	if (! paramStr.good()) {
+		throw std::runtime_error
+			("error while reading parameters for the student copula");
+	}
+	if (dof == 0) {
+		throw std::out_of_range("d.o.f. in student copula must be >= 1");
+	}
+	if (correl < -1 || correl > 1) {
+		throw std::out_of_range("correlation in student copula out of range");
+	}
+	p2tCdf2D.reset(new BivariateCumulativeStudentDistribution(dof, correl));
+	p2tInvCdf.reset(new QuantLib::InverseCumulativeStudent(dof));
+}
 
 
 double Cop2DStudent::calc_cdf(double const u, double const v) const
 {
-	double x = tInvCdf(u);
-	double y = tInvCdf(v);
-	return tCdf2D(x, y);
+	double x = (*p2tInvCdf)(u);
+	double y = (*p2tInvCdf)(v);
+	return (*p2tCdf2D)(x, y);
 }

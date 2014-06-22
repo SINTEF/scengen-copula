@@ -25,15 +25,25 @@ namespace Copula2D{
 
 /// \name objects for the copula name map, used in the main code
 ///@{
+/*
 	/// enum for the known copula types
 	enum class Cop2DTypeID {indep, Clayton, Gumbel, Frank, Nelsen2, Nelsen18,
 	                        MarshallOlkin, data, normal, student};
 
 	/// type for the copula map
-	typedef std::map<std::string, Cop2DTypeID> Cop2DNameMapT;
+	typedef std::map<std::string, Cop2DTypeID> Cop2DNameMapT_Old;
 
 	/// this fills the copula map with the known copula types
-	void make_2d_cop_name_map(Cop2DNameMapT & cMap);
+	void make_2d_cop_name_map(Cop2DNameMapT_Old & cMap);
+*/
+
+	class Cop2DInfo; ///< forward declaration needed for UnivMargNameMapT
+
+	/// map from margin's name to its constructor
+	/// \todo return a smart pointer instead??
+	typedef std::map<std::string,
+	                Cop2DInfo * (*) (std::istream &)>
+	Cop2DNameMapT;
 ///@}
 
 
@@ -41,6 +51,23 @@ namespace Copula2D{
 class Cop2DInfo {
 	friend class Cop2DInfTr;
 private:
+	/// template for adding new entries to a shape-name-map
+	/// \todo checks whether the string is there already
+	template <class T>
+	static void add_to_map(std::string const & idStr);
+
+	/// the name map
+	/**
+		converts from margin name to a constructor that takes a string (params
+		from the input file) and integer (number of scenarios)
+
+		/// \todo Add all the name-map related objects and methods to a separate
+		///       class and derive all classes that use it from it?
+	**/
+	static Cop2DNameMapT nameMap;
+
+	/// this fills the map
+	static void init_name_map();
 
 protected:
 	/// calculation of one cdf; used mainly to fill the grid
@@ -136,6 +163,10 @@ public:
 
 	//void attach_multivar_info(CopulaDef::CopInfoBy2D * const p2tg,
 	//                          DimT const i = -1, DimT const j = -1);
+
+	/// creates a new object based on its name
+	static Cop2DInfo * make_new(std::string const & margName,
+	                            std::istream & paramStr);
 };
 
 
@@ -176,6 +207,8 @@ class Cop2DIndep : public Cop2DInfo {
 
 public:
 	Cop2DIndep() : Cop2DInfo() {}
+
+	Cop2DIndep(std::istream & paramStr) : Cop2DInfo() {}
 };
 
 
@@ -189,6 +222,8 @@ private:
 
 public:
 	Cop2DClayton(const double theta);
+
+	Cop2DClayton(std::istream & paramStr);
 };
 
 
@@ -203,6 +238,8 @@ private:
 
 public:
 	Cop2DGumbel(const double theta);
+
+	Cop2DGumbel(std::istream & paramStr);
 };
 
 
@@ -217,6 +254,8 @@ private:
 
 public:
 	Cop2DFrank(const double theta);
+
+	Cop2DFrank(std::istream & paramStr);
 };
 
 
@@ -231,6 +270,8 @@ private:
 
 public:
 	Cop2DNelsen2(const double theta);
+
+	Cop2DNelsen2(std::istream & paramStr);
 };
 
 
@@ -245,6 +286,8 @@ private:
 
 public:
 	Cop2DNelsen18(const double theta);
+
+	Cop2DNelsen18(std::istream & paramStr);
 };
 
 
@@ -268,6 +311,8 @@ private:
 
 public:
 	Cop2DMarshallOlkin(double const alpha_, double const beta_);
+
+	Cop2DMarshallOlkin(std::istream & paramStr);
 };
 
 
@@ -326,13 +371,19 @@ private:
 		/// inverse cdf (by default standard normal distrib.)
 		QuantLib::InverseCumulativeNormal N01InvCdf;
 		/// bivariate cdf (standardized, needs correlation)
-		QuantLib::BivariateCumulativeNormalDistribution N01Cdf2D;
+		/**
+			\note Must use a pointer, since this needs correlation on construction
+			      and not all class constructors have this as a parameter.
+		**/
+		std::unique_ptr<QuantLib::BivariateCumulativeNormalDistribution> p2N01Cdf2D;
 	///@}
 
 	double calc_cdf(double const u, double const v) const;
 
 public:
 	Cop2DNormal(double const rho);
+
+	Cop2DNormal(std::istream & paramStr);
 };
 
 
@@ -350,16 +401,25 @@ private:
 	double correl;  ///< correlation
 	unsigned dof;   ///< degree of freedom
 
-	///class providing bivariate student cdf
-	BivariateCumulativeStudentDistribution tCdf2D;
+	/// \name QuantLib objects that compute CDFs etc.
+	/**
+		\note Must use pointers, since the object needs dof on construction
+		      and not all class constructors have this as a parameter.
+	**/
+	///@{
+		///class providing bivariate student cdf
+		std::unique_ptr<BivariateCumulativeStudentDistribution> p2tCdf2D;
 
-	/// QuantLib object for the inverse cdf
-	QuantLib::InverseCumulativeStudent tInvCdf;
+		/// QuantLib object for the inverse cdf
+		std::unique_ptr<QuantLib::InverseCumulativeStudent> p2tInvCdf;
+	///@}
 
 	double calc_cdf(double const u, double const v) const;
 
 public:
 	Cop2DStudent(unsigned degF, double const rho);
+
+	Cop2DStudent(std::istream & paramStr);
 };
 
 } // namespace

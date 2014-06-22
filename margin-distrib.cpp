@@ -1,16 +1,19 @@
 #include <iostream>
 
 #include "margin-distrib.hpp"
+#include "margin-distrib_moments.hpp"
 
 using namespace MarginDistrib;
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::string;
 
 
 // ---------------------------------------------------------------------------
 // generic routines
 
+/*
 void MarginDistrib::make_distrib_name_map(DistribNameMapT & dMap) {
 	// note: when listing the map, it goes from last to first
 	dMap["m"] = MargDistribID::moments;
@@ -30,9 +33,73 @@ void MarginDistrib::make_distrib_name_map(DistribNameMapT & dMap) {
 	dMap["Poisson"] = MargDistribID::poisson;
 	dMap["uniform"] = MargDistribID::uniform;
 }
+*/
 
 // ---------------------------------------------------------------------------
 // class UnivarMargin
+
+// creates the map - new derived classes have to be added here!
+void UnivarMargin::init_name_map() {
+	add_to_map<MarginMoments>("moments");
+	add_to_map<MarginMoments>("m");
+	add_to_map<MarginNormal>("normal");
+	add_to_map<MarginNormal>("n");
+	add_to_map<MarginTriang>("triang");
+	//add_to_map<MarginSample>("sample");
+	//add_to_map<MarginSample>("data");
+	add_to_map<MarginStudent>("student");
+	add_to_map<MarginLognormal>("lognormal");
+	add_to_map<MarginExp>("exponential");
+	add_to_map<MarginExp>("exp");
+	add_to_map<MarginBeta>("beta");
+	add_to_map<MarginPoisson>("poisson");
+	add_to_map<MarginUniformC>("uniform");
+}
+
+// template for adding new entries to the-name-map
+template <class T>
+void UnivarMargin::add_to_map(string const & idStr)
+{
+	// throw an error if the element with the same id-string already exists
+	if (nameMap.count(idStr) > 0) {
+		throw std::logic_error("Tried to re-insert '" + idStr
+		                       + "' into the name map.");
+	}
+	// convert to lower case
+	string idStrLC = idStr;
+	for (auto & ltr: idStrLC)
+		ltr = std::tolower(ltr);
+	// add to the map (using the new C++11 method)
+	nameMap.emplace(idStrLC,
+	                [](std::istream & paramStr, DimT const nSc) {
+	                	return static_cast<UnivarMargin*>(new T (paramStr, nSc));
+	                });
+}
+
+// creates a new object based on its name
+/// \todo checks if shapeName is in the map
+UnivarMargin * UnivarMargin::make_new(string const & margName,
+                                      std::istream & paramStr,
+                                      DimT const nSc)
+{
+	// create the map if it does not exist
+	// this way, we do not need to create the map manually
+	if (nameMap.size() == 0)
+		init_name_map();
+	// convert to lower case
+	string margNameLC = margName;
+	for (auto & ltr: margNameLC)
+		ltr = std::tolower(ltr);
+	if (nameMap.count(margNameLC) == 0) {
+		string errMsg = "Unknown margin-distribution type '" + margName + "'. "
+		                + "Supported distribution ids are:";
+		for (auto nm : nameMap)
+			errMsg += " " + nm.first;
+		throw std::runtime_error (errMsg + ".");
+	}
+	return UnivarMargin::nameMap.at(margNameLC)(paramStr, nSc);
+}
+
 
 // inverse CDF
 double UnivarMargin::inv_cdf(DimT const r, DimT const N) const
@@ -65,6 +132,9 @@ void UnivarMargin::inv_cdf(VectorI const & ranks, VectorD & values)
 	}
 }
 
+// initialize the map - required!
+UnivMargNameMapT UnivarMargin::nameMap;
+
 
 // ---------------------------------------------------------------------------
 // class MarginNormal
@@ -76,7 +146,7 @@ MarginNormal::MarginNormal(double const mu, double const sigma,
   evMult(sigma / sqrt(2 * 3.1415926535898))
 {}
 
-MarginNormal::MarginNormal(std::stringstream & paramStr,
+MarginNormal::MarginNormal(std::istream & paramStr, DimT const nSc,
                            SamplePP const postP, bool const condEVInv)
 : UnivarMargin(postP, 0, 1),
   invCdfF(0, 1), invCdf01F(0.0, 1.0), useCondEV(condEVInv),
@@ -160,7 +230,7 @@ MarginTriang::MarginTriang(double const minV, double const maxV,
 	guts_of_constructor();
 }
 
-MarginTriang::MarginTriang(std::stringstream & paramStr, bool const useExtremes)
+MarginTriang::MarginTriang(std::istream & paramStr, DimT const nSc, bool const useExtremes)
 : UnivarMargin(), useMinMax(useExtremes)
 {
 	paramStr >> min >> max >> mode;
@@ -192,7 +262,7 @@ MarginExp::MarginExp(double const rate)
 		throw std::range_error("parameter lambda is out of range");
 }
 
-MarginExp::MarginExp(std::stringstream & paramStr)
+MarginExp::MarginExp(std::istream & paramStr, DimT const nSc)
 : UnivarMargin()
 {
 	paramStr >> lambda;
@@ -223,7 +293,7 @@ MarginBeta::MarginBeta(double const pAlpha, double const pBeta,
   p2Dist(new boost::math::beta_distribution<>(pAlpha, pBeta))
 {}
 
-MarginBeta::MarginBeta(std::stringstream & paramStr)
+MarginBeta::MarginBeta(std::istream & paramStr, DimT const nSc)
 : UnivarMargin(), p2Dist()
 {
 	paramStr >> alpha >> beta;
@@ -253,7 +323,7 @@ MarginLognormal::MarginLognormal(double const loc, double const scale)
   p2Dist(new boost::math::lognormal_distribution<>(loc, scale))
 {}
 
-MarginLognormal::MarginLognormal(std::stringstream & paramStr)
+MarginLognormal::MarginLognormal(std::istream & paramStr, DimT const nSc)
 : UnivarMargin(), p2Dist()
 {
 	paramStr >> mu >> sigma;
@@ -281,7 +351,7 @@ MarginStudent::MarginStudent(unsigned const v,
   p2Dist(new boost::math::students_t_distribution<>(v))
 {}
 
-MarginStudent::MarginStudent(std::stringstream & paramStr)
+MarginStudent::MarginStudent(std::istream & paramStr, DimT const nSc)
 : UnivarMargin(), p2Dist()
 {
 	paramStr >> dof;
@@ -309,7 +379,7 @@ MarginPoisson::MarginPoisson(double const mean)
   p2Dist(new boostPoissonDistrib(mean))
 {}
 
-MarginPoisson::MarginPoisson(std::stringstream & paramStr)
+MarginPoisson::MarginPoisson(std::istream & paramStr, DimT const nSc)
 : UnivarMargin(), p2Dist()
 {
 	paramStr >> lambda;
@@ -331,7 +401,7 @@ MarginUniformC::MarginUniformC(double const min, double const max)
 {}
 
 // constructor with parameters in a string stream
-MarginUniformC::MarginUniformC(std::stringstream & paramStr)
+MarginUniformC::MarginUniformC(std::istream & paramStr, DimT const nSc)
 : UnivarMargin()
 {
 	paramStr >> a >> b;

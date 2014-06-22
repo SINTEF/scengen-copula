@@ -48,7 +48,7 @@ public:
 
 class MixedMargins : public MarginsInfo {
 private:
-	DistribNameMapT distrNameMap;
+	//DistribNameMapT distrNameMap;
 
 public:
 	MixedMargins(DimT const nVars) : MarginsInfo(nVars) {}

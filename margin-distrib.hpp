@@ -29,6 +29,7 @@ namespace MarginDistrib {
 /// \name objects for the margin-type name map, used in the main code
 ///@{
 	/// enum for the known multivariate margin specification types
+	/*
 	enum class MargDistribID {moments, normal, sample, triang, triangX,
 	                          exponential, beta, lognormal, poisson, uniform,
 	                          unknown};
@@ -38,12 +39,39 @@ namespace MarginDistrib {
 
 	/// this fills the copula map with the known copula types
 	void make_distrib_name_map(DistribNameMapT & dMap);
+	*/
+
+	class UnivarMargin; ///< forward declaration needed for UnivMargNameMapT
+
+	/// map from margin's name to its constructor
+	/// \todo return a smart pointer instead??
+	typedef std::map<std::string,
+	                UnivarMargin * (*) (std::istream &, DimT const)>
+	UnivMargNameMapT;
 ///@}
 
 
 // ----------------------------------------------------------------------------
 /// base class for all the marginal-distribution classes (pure virtual)
 class UnivarMargin {
+private:
+	/// template for adding new entries to a shape-name-map
+	/// \todo checks whether the string is there already
+	template <class T>
+	static void add_to_map(std::string const & idStr);
+
+	/// the name map
+	/**
+		converts from margin name to a constructor that takes a string (params
+		from the input file) and integer (number of scenarios)
+
+		/// \todo add number of scenarios to UnivarMargin and its constructor?
+	**/
+	static UnivMargNameMapT nameMap;
+
+	/// this fills the map
+	static void init_name_map();
+
 protected:
 	bool fixEV;   ///< should we fix the exp. val. (when used on vector)?
 	bool fixSD;   ///< should we fix the std. dev. (when used on vector)?
@@ -105,6 +133,10 @@ public:
 	**/
 	virtual void inv_cdf(VectorI const & ranks, VectorD & values);
 
+	/// creates a new object based on its name
+	static UnivarMargin * make_new(std::string const & margName,
+	                               std::istream & paramStr, DimT const nSc);
+
 	typedef boost::shared_ptr<UnivarMargin> Ptr;
 };
 
@@ -148,7 +180,7 @@ public:
 	             bool const condEVInv = false);
 
 	/// constructor with string stream with mean and standard deviation
-	MarginNormal(std::stringstream & paramStr,
+	MarginNormal(std::istream & paramStr, DimT const nSc,
 	             SamplePP const postP = PP_None,
 	             bool const condEVInv = false);
 
@@ -208,7 +240,7 @@ public:
 	             bool const useExtremes = false);
 
 	/// constructor with parameters in a string stream
-	MarginTriang(std::stringstream & paramStr, bool const useExtremes = false);
+	MarginTriang(std::istream & paramStr, DimT const nSc, bool const useExtremes = false);
 
 	double inv_cdf(DimT const r, DimT const N) const override;
 };
@@ -228,7 +260,7 @@ public:
 	MarginExp(double const scale);
 
 	/// constructor with parameters in a string stream
-	MarginExp(std::stringstream & paramStr);
+	MarginExp(std::istream & paramStr, DimT const nSc);
 };
 
 
@@ -257,7 +289,7 @@ public:
 	           double const min, double const max);
 
 	/// constructor with parameters in a string stream
-	MarginBeta(std::stringstream & paramStr);
+	MarginBeta(std::istream & paramStr, DimT const nSc);
 };
 
 
@@ -278,7 +310,7 @@ public:
 	MarginLognormal(double const loc, double const scale);
 
 	/// constructor with parameters in a string stream
-	MarginLognormal(std::stringstream & paramStr);
+	MarginLognormal(std::istream & paramStr, DimT const nSc);
 };
 
 
@@ -311,7 +343,7 @@ public:
 	MarginStudent(unsigned const v, double const mu, double const sigma);
 
 	/// constructor with parameters in a string stream
-	MarginStudent(std::stringstream & paramStr);
+	MarginStudent(std::istream & paramStr, DimT const nSc);
 };
 
 
@@ -342,7 +374,7 @@ public:
 	MarginPoisson(double const mean);
 
 	/// constructor with parameters in a string stream
-	MarginPoisson(std::stringstream & paramStr);
+	MarginPoisson(std::istream & paramStr, DimT const nSc);
 };
 
 
@@ -361,7 +393,7 @@ public:
 	MarginUniformC(double const min, double const max);
 
 	/// constructor with parameters in a string stream
-	MarginUniformC(std::stringstream & paramStr);
+	MarginUniformC(std::istream & paramStr, DimT const nSc);
 };
 
 

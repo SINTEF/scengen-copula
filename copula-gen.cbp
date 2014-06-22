@@ -12,7 +12,7 @@
 				<Option object_output=".obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="-c mixed -i cop_mix.txt 1000" />
+				<Option parameters="-c indep --dim 2 4" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
@@ -31,9 +31,6 @@
 					<Add option="-O3" />
 					<Add option="-DNDEBUG" />
 				</Compiler>
-				<Linker>
-					<Add option="-s" />
-				</Linker>
 				<Environment>
 					<Variable name="TG_TYPE" value="Release" />
 				</Environment>
