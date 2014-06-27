@@ -171,9 +171,10 @@
 		<Compiler>
 			<Add option="-std=c++11" />
 			<Add option="-Wall" />
-			<Add option="-fexceptions" />
+			<Add option="-Wno-unused-local-typedefs" />
 		</Compiler>
 		<Linker>
+			<Add option="-Wl,--allow-multiple-definition" />
 			<Add library="scen-gen_HKW" />
 			<Add library="boost_program_options" />
 			<Add library="QuantLib" />
