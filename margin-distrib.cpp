@@ -356,9 +356,9 @@ MarginStudent::MarginStudent(std::istream & paramStr, DimT const nSc)
 {
 	paramStr >> dof;
 	p2Dist.reset(new boost::math::students_t_distribution<>(dof));
-	if (!paramStr.eof()) {
+	if (paramStr.good()) {
 		paramStr >> mean >> stDev;
-		if (paramStr.good()) {
+		if (! paramStr.fail()) {
 			scaled = true;
 		}
 	}

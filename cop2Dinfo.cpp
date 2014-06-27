@@ -60,6 +60,7 @@ void Cop2DInfo::init_name_map() {
 	add_to_map<Cop2DFrank>("Frank");
 	add_to_map<Cop2DNelsen2>("Nelsen-2");
 	add_to_map<Cop2DNelsen18>("Nelsen-18");
+	add_to_map<Cop2DNelsen21>("Nelsen-21");
 	add_to_map<Cop2DMarshallOlkin>("Marshall-Olkin");
 	add_to_map<Cop2DMarshallOlkin>("M-O");
 }
@@ -242,7 +243,7 @@ Cop2DClayton::Cop2DClayton(istream & paramStr)
 : Cop2DInfo()
 {
 	paramStr >> th;
-	if (! paramStr.good()) {
+	if (paramStr.fail()) {
 		throw std::runtime_error
 			("error while reading parameters for the Clayton copula");
 	}
@@ -254,6 +255,8 @@ Cop2DClayton::Cop2DClayton(istream & paramStr)
 
 double Cop2DClayton::calc_cdf(const double u, double const v) const
 {
+	//! \todo add a bool, for faster checking?
+	//! \todo add a param for -1 / th ?
 	if (fabs(th) < DblEps) {
 		// Clayton cdf is undefined for theta = 0
 		// but the limit of the cdf for theta -> 0 is the indep. copula
@@ -279,7 +282,7 @@ Cop2DGumbel::Cop2DGumbel(istream & paramStr)
 : Cop2DInfo()
 {
 	paramStr >> th;
-	if (! paramStr.good()) {
+	if (paramStr.fail()) {
 		throw std::runtime_error
 			("error while reading parameters for the Gumbel copula");
 	}
@@ -311,7 +314,7 @@ Cop2DFrank::Cop2DFrank(istream & paramStr)
 : Cop2DInfo()
 {
 	paramStr >> th;
-	if (! paramStr.good()) {
+	if (paramStr.fail()) {
 		throw std::runtime_error
 			("error while reading parameters for the Frank copula");
 	}
@@ -323,6 +326,7 @@ Cop2DFrank::Cop2DFrank(istream & paramStr)
 
 double Cop2DFrank::calc_cdf(const double u, double const v) const
 {
+	//! \todo add a bool, for faster checking?
 	if (fabs(th) < DblEps) {
 		// Frank cdf is undefined for theta = 0
 		// but the limit of the cdf for theta -> 0 is the indep. copula
@@ -348,7 +352,7 @@ Cop2DNelsen2::Cop2DNelsen2(istream & paramStr)
 : Cop2DInfo()
 {
 	paramStr >> th;
-	if (! paramStr.good()) {
+	if (paramStr.fail()) {
 		throw std::runtime_error
 			("error while reading parameters for the Nelsen-2 copula");
 	}
@@ -373,13 +377,39 @@ Cop2DNelsen18::Cop2DNelsen18(istream & paramStr)
 : Cop2DInfo()
 {
 	paramStr >> th;
-	if (! paramStr.good()) {
+	if (paramStr.fail()) {
 		throw std::runtime_error
 			("error while reading parameters for the Nelsen-18 copula");
 	}
 	if (th < 2) {
 		throw std::out_of_range("Nelsen-18 copula: parameter theta must be >= 2");
 	}
+}
+
+
+// -----------------------------------------------------------------------
+// copula 4.2.21 from Nelsen, pp. 118
+
+Cop2DNelsen21::Cop2DNelsen21(double const theta)
+: Cop2DInfo(), th(theta)
+{
+	if (th < 1) {
+		throw std::out_of_range("Nelsen-18 copula: parameter theta must be >= 1");
+	}
+}
+
+Cop2DNelsen21::Cop2DNelsen21(istream & paramStr)
+: Cop2DInfo()
+{
+	paramStr >> th;
+	if (paramStr.fail()) {
+		throw std::runtime_error
+			("error while reading parameters for the Nelsen-18 copula");
+	}
+	if (th < 1) {
+		throw std::out_of_range("Nelsen-21 copula: parameter theta must be >= 1");
+	}
+	iTh = 1.0 / th;
 }
 
 
@@ -402,7 +432,7 @@ Cop2DMarshallOlkin::Cop2DMarshallOlkin(istream & paramStr)
 : Cop2DInfo()
 {
 	paramStr >> alpha >> beta;
-	if (! paramStr.good()) {
+	if (paramStr.fail()) {
 		throw std::runtime_error
 			("error while reading parameters for the Marshall-Olkin copula");
 	}
@@ -534,7 +564,7 @@ Cop2DNormal::Cop2DNormal(istream & paramStr)
 : Cop2DInfo()
 {
 	paramStr >> correl;
-	if (! paramStr.good()) {
+	if (paramStr.fail()) {
 		throw std::runtime_error
 			("error while reading parameters for the Gumbel copula");
 	}
@@ -572,7 +602,7 @@ Cop2DStudent::Cop2DStudent(istream & paramStr)
 : Cop2DInfo()
 {
 	paramStr >> dof >> correl;
-	if (! paramStr.good()) {
+	if (paramStr.fail()) {
 		throw std::runtime_error
 			("error while reading parameters for the student copula");
 	}

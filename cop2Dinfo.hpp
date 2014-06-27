@@ -216,7 +216,7 @@ public:
 /// copula 4.2.1 from Nelsen, pp. 116
 class Cop2DClayton : public Cop2DInfo {
 private:
-	double th; ///< parameter theta of the copula; th in [-1, inf)
+	double th; ///< parameter theta of the copula; th in [-1, inf) - {0}
 
 	double calc_cdf(const double u, const double v) const;
 
@@ -231,7 +231,7 @@ public:
 /// copula 4.2.4 from Nelsen, pp. 116
 class Cop2DGumbel : public Cop2DInfo {
 private:
-	double th;  ///< parameter theta of the copula; th in (0, 1]
+	double th;  ///< parameter theta of the copula; th in [1, inf)
 	double iTh; ///< 1 / th
 
 	double calc_cdf(const double u, const double v) const;
@@ -247,7 +247,7 @@ public:
 /// copula 4.2.5 from Nelsen, pp. 116
 class Cop2DFrank : public Cop2DInfo {
 private:
-	double th; ///< parameter theta of the copula; th in R
+	double th; ///< parameter theta of the copula; th in R - {0}
 	double C;  ///< exp(-th)
 
 	double calc_cdf(const double u, const double v) const;
@@ -278,7 +278,7 @@ public:
 /// copula 4.2.18 from Nelsen, pp. 118
 class Cop2DNelsen18 : public Cop2DInfo {
 private:
-	double th; ///< parameter theta of the copula; th in [-1, inf)
+	double th; ///< parameter theta of the copula; th in [2, inf)
 
 	double calc_cdf(const double u, const double v) const {
 		return std::max(1 + th / log(exp(th / (u - 1)) + exp(th / (v - 1))), 0.0);
@@ -288,6 +288,25 @@ public:
 	Cop2DNelsen18(const double theta);
 
 	Cop2DNelsen18(std::istream & paramStr);
+};
+
+
+/// copula 4.2.21 from Nelsen, pp. 118
+class Cop2DNelsen21 : public Cop2DInfo {
+private:
+	double th;  ///< parameter theta of the copula; th in [1, inf)
+	double iTh; ///< 1 / th
+
+	double calc_cdf(const double u, const double v) const {
+		return 1 - pow(1 - pow(std::max(
+				pow(1 - pow(1 - u, th), iTh) + pow(1 - pow(1 - v, th), iTh) - 1,
+			0.0), th), iTh);
+	}
+
+public:
+	Cop2DNelsen21(const double theta);
+
+	Cop2DNelsen21(std::istream & paramStr);
 };
 
 

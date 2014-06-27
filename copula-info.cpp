@@ -183,6 +183,9 @@ CopInfoGen2D::CopInfoGen2D(std::string const & tgFName)
 		std::getline(tgFStr, paramsAsString);
 		std::stringstream paramStr(paramsAsString);
 		try {
+		MSG (TrInfo, "2D copula (" << std::setw(floor(log10(nVars)) + 1) << i+1
+		             << "," << std::setw(floor(log10(nVars)) + 1) << j+1
+		             << ") of type '" << copType << "'");
 		p2tgCop.reset(Copula2D::Cop2DInfo::make_new(copType, paramStr));
 /*
 		if (copNameMap.count(copType) == 0) {

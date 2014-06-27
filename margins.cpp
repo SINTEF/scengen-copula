@@ -98,9 +98,9 @@ MixedMargins::MixedMargins(std::string const & tgFName, DimT const nScens,
 			throw std::runtime_error("Unknown marginal distribution type `"
 			                         + distrID + "'");
 		}
+		*/
 		MSG (TrInfo, "margin " << std::setw(floor(log10(nM)) + 1) << i+1
 		             << " of type '" << distrID << "'");
-		*/
 
 		// distribution type is OK -> it is safe to use distrNameMap[distrID]
 		try {
