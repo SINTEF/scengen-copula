@@ -109,6 +109,7 @@ Cop2DInfo * Cop2DInfo::make_new(string const & copName,
 }
 
 
+/*
 DimT Cop2DInfo::u_to_grid(double const u) const
 {
 	assert (gridN > 0 && "grid must be set up prior to calling u_to_grid()");
@@ -121,35 +122,37 @@ DimT Cop2DInfo::u_to_grid(double const u) const
 	assert (isEq(u, gridPts(i)) && "u must be a grid point");
 	return i;
 }
+*/
 
 double Cop2DInfo::cdf(double const u, double const v) const
 {
-	if (useGrid) {
-		return gridCdf(u_to_grid(u), u_to_grid(v));
-	} else {
+	//if (useGrid) {
+	//	return gridCdf(u_to_grid(u), u_to_grid(v));
+	//} else {
 		assert (u >= 0.0 && u <= 1.0 && v >= 0.0 && v <= 1.0 && "bounds check");
 		// handle boundaries manually - can be problematic in some cases!
 		if (isEq(u, 0.0) || isEq(v, 0.0)) { return 0.0; }
 		if (isEq(u, 1.0)) { return v; }
 		if (isEq(v, 1.0)) { return u; }
 		return calc_cdf(u,v);
-	}
+	//}
 }
 
 double Cop2DInfo::cdfR(DimT const i, DimT const j) const
 {
-	if (useGrid) {
-		return gridCdf(i, j);
-	} else {
+	//if (useGrid) {
+	//	return gridCdf(i, j);
+	//} else {
 		// handle boundaries manually - can be problematic in some cases!
 		if (i * j == 0) { return 0.0; }
 		if (i == gridN - 1) { return gridPts(j); }
 		if (j == gridN - 1) { return gridPts(i); }
 		return calc_cdf(gridPts(i), gridPts(j));
-	}
+	//}
 }
 
 
+/*
 void Cop2DInfo::calc_all_grid_cdfs()
 {
 	assert (useGrid && "grid should be computed only if needed");
@@ -214,6 +217,7 @@ void Cop2DInfo::init_cdf_grid(VectorD const & gridPos)
 
 	calc_all_grid_cdfs();
 }
+*/
 
 
 /*

@@ -13,7 +13,8 @@ using namespace Copula2D;
 Cop2DSample::Cop2DSample(int const nSamples, Cop2DInfo * const p2TgCop,
                          string const id)
 : N(nSamples), i2jC(nSamples, -1), j2iC(nSamples, -1),
-  tgCdfOfR(p2TgCop->get_cdf_grid()), tgCdfOfCol(nSamples),
+  //tgCdfOfR(p2TgCop->get_cdf_grid()),
+  tgCdfOfCol(nSamples),
   p2prob(NULL), scenOfMarg1R(0), //cumProb(N),
   //evalPtPos(1.0), copEvalPts(N),
   sampleId(id),
@@ -32,7 +33,7 @@ Cop2DSample::Cop2DSample(int const nSamples, Cop2DInfo * const p2TgCop,
 	*/
 
 	// initialize the cdf grid of the target info object (if required)
-	p2TgCop->init_cdf_grid(nSamples, 1.0);
+	//p2TgCop->init_cdf_grid(nSamples, 1.0);
 
 	// fill the matrix of target rank-cdf values
 	//fill_p2tgInfo->cdfR();
@@ -485,15 +486,15 @@ void Cop2DSample::cdf_dist_of_row(int const j, VectorD const &prevRowCdf,
 	double tgVal;
 
 	// Pre-compute cdf for the whole column (values are used twice)
-	if ((int) tgCdfOfR.size1() == N && (int) tgCdfOfR.size2() == N) {
-		for (i = 0; i < N; ++i) {
-			tgCdfOfCol(i) = tgCdfOfR(i, j);
-		}
-	} else {
+	//if ((int) tgCdfOfR.size1() == N && (int) tgCdfOfR.size2() == N) {
+	//	for (i = 0; i < N; ++i) {
+	//		tgCdfOfCol(i) = tgCdfOfR(i, j);
+	//	}
+	//} else {
 		for (i = 0; i < N; ++i) {
 			tgCdfOfCol(i) = p2tgInfo->cdfR(i, j);
 		}
-	}
+	//}
 
 	// Using the recursive formula
 	// -> have to treat (i,0) separately to start the recursion

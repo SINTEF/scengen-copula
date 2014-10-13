@@ -41,7 +41,7 @@ private:
 	//@}
 
 	/// reference to a matrix of pre-computed cdf values - points to *p2tgInfo
-	MatrixF const & tgCdfOfR;
+	//MatrixF const & tgCdfOfR;
 
 	/// one column of stored cdf values (each uses twice, so this should help)
 	VectorD tgCdfOfCol;
@@ -115,9 +115,9 @@ private:
 		//inline int cop2rank(double const z) const { return lround(N * z - 0.5); }
 
 		/// shortcut to the target rank-cdf, with margins given as ranks
-		inline double tgRCdfOfR(int const i, int const j) const {
-			return N * tgCdfOfR(i, j);
-		}
+		//inline double tgRCdfOfR(int const i, int const j) const {
+		//	return N * tgCdfOfR(i, j);
+		//}
 
 		void gen_random();
 	//@}

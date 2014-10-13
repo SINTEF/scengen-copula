@@ -41,8 +41,7 @@ namespace Copula2D{
 
 	/// map from margin's name to its constructor
 	/// \todo return a smart pointer instead??
-	typedef std::map<std::string,
-	                Cop2DInfo * (*) (std::istream &)>
+	typedef std::map<std::string, Cop2DInfo * (*) (std::istream &)>
 	Cop2DNameMapT;
 ///@}
 
@@ -82,6 +81,7 @@ protected:
 		for several pairs of variables. For this reason, it is better to store
 		the values inside the class...
 	**/
+	/*
 	///@{
 		bool useGrid;       ///< use cdf grid for calculations?
 		bool customGridPts; ///< custom/non-standard grid positions
@@ -94,13 +94,15 @@ protected:
 		DimT u_to_grid(double const u) const;
 
 		/// this fills the grid with cdf values
-		/** assumes values in gridPts; allocates gridCdf if needed **/
-		virtual void calc_all_grid_cdfs();
+		// assumes values in gridPts; allocates gridCdf if needed
+		//virtual void calc_all_grid_cdfs();
 	///@}
+	*/
+
 
 public:
-	Cop2DInfo()
-	: useGrid(false), customGridPts(false), gridN(0) {}
+	Cop2DInfo() {}
+	//: useGrid(false), customGridPts(false), gridN(0) {}
 	//{ std::cout << "inside Cop2DInfo()"<< std::endl; }
 
 	virtual ~Cop2DInfo() {}
@@ -121,9 +123,9 @@ public:
 		/**
 			\warning no checking -> will fail on index errors!
 		**/
-		double grid_cdf(DimT const i, DimT const j) const {
-			return gridCdf(i, j);
-		}
+		//double grid_cdf(DimT const i, DimT const j) const {
+		//	return gridCdf(i, j);
+		//}
 
 		/// initialize the grid cdf, regular intervals
 		/**
@@ -132,7 +134,7 @@ public:
 
 			\note does nothing if \c useGrid is false
 		**/
-		virtual void init_cdf_grid(DimT const N, double const posInInt = 1.0);
+		//virtual void init_cdf_grid(DimT const N, double const posInInt = 1.0);
 
 		/// initialize the grid cdf, custom grid points
 		/**
@@ -142,9 +144,9 @@ public:
 
 			\note does nothing if \c useGrid is false
 		**/
-		virtual void init_cdf_grid(VectorD const & gridPos);
+		//virtual void init_cdf_grid(VectorD const & gridPos);
 
-		MatrixF const & get_cdf_grid() const { return gridCdf; }
+		//MatrixF const & get_cdf_grid() const { return gridCdf; }
 
 		/// delete the grid, to free some memory
 		/**
