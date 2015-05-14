@@ -32,6 +32,9 @@ Cop2DSample::Cop2DSample(int const nSamples, Cop2DInfo * const p2TgCop,
 	}
 	*/
 
+	// set the number of scenarios in the copula objects
+	p2TgCop->set_nmb_scens(nSamples);
+
 	// initialize the cdf grid of the target info object (if required)
 	//p2TgCop->init_cdf_grid(nSamples, 1.0);
 

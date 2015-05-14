@@ -153,6 +153,9 @@ public:
 	**/
 	//void init_cdf_grids(VectorD const & gridPos);
 
+	/// set the number of scenarios (passed to the bivariate copulas)
+	virtual void set_nmb_scens(DimT const nScens);
+
 
 	/// smart pointer to the class
 	typedef boost::shared_ptr<CopInfoBy2D> Ptr;
@@ -226,7 +229,10 @@ public:
 	MatrixI & data_ranks() { return hRanks; }
 	MatrixD & data_u01() { return hU01; }
 
-	double cdf(VectorD const u) const;
+	double cdf(VectorD const u) const override;
+
+	/// set the number of scenarios (passed to the bivariate copulas)
+	//void set_nmb_scens(DimT const nScens) override;
 };
 
 // non-member accessors to data of the CopInfoData class - used because we

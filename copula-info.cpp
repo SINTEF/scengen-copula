@@ -150,6 +150,20 @@ void CopInfoBy2D::init_cdf_grids(VectorD const & gridPos)
 */
 
 
+// set the number of scenarios (passed to the bivariate copulas)
+void CopInfoBy2D::set_nmb_scens(DimT const nScens)
+{
+	DimT i, j;
+	for (i = 0; i < nVars; ++i) {
+		for (j = i+1; j < nVars; ++j) {
+			if (p2Info2D(i, j)) {
+				p2Info2D(i, j)->set_nmb_scens(nScens);
+			}
+		}
+	}
+}
+
+
 // ---------------------------------------------------------------------------
 // class CopInfoGen2D
 

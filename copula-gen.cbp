@@ -68,15 +68,14 @@
 				<Compiler>
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
-					<Add option="-std=gnu++11" />
 					<Add option="-DNDEBUG" />
-					<Add option="-DGTEST_OS_WINDOWS_MINGW=1" />
 					<Add directory="../scen-gen_copulas" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="pthread" />
 					<Add library="gtest" />
+					<Add library="pthread" />
+					<Add library="QuantLib" />
 				</Linker>
 				<Environment>
 					<Variable name="TG_TYPE" value="Release" />
@@ -223,6 +222,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
 		</Unit>
 		<Unit filename="cop-info_normal.cpp">
 			<Option target="Debug" />
@@ -230,6 +230,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
 		</Unit>
 		<Unit filename="cop-info_student.cpp" />
 		<Unit filename="cop2Dinfo.cpp">
@@ -238,6 +239,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
 		</Unit>
 		<Unit filename="cop2Dinfo.hpp">
 			<Option target="Debug" />
@@ -245,6 +247,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
 		</Unit>
 		<Unit filename="cop2Dsample.cpp">
 			<Option target="Debug" />
@@ -252,6 +255,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
 		</Unit>
 		<Unit filename="cop2Dsample.hpp">
 			<Option target="Debug" />
@@ -259,6 +263,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
 		</Unit>
 		<Unit filename="copula-info.cpp">
 			<Option target="Debug" />
@@ -266,6 +271,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
 		</Unit>
 		<Unit filename="copula-info.hpp">
 			<Option target="Debug" />
@@ -273,6 +279,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
 		</Unit>
 		<Unit filename="copula-sample.cpp">
 			<Option target="Debug" />
@@ -280,6 +287,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
 		</Unit>
 		<Unit filename="copula-sample.hpp">
 			<Option target="Debug" />
@@ -287,6 +295,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
 		</Unit>
 		<Unit filename="dll_export_def.h">
 			<Option target="lib_Debug" />
@@ -340,8 +349,12 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
 		</Unit>
 		<Unit filename="tests/common-test.cpp">
+			<Option target="UnitTest-Rel" />
+		</Unit>
+		<Unit filename="tests/cop2D-views-test.cpp">
 			<Option target="UnitTest-Rel" />
 		</Unit>
 		<Unit filename="tests/unit-tests.cpp">

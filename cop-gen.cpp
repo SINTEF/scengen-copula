@@ -256,7 +256,7 @@ int main(int argc, char *argv[]) {
 		for (auto cIt = copNameMap.begin(); cIt != copNameMap.end(); ++ cIt)
 			cout << " " << cIt->first;
 		cout << endl;
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	// copula type is OK -> it is safe to use copNameMap[copType]
 	try {
