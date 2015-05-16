@@ -423,6 +423,7 @@ public:
 	For the moment, this works only if all copulas are given by historical
 	data, since it simply points to the multivariate \c CopInfoData object.
 **/
+/*
 class Cop2DBigData : public Cop2DData {
 private:
 	void adjust_cdf_grid(); ///< add zero rows and columns (for interpolation)
@@ -450,7 +451,7 @@ public:
 
 	virtual void set_nmb_scens(DimT const nScens) override;
 };
-
+*/
 
 
 /*

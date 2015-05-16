@@ -20,8 +20,9 @@ template <typename T> int sgn(T val) {
 
 /// arctan of a fraction
 /**
-	The paper uses scales this to [0,2 pi], unlike the atan2 function in C++
-	that gives results in [-pi,pi].
+	The paper uses two-argument arctangent function with output in [0,2 pi],
+	unlike the atan2 function in C++ that gives results in [-pi,pi].
+	This  function is a wrapper around atan2 that replicates the paper's arctan.
 **/
 double atanFrac(double const x, double const y) {
 	double res = std::atan2(x, y);

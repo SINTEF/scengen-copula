@@ -2,6 +2,12 @@
 #define BIVARIATE_STUDENT_H
 
 
+/// Cumulative Student t-distribution
+/**
+	Implemented following the formulas from Dunnett, C.W. and Sobel, M. (1954).
+	A bivariate generalization of Student t-distribution with tables for certain
+	special cases. Biometrika 41, 153–169.
+**/
 class BivariateCumulativeStudentDistribution
 {
 private:

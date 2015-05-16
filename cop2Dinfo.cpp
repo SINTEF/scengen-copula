@@ -242,7 +242,7 @@ void Cop2DGrid::set_grid_size()
 
 	if (gridN > 0) {
 		// grid already set
-		assert ((!exactSize || gridN == nSc)
+		assert ((!exactGrid || gridN == nSc)
 		        && "without interpolated grid, we should have gridN = nSc");
 		return;
 	}
@@ -701,6 +701,7 @@ void Cop2DData::calc_all_grid_cdfs()
 void Cop2DData::set_nmb_scens(DimT const nScens)
 {
 	nSc = nScens;
+	gridN = nScens;
 	calc_all_grid_cdfs();
 }
 
