@@ -1,7 +1,8 @@
-#include <iostream>
-
 #include "margin-distrib.hpp"
 #include "margin-distrib_moments.hpp"
+
+#include <iostream>
+#include <fstream>
 
 using namespace MarginDistrib;
 using std::cout;
@@ -99,8 +100,6 @@ UnivarMargin * UnivarMargin::make_new(string const & margName,
 	}
 	return UnivarMargin::nameMap.at(margNameLC)(paramStr, nSc);
 }
-
-
 // inverse CDF
 double UnivarMargin::inv_cdf(DimT const r, DimT const N) const
 {
@@ -183,6 +182,50 @@ double MarginNormal::inv_cdf(DimT const r, DimT const N) const
 MarginSample::MarginSample(VectorD const & sample, SamplePP const postP)
 : UnivarMargin(postP), sortedS(sample), nPts(sample.size())
 {
+	if (postP != PP_None) {
+		mean = vec_mean(sortedS);
+		if (postP == PP_fixBoth) {
+			stDev = vec_std_dev(sortedS, mean); // using MLE formulas
+		}
+	}
+
+	std::sort(sortedS.begin(), sortedS.end());
+}
+
+// constructor with parameters in a string stream
+/// \todo Take advantage of nSc, or remove it from the parameter list
+MarginSample::MarginSample(std::istream & paramStr, DimT const nSc,
+                           SamplePP const postP)
+: UnivarMargin(postP)
+{
+	std::string inFName;
+	DimT inFCol;
+
+	paramStr >> inFName;
+	if (paramStr.fail()) {
+		throw std::runtime_error
+			("error while reading parameters for a sample margin");
+	}
+	std::ifstream inFStr(inFName.c_str());
+	if (!inFStr) {
+		throw std::ios_base::failure("Could not open input file `" + inFName + "'!");
+	}
+	paramStr >> inFCol;
+	if (paramStr.fail()) {
+		// no second parameter -> data in a vector format
+		inFStr >> sortedS; // assumes dimension given in the file
+	} else {
+		// second parameter is the column index -> read as a matrix
+		MatrixD tmpMat;
+		inFStr >> tmpMat; // assumes dimensions given in the file
+		sortedS = ublas::column(tmpMat, inFCol-1); // assume counting from 1
+	}
+	if (!inFStr.good()) {
+		throw std::ios_base::failure("Error while reading file `" + inFName + "'!");
+	}
+	inFStr.close();
+	nPts = sortedS.size();
+
 	if (postP != PP_None) {
 		mean = vec_mean(sortedS);
 		if (postP == PP_fixBoth) {

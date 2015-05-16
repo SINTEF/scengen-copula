@@ -215,6 +215,9 @@ private:
 
 public:
 	MarginSample(VectorD const & sample, SamplePP const postP = PP_None);
+
+	MarginSample(std::istream & paramStr, DimT const nSc,
+	             SamplePP const postP = PP_None);
 };
 
 

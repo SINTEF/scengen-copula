@@ -116,6 +116,9 @@ MixedMargins::MixedMargins(std::string const & tgFName, DimT const nScens,
 			case MargDistribID::normal: // "normal"
 				p2marg = boost::make_shared<MarginNormal>(paramStr);
 				break;
+			case MargDistribID::sample: // sample-based
+				p2marg = boost::make_shared<MarginSample>(paramStr, nScens);
+				break;
 			case MargDistribID::triang: // triangular
 				p2marg = boost::make_shared<MarginTriang>(paramStr, false);
 				break;
