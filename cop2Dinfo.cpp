@@ -864,7 +864,7 @@ double Cop2DNormal::calc_cdf(double const u, double const v) const
 // Student-t copula
 Cop2DStudent::Cop2DStudent(unsigned degF, double const rho)
 : correl(rho), dof(degF),
-  p2tCdf2D(new BivariateCumulativeStudentDistribution(degF, rho)),
+  p2tCdf2D(new QuantLib::BivariateCumulativeStudentDistribution(degF, rho)),
   p2tInvCdf(new QuantLib::InverseCumulativeStudent(degF))
 {
 	if (dof == 0) {
@@ -889,7 +889,7 @@ Cop2DStudent::Cop2DStudent(istream & paramStr)
 	if (correl < -1 || correl > 1) {
 		throw std::out_of_range("correlation in student copula out of range");
 	}
-	p2tCdf2D.reset(new BivariateCumulativeStudentDistribution(dof, correl));
+	p2tCdf2D.reset(new QuantLib::BivariateCumulativeStudentDistribution(dof, correl));
 	p2tInvCdf.reset(new QuantLib::InverseCumulativeStudent(dof));
 }
 

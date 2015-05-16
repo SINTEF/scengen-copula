@@ -1,0 +1,5 @@
+# list all files (relative paths):
+find .
+
+# replace "<gl/" by "<QuantLib/" in all files 
+find . -type f -exec sed -i 's|<ql/|<QuantLib/|' {} +

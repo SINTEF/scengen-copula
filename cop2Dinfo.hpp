@@ -5,8 +5,9 @@
 #include "common.hpp"
 
 // QuantLib libraries used for the normal copula
-#include <ql/math/distributions/bivariatenormaldistribution.hpp>
-#include <ql/math/distributions/studenttdistribution.hpp>
+#include "external/QuantLib/math/distributions/bivariatenormaldistribution.hpp"
+#include "external/QuantLib/math/distributions/bivariatestudenttdistribution.hpp"
+#include "external/QuantLib/math/distributions/studenttdistribution.hpp"
 
 #include <boost/optional.hpp>
 
@@ -591,7 +592,7 @@ private:
 	**/
 	///@{
 		///class providing bivariate student cdf
-		std::unique_ptr<BivariateCumulativeStudentDistribution> p2tCdf2D;
+		std::unique_ptr<QuantLib::BivariateCumulativeStudentDistribution> p2tCdf2D;
 
 		/// QuantLib object for the inverse cdf
 		std::unique_ptr<QuantLib::InverseCumulativeStudent> p2tInvCdf;
