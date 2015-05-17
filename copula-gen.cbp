@@ -175,8 +175,6 @@
 			<Add directory="external" />
 		</Compiler>
 		<Linker>
-			<Add option="-Wl,--allow-multiple-definition" />
-			<Add library="scen-gen_HKW" />
 			<Add library="boost_program_options" />
 			<Add directory="external/scen-gen_HKW/bin/$(TG_TYPE)" />
 		</Linker>
@@ -231,7 +229,14 @@
 			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 		</Unit>
-		<Unit filename="cop-info_student.cpp" />
+		<Unit filename="cop-info_student.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
 		<Unit filename="cop2Dinfo.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
@@ -300,44 +305,377 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 		</Unit>
-		<Unit filename="external/QuantLib/config.ansi.hpp" />
-		<Unit filename="external/QuantLib/config.mingw.hpp" />
-		<Unit filename="external/QuantLib/config.msvc.hpp" />
-		<Unit filename="external/QuantLib/config.sun.hpp" />
-		<Unit filename="external/QuantLib/errors.cpp" />
-		<Unit filename="external/QuantLib/errors.hpp" />
-		<Unit filename="external/QuantLib/math/array.hpp" />
-		<Unit filename="external/QuantLib/math/beta.cpp" />
-		<Unit filename="external/QuantLib/math/beta.hpp" />
-		<Unit filename="external/QuantLib/math/comparison.hpp" />
-		<Unit filename="external/QuantLib/math/distributions/bivariatenormaldistribution.cpp" />
-		<Unit filename="external/QuantLib/math/distributions/bivariatenormaldistribution.hpp" />
-		<Unit filename="external/QuantLib/math/distributions/bivariatestudenttdistribution.cpp" />
-		<Unit filename="external/QuantLib/math/distributions/bivariatestudenttdistribution.hpp" />
-		<Unit filename="external/QuantLib/math/distributions/gammadistribution.cpp" />
-		<Unit filename="external/QuantLib/math/distributions/gammadistribution.hpp" />
-		<Unit filename="external/QuantLib/math/distributions/normaldistribution.cpp" />
-		<Unit filename="external/QuantLib/math/distributions/normaldistribution.hpp" />
-		<Unit filename="external/QuantLib/math/distributions/studenttdistribution.cpp" />
-		<Unit filename="external/QuantLib/math/distributions/studenttdistribution.hpp" />
-		<Unit filename="external/QuantLib/math/errorfunction.cpp" />
-		<Unit filename="external/QuantLib/math/errorfunction.hpp" />
-		<Unit filename="external/QuantLib/math/integrals/gaussianorthogonalpolynomial.cpp" />
-		<Unit filename="external/QuantLib/math/integrals/gaussianorthogonalpolynomial.hpp" />
-		<Unit filename="external/QuantLib/math/integrals/gaussianquadratures.cpp" />
-		<Unit filename="external/QuantLib/math/integrals/gaussianquadratures.hpp" />
-		<Unit filename="external/QuantLib/math/matrix.cpp" />
-		<Unit filename="external/QuantLib/math/matrix.hpp" />
-		<Unit filename="external/QuantLib/math/matrixutilities/symmetricschurdecomposition.cpp" />
-		<Unit filename="external/QuantLib/math/matrixutilities/symmetricschurdecomposition.hpp" />
-		<Unit filename="external/QuantLib/math/matrixutilities/tqreigendecomposition.cpp" />
-		<Unit filename="external/QuantLib/math/matrixutilities/tqreigendecomposition.hpp" />
-		<Unit filename="external/QuantLib/mathconstants.hpp" />
-		<Unit filename="external/QuantLib/qldefines.hpp" />
-		<Unit filename="external/QuantLib/types.hpp" />
-		<Unit filename="external/QuantLib/userconfig.hpp" />
-		<Unit filename="external/QuantLib/utilities/disposable.hpp" />
-		<Unit filename="external/QuantLib/utilities/null.hpp" />
+		<Unit filename="external/QuantLib/config.ansi.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/config.mingw.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/config.msvc.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/config.sun.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/errors.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/errors.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/array.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/beta.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/beta.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/comparison.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/distributions/bivariatenormaldistribution.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/distributions/bivariatenormaldistribution.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/distributions/bivariatestudenttdistribution.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/distributions/bivariatestudenttdistribution.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/distributions/gammadistribution.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/distributions/gammadistribution.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/distributions/normaldistribution.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/distributions/normaldistribution.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/distributions/studenttdistribution.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/distributions/studenttdistribution.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/errorfunction.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/errorfunction.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/integrals/gaussianorthogonalpolynomial.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/integrals/gaussianorthogonalpolynomial.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/integrals/gaussianquadratures.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/integrals/gaussianquadratures.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/matrix.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/matrix.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/matrixutilities/symmetricschurdecomposition.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/matrixutilities/symmetricschurdecomposition.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/matrixutilities/tqreigendecomposition.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/math/matrixutilities/tqreigendecomposition.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/mathconstants.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/qldefines.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/types.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/userconfig.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/utilities/disposable.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/QuantLib/utilities/null.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/scen-gen_HKW/HKW_cubic.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/scen-gen_HKW/HKW_cubic.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/scen-gen_HKW/HKW_sg.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/scen-gen_HKW/HKW_sg.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/scen-gen_HKW/matrix.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/scen-gen_HKW/matrix.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/scen-gen_HKW/misc_macros.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/scen-gen_HKW/sg_functions.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="external/scen-gen_HKW/sg_functions.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
 		<Unit filename="margin-distrib.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
