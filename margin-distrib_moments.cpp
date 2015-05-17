@@ -14,7 +14,7 @@
 namespace ExtScenGenHKW {
 	extern "C" {
 		#define NO_DLL_DEFS // not using DLLs -> ignore DLL export/import macros
-		#include "external/scen-gen_HKW/HKW_sg.h"
+		#include <scen-gen_HKW/HKW_sg.h>
 	}
 }
 
