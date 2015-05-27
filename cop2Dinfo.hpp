@@ -1,7 +1,6 @@
 #ifndef COP_2D_INFO_HPP
 #define COP_2D_INFO_HPP
 
-#include "bivariate_student.h"
 #include "common.hpp"
 
 // QuantLib libraries used for the normal copula
@@ -390,6 +389,8 @@ private:
 	CopulaDef::CopInfoData * p2multivarTg;
 	DimT marg1idx;   ///< index of the first margin in the multivar info object
 	DimT marg2idx;   ///< index of the first margin in the multivar info object
+
+	DimT MaxGridSize; ///< max grid size; approximated grid with more scenarios
 
 	void calc_all_grid_cdfs() override; ///< overwriting the base method
 

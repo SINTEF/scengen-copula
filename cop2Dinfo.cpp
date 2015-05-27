@@ -600,7 +600,7 @@ Cop2DData::Cop2DData(MatrixD & histData, int const i, int const j,
                      CopulaDef::CopInfoData * const p2CopInf,
                      DimT nScens)
 : Cop2DGrid(nullptr),
-  p2multivarTg(p2CopInf), marg1idx(i), marg2idx(j),
+  p2multivarTg(p2CopInf), marg1idx(i), marg2idx(j), MaxGridSize(1000),
   margin1(histData, i), margin2(histData, j), nPts(histData.size2())
 {
 	if (nScens > 0)
@@ -701,7 +701,13 @@ void Cop2DData::calc_all_grid_cdfs()
 void Cop2DData::set_nmb_scens(DimT const nScens)
 {
 	nSc = nScens;
-	gridN = nScens;
+	if (nScens <= MaxGridSize) {
+		exactGrid = true;
+		gridN = nScens;
+	} else {
+		exactGrid = false;
+		gridN = MaxGridSize;
+	}
 	calc_all_grid_cdfs();
 }
 
