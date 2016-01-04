@@ -47,12 +47,19 @@ private:
 	/**
 		Dimension is [nVar x nSc]
 
-		\note Why don't we use IMatrix - is it because we need to get the columns?
+		\note We use a vector of vectors, for easier passing of values for one variable
 	**/
 	std::vector<VectorI> sample;
 
 	/// used to control the level of stochasticity of the results
 	unsigned minNumCandScens;  // minimal number of candidate points
+
+	/// this sets/fixes values for some margins
+	/**
+        \param[in] X     matrix with the ranks being fixed [m x nSc]
+        \param[in] marg  margin indexes to fix [m]; if empty, fix the first m margins
+	**/
+	void fix_marg_values(MatrixI const & X, VectorI const & marg = VectorI());
 
 protected:
 	double gen_new_margin(DimT const iNew);

@@ -191,19 +191,21 @@ double CopulaSample::gen_sample()
 	DimT s, marg;
 	double totDist = 0.0;
 
-	// initialize the first margin
 	marg = 0;
-	for (s = 0; s < nSc; s++) {
-		/// \todo Once this works, test it with $nSc - s$ or random numbers.
-		/// \todo Make this work with random order, to add the possibility
-		///       to shuffle scenarios. An alternative is to shuffle the
-		///       output, but it is not so easy as we store the results in
-		///       the wrong order (by margin, not by scenario).
-		/// \note For now, the values are shuffled at the end,
-		///       using CopulaSample::shuffle_results().
-		sample[marg][s] = s; // alternative is to use random numbers
+	if (!haveSc4Marg[marg]) {
+        // initialize the first margin
+        for (s = 0; s < nSc; s++) {
+            /// \todo Once this works, test it with $nSc - s$ or random numbers.
+            /// \todo Make this work with random order, to add the possibility
+            ///       to shuffle scenarios. An alternative is to shuffle the
+            ///       output, but it is not so easy as we store the results in
+            ///       the wrong order (by margin, not by scenario).
+            /// \note For now, the values are shuffled at the end,
+            ///       using CopulaSample::shuffle_results().
+            sample[marg][s] = s; // alternative is to use random numbers
+        }
+        haveSc4Marg[marg] = true;
 	}
-	haveSc4Marg[marg] = true;
 
 	MSG (TrInfo, "Starting copula generation.")
 	for (marg = 1; marg < nVar; marg++) {
@@ -349,4 +351,26 @@ void CopulaSample::shuffle_results()
 		for (s = 0; s < nSc; ++s)
 			margS(s) = tmpV(rankOrder(s));
 	}
+}
+
+
+void CopulaSample::fix_marg_values(MatrixI const & X, VectorI const & marg)
+{
+    DimT M = X.size1();
+    if (marg.size() > 0 && marg.size() != M)
+        throw std::length_error("The vector of margin indexes has different dimension than the provided matrix.");
+    if (M > nVar)
+        throw std::length_error("Trying to fix more margins than we have available.");
+    if (X.size2() != nSc)
+        throw std::length_error("Trying to fix margins with wrong number of scenarios.");
+
+    DimT i, m;
+    for (m = 0; m < M; ++m) {
+        i = marg.size() > 0 ? marg[m] : m;
+        sample[i] = ublas::row(X, i);
+        if (haveSc4Marg[i])
+            throw std::logic_error("Trying to fix an already fixed margin.");
+        assert(sample[i].size() == nSc && "dimension check");
+        haveSc4Marg[i] = true;
+    }
 }
