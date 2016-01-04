@@ -150,6 +150,20 @@ void CopInfoBy2D::init_cdf_grids(VectorD const & gridPos)
 */
 
 
+// set the number of scenarios (passed to the bivariate copulas)
+void CopInfoBy2D::set_nmb_scens(DimT const nScens)
+{
+	DimT i, j;
+	for (i = 0; i < nVars; ++i) {
+		for (j = i+1; j < nVars; ++j) {
+			if (p2Info2D(i, j)) {
+				p2Info2D(i, j)->set_nmb_scens(nScens);
+			}
+		}
+	}
+}
+
+
 // ---------------------------------------------------------------------------
 // class CopInfoGen2D
 
@@ -165,8 +179,8 @@ CopInfoGen2D::CopInfoGen2D(std::string const & tgFName)
 	tgFStr >> nVars; // the first parameter is the dimension
 	p2Info2D.resize(nVars, nVars);
 
-	Copula2D::Cop2DNameMapT copNameMap;  ///< convert copula name to type
-	make_2d_cop_name_map(copNameMap);
+	//Copula2D::Cop2DNameMapT_Old copNameMap;  ///< convert copula name to type
+	//make_2d_cop_name_map(copNameMap);
 	Copula2D::Cop2DInfo::Ptr p2tgCop;
 
 	while (! tgFStr.eof()) {
@@ -178,6 +192,16 @@ CopInfoGen2D::CopInfoGen2D(std::string const & tgFName)
 		if (! tgFStr.good())
 			continue;
 
+		// NEW - NOT YET FINISHED!
+		std::string paramsAsString;
+		std::getline(tgFStr, paramsAsString);
+		std::stringstream paramStr(paramsAsString);
+		try {
+		MSG (TrInfo, "2D copula (" << std::setw(floor(log10(nVars)) + 1) << i+1
+		             << "," << std::setw(floor(log10(nVars)) + 1) << j+1
+		             << ") of type '" << copType << "'");
+		p2tgCop.reset(Copula2D::Cop2DInfo::make_new(copType, paramStr));
+/*
 		if (copNameMap.count(copType) == 0) {
 			cerr << "Unknown 2D copula type `" << copType << "' .. aborting!" << endl;
 			cout << "Known copula types are:";
@@ -239,6 +263,7 @@ CopInfoGen2D::CopInfoGen2D(std::string const & tgFName)
 				  << " .. should never be here!" << endl;
 			exit(1);
 		}
+*/
 		}
 		catch(std::exception& e) {
 			cerr << "Error: There was some problem initializing bivariate copulas!"
@@ -247,6 +272,5 @@ CopInfoGen2D::CopInfoGen2D(std::string const & tgFName)
 		}
 		attach_2d_target(p2tgCop, i, j);
 	}
-
 }
 

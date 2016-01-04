@@ -14,7 +14,7 @@
 namespace ExtScenGenHKW {
 	extern "C" {
 		#define NO_DLL_DEFS // not using DLLs -> ignore DLL export/import macros
-		#include "external/scen-gen_HKW/HKW_sg.h"
+		#include <scen-gen_HKW/HKW_sg.h>
 	}
 }
 
@@ -38,7 +38,7 @@ MarginMoments::MarginMoments(VectorD const & tgMoms, DimT const nSc,
 }
 
 // constructor with parameters in a string stream
-MarginMoments::MarginMoments(std::stringstream & paramStr, DimT const nSc)
+MarginMoments::MarginMoments(std::istream & paramStr, DimT const nSc)
 : UnivarMargin()
 {
 	moments.resize(4);

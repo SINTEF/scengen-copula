@@ -158,8 +158,7 @@ double CopulaSample::gen_new_margin(DimT const marg)
 			}
 
 			// update p2sample2D
-			bool linkAdded = p2sample2D(i, marg)->add_link(j, iR);
-			assert (linkAdded && "This should always succeed...");
+			p2sample2D(i, marg)->add_link(j, iR);
 
 			// update also the [marg][i] copula sample? !!!
 		}
@@ -208,7 +207,7 @@ double CopulaSample::gen_sample()
 
 	MSG (TrInfo, "Starting copula generation.")
 	for (marg = 1; marg < nVar; marg++) {
-		MSG (TrInfo2, " - adding margin " << marg + 1 << " of " << nVar);
+		MSG (TrInfo, " - adding margin " << marg + 1 << " of " << nVar);
 		totDist += gen_new_margin(marg);
 	}
 	MSG (TrInfo, "Finished generating the copula.")

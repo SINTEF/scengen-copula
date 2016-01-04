@@ -178,6 +178,45 @@ void CopInfoData::setup_2d_targets()
 }
 
 
+// set the number of scenarios (passed to the bivariate copulas)
+/*
+void CopInfoData::set_nmb_scens(DimT const nScens)
+{
+	DimT const MaxGridSize = 1000;    // max size of the grid
+	DimT const MinIntGridSize = 500;  // min size of grid in case we interpolate
+	DimT const OptIntGridSize = 1000; // optimal size of interpolated grid
+
+	DimT i, j;
+	if (nScens < MaxGridSize) {
+		for (i = 0; i < nVars; ++i) {
+			for (j = i+1; j < nVars; ++j) {
+				if (p2Info2D(i, j)) {
+					p2Info2D(i, j)->set_nmb_scens(nScens);
+				}
+			}
+		}
+	} else {
+		// too many scenarios -> use interpolated grid
+		// first, check if we can get a grid that is a divisor of nScens
+		DimT gridRatio = ceil((double) nScens / MaxGridSize);
+		DimT gridN = OptIntGridSize;
+		while (nScens % gridRatio != 0 || nScens / gridRatio > MinIntGridSize)
+			++gridRatio;
+		if (nScens % gridRatio == 0 && nScens / gridRatio <= MinIntGridSize)
+			gridN = nScens / gridRatio;
+		for (i = 0; i < nVars; ++i) {
+			for (j = i+1; j < nVars; ++j) {
+				if (p2Info2D(i, j)) {
+					p2Info2D(i, j)->set_nmb_scens(gridN);
+					p2Info2D(i, j) = boost::make_shared<Cop2DApproxGrid>(p2Info2D(i, j), )
+				}
+			}
+		}
+	}
+}
+*/
+
+
 // non-member accessors to data of the CopInfoData class - used because we
 // cannot forward-declare the members from within cop2Dinfo.hpp!
 MatrixD & CopulaDef::cop_info_data_vals(CopInfoData & copInfo) {
