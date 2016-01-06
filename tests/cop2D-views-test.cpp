@@ -1,10 +1,8 @@
-#include "../common.hpp"
+//#include "../common.hpp"
 #include "../cop2Dinfo.hpp"
 #include <gtest/gtest.h>
 
 using namespace Copula2D;
-
-OutputLevel outLvl = TrInfo;
 
 TEST(Cop2DGridTest, CdfR) {
 	int const nSc = 5;

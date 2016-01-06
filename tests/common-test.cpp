@@ -1,5 +1,6 @@
 #include "../common.hpp"
 #include <gtest/gtest.h>
+#include <boost/numeric/ublas/symmetric.hpp>
 
 //! this file uses C++11 features (vector assignment)!
 //! - with gcc, using -std=c++0x or -std=c++11 causes erros in gtest-port.h
@@ -45,4 +46,19 @@ TEST(TestCommon, RankFunctions) {
 		<< "failed rank2U01(u012Rank()) inverse test with z=1";
 
 	/// \todo test fix_mean_std()
+}
+
+
+/// test different matrix types
+TEST(TestCommon, MatrixTypes) {
+	ublas::symmetric_matrix<double, ublas::upper> SX(3, 3);
+	int i, j;
+	SX(0, 1) = 0.2; // writing to upper triangle
+	SX(0, 2) = 0.3; // writing to upper triangle
+	SX(2, 1) = 0.4; // writing to lower triangle
+	for (i = 0; i < 3; ++i) {
+		for (j = 0; j < i; ++j) {
+			EXPECT_DOUBLE_EQ(SX(i, j), SX(j, i)) << "failed symmetric test";
+		}
+	}
 }
