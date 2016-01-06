@@ -84,6 +84,9 @@ public:
 		\c j with the already-generated margins \c i < j, using 2D copulas
 		\c (i,j). If follows that we only need a (strict) upper-triangular
 		matrix to store the 2D copulas.
+
+		\note We cannot use a symmetric matrix here, as the target(j,i) is
+		      the same as target(i,j) only if the 2D copula is symmetric!
 	**/
 	typedef ublas::triangular_matrix<Copula2D::Cop2DInfo::Ptr,
 	                                 ublas::strict_upper> Cop2DInfoPtMatrix;

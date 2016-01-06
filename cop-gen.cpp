@@ -6,7 +6,7 @@
 //#include <tclap/CmdLine.h> // processing of command-line arguments
 
 // testing only!
-#include <boost/numeric/ublas/symmetric.hpp>
+//#include <boost/numeric/ublas/symmetric.hpp>
 
 #include "copula-info.hpp"
 #include "cop2Dsample.hpp"

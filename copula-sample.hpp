@@ -47,7 +47,7 @@ private:
 	/**
 		Dimension is [nVar x nSc]
 
-		\note Why don't we use IMatrix - is it because we need to get the columns?
+		\note We use a vector of vectors, for easier passing of values for one variable
 	**/
 	std::vector<VectorI> sample;
 
@@ -97,6 +97,19 @@ public:
 
 	/// shuffle the resulting matrix (otherwise, the first margin is sorted)
 	void shuffle_results();
+
+	/// this sets/fixes values for the first margins
+	/**
+        \param[in] X     matrix with the ranks being fixed [m x nSc]
+
+        \note Must be called before \a gen_sample().
+        \note We allow only fixing of the first margins. The reason is that
+              if we fixed only margin 2, then generation of margin 1 should
+              use target 2D copula(2,1) as well .. but these targets with i>j
+              are not created at the moment - and target(j,i) is, in general,
+              different from target(i,j)!
+	**/
+	void fix_marg_values(MatrixI const & X);
 
 	//int tmp_get_res(int const i, int const s) { return sample[i][s]; }
 };

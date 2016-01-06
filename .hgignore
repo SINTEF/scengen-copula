@@ -6,3 +6,4 @@ bin/*
 copula-gen.cscope_file_list
 doc/html/*
 doc/latex/*
+*.orig
