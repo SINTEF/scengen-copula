@@ -236,6 +236,15 @@
 			<Option target="lib-driver_Dbg" />
 			<Option target="lib-driver_Rel" />
 		</Unit>
+		<Unit filename="cop-info_forecast-errors.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release_static" />
+			<Option target="UnitTest-Dbg" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
 		<Unit filename="cop-info_hist-data.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />

@@ -164,6 +164,23 @@ void CopInfoBy2D::set_nmb_scens(DimT const nScens)
 }
 
 
+// get the number of initialized 2D target copulas
+DimT CopInfoBy2D::get_nmb_2d_copulas()
+{
+	DimT i, j;
+	DimT nmbC = 0;
+
+	for (i = 0; i < nVars; ++i) {
+		for (j = i+1; j < nVars; ++j) { // p2Info2D is an upper-triang. matrix
+			if (p2Info2D(i, j)) {
+				nmbC++;
+			}
+		}
+	}
+	return nmbC;
+}
+
+
 // ---------------------------------------------------------------------------
 // class CopInfoGen2D
 

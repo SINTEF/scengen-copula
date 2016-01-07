@@ -1,3 +1,5 @@
+#include "copula-info.hpp"
+
 #include <iostream>
 #include <fstream>
 //#include <cmath>
@@ -6,13 +8,11 @@
 //#include <vector>
 //#include <cassert>
 
-#include "copula-info.hpp"
-
 using namespace std;
 using namespace CopulaDef;
 
 
-CopInfoData::CopInfoData(MatrixI const & hDataMat)
+CopInfoData::CopInfoData(MatrixD const & hDataMat)
 : CopInfoBy2D(hDataMat.size1(), true),
   nPts(hDataMat.size2()),
   hData(hDataMat), hRanks(nVars, nPts), hU01(nVars, nPts)
@@ -38,6 +38,17 @@ CopInfoData::CopInfoData(std::string const & tgFName)
 	setup_2d_targets(); // create the matrix of bivariate copula objects
 }
 
+/*
+// set the target data (for use with the incomplete constructor)
+void CopInfoData::init_with_hist_data(MatrixD const & hDataMat)
+{
+	hData = hDataMat;
+	nPts = hDataMat.size2();
+
+	fill_ranks_etc();   // fills hRanks and hU01
+	setup_2d_targets(); // create the matrix of bivariate copula objects
+}
+*/
 
 /*
 CopInfoData::CopInfoData(TMatrixI & hRanksMat, bool const fillU01Data)
