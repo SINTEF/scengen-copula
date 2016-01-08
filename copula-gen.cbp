@@ -7,7 +7,7 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="bin/Debug/copula-gen" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Debug/scen-gen_cop" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="bin/Debug" />
 				<Option object_output=".obj/Debug/" />
 				<Option type="1" />
@@ -16,50 +16,33 @@
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
+				<Linker>
+					<Add library="boost_program_options" />
+				</Linker>
 				<Environment>
 					<Variable name="TG_TYPE" value="Debug" />
 				</Environment>
 			</Target>
 			<Target title="Release">
-				<Option output="bin/Release/copula-gen" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="bin/Release" />
-				<Option object_output=".obj/Release/" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-fexpensive-optimizations" />
-					<Add option="-O3" />
-					<Add option="-DNDEBUG" />
-				</Compiler>
-				<Environment>
-					<Variable name="TG_TYPE" value="Release" />
-				</Environment>
-			</Target>
-			<Target title="Release_static">
 				<Option output="bin/Release/scen-gen_cop" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="bin/Release" />
 				<Option object_output=".obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option projectLibDirsRelation="2" />
 				<Compiler>
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
 					<Add option="-DNDEBUG" />
 				</Compiler>
 				<Linker>
-					<Add option="-s" />
-					<Add directory="external/scen-gen_HKW/lib" />
+					<Add library="boost_program_options" />
 				</Linker>
-				<ExtraCommands>
-					<Add before="ar rcs external/scen-gen_HKW/lib/libscen-gen_HKW.a external/scen-gen_HKW/.obj/Release_DLL/*.o" />
-				</ExtraCommands>
 				<Environment>
 					<Variable name="TG_TYPE" value="Release" />
 				</Environment>
 			</Target>
 			<Target title="UnitTest-Dbg">
-				<Option output="bin/Debug/copula-gen_test" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Debug/scen-gen_cop_test" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="bin/Debug" />
 				<Option object_output=".obj/Debug/" />
 				<Option type="1" />
@@ -79,7 +62,7 @@
 				</Environment>
 			</Target>
 			<Target title="UnitTest-Rel">
-				<Option output="bin/Release/copula-gen_test" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/Release/scen-gen_cop_test" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="bin/Release" />
 				<Option object_output=".obj/Release/" />
 				<Option type="1" />
@@ -188,15 +171,49 @@
 					<Variable name="TG_TYPE" value="Release" />
 				</Environment>
 			</Target>
+			<Target title="fc-err_Dbg">
+				<Option output="bin/Debug/scen-gen_cop_fc-err" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/Debug" />
+				<Option object_output=".obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters="-c indep --dim 2 4" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<Linker>
+					<Add library="boost_program_options" />
+				</Linker>
+				<Environment>
+					<Variable name="TG_TYPE" value="Debug" />
+				</Environment>
+			</Target>
+			<Target title="fc-err_Rel">
+				<Option output="bin/Release/scen-gen_cop_fc-err" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/Release" />
+				<Option object_output=".obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-O3" />
+					<Add option="-DNDEBUG" />
+				</Compiler>
+				<Linker>
+					<Add library="boost_program_options" />
+				</Linker>
+				<Environment>
+					<Variable name="TG_TYPE" value="Release" />
+				</Environment>
+			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-Wall" />
 			<Add option="-std=c++11" />
+			<Add option="-Wall" />
 			<Add option="-Wno-unused-local-typedefs" />
 			<Add directory="external" />
 		</Compiler>
 		<Linker>
-			<Add library="boost_program_options" />
 			<Add directory="external/scen-gen_HKW/bin/$(TG_TYPE)" />
 		</Linker>
 		<Unit filename="common.cpp">
@@ -205,8 +222,9 @@
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="fc-err_Dbg" />
+			<Option target="fc-err_Rel" />
 		</Unit>
 		<Unit filename="common.hpp">
 			<Option target="Debug" />
@@ -214,13 +232,29 @@
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="fc-err_Dbg" />
+			<Option target="fc-err_Rel" />
 		</Unit>
 		<Unit filename="cop-gen.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
+		</Unit>
+		<Unit filename="cop-gen_fc-err.cpp">
+			<Option target="fc-err_Dbg" />
+			<Option target="fc-err_Rel" />
+			<Option target="UnitTest-Rel" />
+			<Option target="UnitTest-Dbg" />
+		</Unit>
+		<Unit filename="cop-gen_fc-err.hpp">
+			<Option target="UnitTest-Dbg" />
+			<Option target="UnitTest-Rel" />
+			<Option target="fc-err_Dbg" />
+			<Option target="fc-err_Rel" />
+		</Unit>
+		<Unit filename="cop-gen_fc-err_ex.cpp">
+			<Option target="fc-err_Dbg" />
+			<Option target="fc-err_Rel" />
 		</Unit>
 		<Unit filename="cop-gen_lib.cpp">
 			<Option target="lib_Debug" />
@@ -236,37 +270,27 @@
 			<Option target="lib-driver_Dbg" />
 			<Option target="lib-driver_Rel" />
 		</Unit>
-		<Unit filename="cop-info_forecast-errors.cpp">
-			<Option target="Debug" />
-			<Option target="Release" />
-			<Option target="Release_static" />
-			<Option target="UnitTest-Dbg" />
-			<Option target="UnitTest-Rel" />
-			<Option target="lib_Debug" />
-			<Option target="lib_Release" />
-		</Unit>
 		<Unit filename="cop-info_hist-data.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="fc-err_Dbg" />
+			<Option target="fc-err_Rel" />
 		</Unit>
 		<Unit filename="cop-info_normal.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
 		</Unit>
 		<Unit filename="cop-info_student.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -277,72 +301,80 @@
 			<Option target="Release" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="fc-err_Dbg" />
+			<Option target="fc-err_Rel" />
 		</Unit>
 		<Unit filename="cop2Dinfo.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="fc-err_Dbg" />
+			<Option target="fc-err_Rel" />
 		</Unit>
 		<Unit filename="cop2Dsample.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="fc-err_Dbg" />
+			<Option target="fc-err_Rel" />
 		</Unit>
 		<Unit filename="cop2Dsample.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="fc-err_Dbg" />
+			<Option target="fc-err_Rel" />
 		</Unit>
 		<Unit filename="copula-info.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="fc-err_Dbg" />
+			<Option target="fc-err_Rel" />
 		</Unit>
 		<Unit filename="copula-info.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="fc-err_Dbg" />
+			<Option target="fc-err_Rel" />
 		</Unit>
 		<Unit filename="copula-sample.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="fc-err_Dbg" />
+			<Option target="fc-err_Rel" />
 		</Unit>
 		<Unit filename="copula-sample.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="fc-err_Dbg" />
+			<Option target="fc-err_Rel" />
 		</Unit>
 		<Unit filename="dll_export_def.h">
 			<Option target="lib_Debug" />
@@ -351,7 +383,6 @@
 		<Unit filename="external/QuantLib/config.ansi.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -360,7 +391,6 @@
 		<Unit filename="external/QuantLib/config.mingw.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -369,7 +399,6 @@
 		<Unit filename="external/QuantLib/config.msvc.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -378,7 +407,6 @@
 		<Unit filename="external/QuantLib/config.sun.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -387,7 +415,6 @@
 		<Unit filename="external/QuantLib/errors.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -396,7 +423,6 @@
 		<Unit filename="external/QuantLib/errors.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -405,7 +431,6 @@
 		<Unit filename="external/QuantLib/math/array.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -414,7 +439,6 @@
 		<Unit filename="external/QuantLib/math/beta.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -423,7 +447,6 @@
 		<Unit filename="external/QuantLib/math/beta.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -432,7 +455,6 @@
 		<Unit filename="external/QuantLib/math/comparison.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -441,7 +463,6 @@
 		<Unit filename="external/QuantLib/math/distributions/bivariatenormaldistribution.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -450,7 +471,6 @@
 		<Unit filename="external/QuantLib/math/distributions/bivariatenormaldistribution.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -459,7 +479,6 @@
 		<Unit filename="external/QuantLib/math/distributions/bivariatestudenttdistribution.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -468,7 +487,6 @@
 		<Unit filename="external/QuantLib/math/distributions/bivariatestudenttdistribution.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -477,7 +495,6 @@
 		<Unit filename="external/QuantLib/math/distributions/gammadistribution.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -486,7 +503,6 @@
 		<Unit filename="external/QuantLib/math/distributions/gammadistribution.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -495,7 +511,6 @@
 		<Unit filename="external/QuantLib/math/distributions/normaldistribution.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -504,7 +519,6 @@
 		<Unit filename="external/QuantLib/math/distributions/normaldistribution.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -513,7 +527,6 @@
 		<Unit filename="external/QuantLib/math/distributions/studenttdistribution.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -522,7 +535,6 @@
 		<Unit filename="external/QuantLib/math/distributions/studenttdistribution.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -531,7 +543,6 @@
 		<Unit filename="external/QuantLib/math/errorfunction.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -540,7 +551,6 @@
 		<Unit filename="external/QuantLib/math/errorfunction.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -549,7 +559,6 @@
 		<Unit filename="external/QuantLib/math/integrals/gaussianorthogonalpolynomial.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -558,7 +567,6 @@
 		<Unit filename="external/QuantLib/math/integrals/gaussianorthogonalpolynomial.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -567,7 +575,6 @@
 		<Unit filename="external/QuantLib/math/integrals/gaussianquadratures.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -576,7 +583,6 @@
 		<Unit filename="external/QuantLib/math/integrals/gaussianquadratures.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -585,7 +591,6 @@
 		<Unit filename="external/QuantLib/math/matrix.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -594,7 +599,6 @@
 		<Unit filename="external/QuantLib/math/matrix.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -603,7 +607,6 @@
 		<Unit filename="external/QuantLib/math/matrixutilities/symmetricschurdecomposition.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -612,7 +615,6 @@
 		<Unit filename="external/QuantLib/math/matrixutilities/symmetricschurdecomposition.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -621,7 +623,6 @@
 		<Unit filename="external/QuantLib/math/matrixutilities/tqreigendecomposition.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -630,7 +631,6 @@
 		<Unit filename="external/QuantLib/math/matrixutilities/tqreigendecomposition.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -639,7 +639,6 @@
 		<Unit filename="external/QuantLib/mathconstants.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -648,7 +647,6 @@
 		<Unit filename="external/QuantLib/qldefines.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -657,7 +655,6 @@
 		<Unit filename="external/QuantLib/types.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -666,7 +663,6 @@
 		<Unit filename="external/QuantLib/userconfig.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -675,7 +671,6 @@
 		<Unit filename="external/QuantLib/utilities/disposable.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -684,7 +679,6 @@
 		<Unit filename="external/QuantLib/utilities/null.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
@@ -693,17 +687,17 @@
 		<Unit filename="external/ranker.h">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="fc-err_Dbg" />
+			<Option target="fc-err_Rel" />
 		</Unit>
 		<Unit filename="external/scen-gen_HKW/HKW_cubic.c">
 			<Option compilerVar="CC" />
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Rel" />
@@ -712,7 +706,6 @@
 		<Unit filename="external/scen-gen_HKW/HKW_cubic.h">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Rel" />
@@ -722,7 +715,6 @@
 			<Option compilerVar="CC" />
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Rel" />
@@ -731,7 +723,6 @@
 		<Unit filename="external/scen-gen_HKW/HKW_sg.h">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Rel" />
@@ -741,7 +732,6 @@
 			<Option compilerVar="CC" />
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Rel" />
@@ -750,7 +740,6 @@
 		<Unit filename="external/scen-gen_HKW/matrix.h">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Rel" />
@@ -759,7 +748,6 @@
 		<Unit filename="external/scen-gen_HKW/misc_macros.h">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Rel" />
@@ -769,7 +757,6 @@
 			<Option compilerVar="CC" />
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Rel" />
@@ -778,7 +765,6 @@
 		<Unit filename="external/scen-gen_HKW/sg_functions.h">
 			<Option target="Debug" />
 			<Option target="Release" />
-			<Option target="Release_static" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Rel" />
@@ -789,25 +775,26 @@
 			<Option target="Release" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="fc-err_Dbg" />
+			<Option target="fc-err_Rel" />
 		</Unit>
 		<Unit filename="margin-distrib.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="fc-err_Dbg" />
+			<Option target="fc-err_Rel" />
 		</Unit>
 		<Unit filename="margin-distrib_moments.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
 			<Option target="lib_Release" />
 			<Option target="lib_Debug" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
 		</Unit>
@@ -816,7 +803,6 @@
 			<Option target="Release" />
 			<Option target="lib_Release" />
 			<Option target="lib_Debug" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
 		</Unit>
@@ -825,18 +811,20 @@
 			<Option target="Release" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="fc-err_Dbg" />
+			<Option target="fc-err_Rel" />
 		</Unit>
 		<Unit filename="margins.hpp">
 			<Option target="Debug" />
 			<Option target="Release" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
-			<Option target="Release_static" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="fc-err_Dbg" />
+			<Option target="fc-err_Rel" />
 		</Unit>
 		<Unit filename="tests/common-test.cpp">
 			<Option target="UnitTest-Rel" />

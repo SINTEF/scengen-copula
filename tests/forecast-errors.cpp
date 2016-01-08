@@ -1,6 +1,7 @@
 //#include "../cop-gen_lib.hpp"
 #include "../copula-sample.hpp"
 #include "../margins.hpp"
+#include "../cop-gen_fc-err.hpp"
 
 //#include <boost/numeric/ublas/assignment.hpp>
 #include <iostream>

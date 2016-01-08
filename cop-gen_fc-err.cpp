@@ -1,4 +1,4 @@
-#include "copula-info.hpp"
+#include "cop-gen_fc-err.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -12,6 +12,9 @@ using namespace std;
 using namespace CopulaDef;
 using namespace Copula2D;
 
+
+// --------------------------------------------------------------------------
+// class CopInfoForecastErrors
 
 // constructor with the historical forecast errors
 /*
