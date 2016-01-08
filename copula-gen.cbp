@@ -850,6 +850,10 @@
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
 		</Unit>
+		<Unit filename="tests/forecast-errors.cpp">
+			<Option target="UnitTest-Dbg" />
+			<Option target="UnitTest-Rel" />
+		</Unit>
 		<Unit filename="tests/unit-tests.cpp">
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />

@@ -436,6 +436,21 @@ public:
 	                      MatrixD const & histData,
 	                      HistDataSort const dataSort,
 	                      int perVarDt = 1, int intVarDt = 0);
+
+	/// get the matrix of historical forecast errors
+	/**
+		This is needed if one uses the constructor with historical data
+		and forecast, where the historical errors get computed.
+	**/
+	MatrixD const & hist_forecast_errors() const { return hData; }
+
+	/// convert scenarios of errors to scenarios of the original values
+	/**
+		\param[in]  errSc  error-scenarios; [nVars, nSc]
+		\param[out] scens  output scenarios; nSc * [T, N]
+	**/
+	void errors_to_values(MatrixD const & errSc,
+	                      std::vector<MatrixD> & scens) const;
 };
 
 } // namespace

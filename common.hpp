@@ -258,6 +258,7 @@ extern OutputLevel outLvl;
 // macros for displaying variable values (stand-alone and one for use in cout)
 // see http://hamersun.blogspot.com/2010/09/
 #define DISPLAY(var) std::cout << #var " = " << var << std::endl
+#define DISPLAY_NL(var) std::cout << #var " = " << std::endl << var << std::endl
 #define VALUE(var) #var " = " << var
 #ifndef NDEBUG
 	#define DBGSHOW(lvl, var) if (lvl <= outLvl) ECHO(VALUE(var))

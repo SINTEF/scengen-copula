@@ -405,6 +405,11 @@ protected:
 
 public:
 	/// constructor with a matrix and row numbers
+	/**
+		\warning We use \c histData(i), \c histData(j) already in the
+		         assignment, which means that if \c i or \c j is out of
+		         range, the code will fail before we can check the ranges!
+	**/
 	Cop2DData(MatrixD & histData, int const i, int const j,
 	          CopulaDef::CopInfoData * const  p2CopInf = nullptr,
 	          DimT nScens = 0);

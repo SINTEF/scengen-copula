@@ -49,7 +49,7 @@ std::istream & operator>> (std::istream & is, ublas::matrix<T> & M)
 
 #include <boost/numeric/ublas/symmetric.hpp>
 
-/// stream input for ublas matrices
+/// stream input for ublas symmetric matrices
 template<class T>
 std::istream & operator>> (std::istream & is, ublas::symmetric_matrix<T> & M)
 {

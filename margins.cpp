@@ -29,7 +29,8 @@ void MarginDistrib::make_marg_name_map(MargNameMapT & mMap) {
 void MarginsInfo::get_margin_distr(MatrixI const & ranks, MatrixD & values)
 {
 	DimT i;//, j;
-	assert (ranks.size1() == nM && "sanity check");
+	if (ranks.size1() != nM)
+		throw std::length_error("wrong size of the 'ranks' matrix");
 	DimT nVals = ranks.size2();
 	// We cannot send the row as the target -> send a vector & copy the results.
 	// Note that we do not have to clear the vector, as it gets overwritten..

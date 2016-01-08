@@ -10,7 +10,7 @@
 
 using namespace std;
 using namespace CopulaDef;
-
+using namespace Copula2D;
 
 
 // constructor with the historical forecast errors
@@ -99,33 +99,74 @@ void CopInfoForecastErrors::setup_2d_targets(int perVarDt, int intVarDt)
 
 	DimT i, j, v1, v2;
 	int dt, u;
-	for (i = 0; i < nVars; ++i) {
+
+	for (i = 0; i < N; ++i) {
 		for (dt = 1; dt <= (int) T; ++dt) {
 			v1 = rowOf(i, dt);
+			assert (v1 >= 0 && v1 < nVars && "bound check");
 			// add copulas for one variable and varying dt
 			for (u = 1; u <= perVarDt; ++u) {
 				if (dt - u >= 1) {
 					v2 = rowOf(i, dt - u);
-					attach_2d_target(new Copula2D::Cop2DData(hData, v1, v2, this),
-					                 v1, v2);
+					assert (v2 >= 0 && v1 < nVars && "bound check");
+					if (v2 > v1)
+						attach_2d_target(new Cop2DData(hData, v1, v2, this),
+						                 v1, v2);
 				}
 				if (dt + u <= (int) T) {
 					v2 = rowOf(i, dt + u);
-					attach_2d_target(new Copula2D::Cop2DData(hData, v1, v2, this),
-					                 v1, v2);
+					assert (v2 >= 0 && v1 < nVars && "bound check");
+					if (v2 > v1)
+						attach_2d_target(new Cop2DData(hData, v1, v2, this),
+						                 v1, v2);
 				}
 			}
 			// add copulas between variables and possibly varying dt
-			for (j = 0; j < nVars; ++j) {
+			for (j = 0; j < N; ++j) {
 				if (j != i) {
 					for (u = 0; u <= intVarDt; ++u) {
 						if (dt - u >= 1) {
-							v2 = rowOf(i, dt - u);
-							attach_2d_target(
-								new Copula2D::Cop2DData(hData, v1, v2, this), v1, v2);
+							v2 = rowOf(j, dt - u);
+							assert (v2 >= 0 && v1 < nVars && "bound check");
+							if (v2 > v1)
+								attach_2d_target(
+									new Cop2DData(hData, v1, v2, this), v1, v2);
+						}
+						if (dt + u <= (int) T) {
+							v2 = rowOf(j, dt + u);
+							assert (v2 >= 0 && v1 < nVars && "bound check");
+							if (v2 > v1)
+								attach_2d_target(
+									new Cop2DData(hData, v1, v2, this), v1, v2);
 						}
 					}
 				}
+			}
+		}
+	}
+}
+
+// convert scenarios of errors to scenarios of the original values
+/*
+	\param[in]  errSc  error-scenarios; [nVars, nSc]
+	\param[out] scens  output scenarios; nSc * [T, N]
+*/
+void CopInfoForecastErrors::errors_to_values(MatrixD const & errSc,
+                                             std::vector<MatrixD> & scens) const
+{
+	if (errSc.size1() != nVars)
+		throw std::length_error("wrong number of variables in errSc");
+	DimT nSc = errSc.size2();
+
+	DimT i, r, s, t;
+
+	scens.resize(nSc);
+	for (s = 0; s < nSc; ++s) {
+		scens[s].resize(T, N);
+		for (t = 0; t < T; ++t) {
+			for (i = 0; i < N; ++i) {
+				r = N * t + i; // row in errSc
+				scens[s](t, i) = fCast(i, t) + errSc(r, s);
 			}
 		}
 	}
