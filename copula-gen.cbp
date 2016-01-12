@@ -15,6 +15,8 @@
 				<Option parameters="-c indep --dim 2 4" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-DHAS_QUANTLIB" />
+					<Add option="-DHAS_HKW" />
 				</Compiler>
 				<Linker>
 					<Add library="boost_program_options" />
@@ -33,6 +35,8 @@
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
 					<Add option="-DNDEBUG" />
+					<Add option="-DHAS_QUANTLIB" />
+					<Add option="-DHAS_HKW" />
 				</Compiler>
 				<Linker>
 					<Add library="boost_program_options" />
@@ -50,6 +54,8 @@
 				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-DHAS_QUANTLIB" />
+					<Add option="-DHAS_HKW" />
 					<Add directory="../scen-gen_copulas" />
 				</Compiler>
 				<Linker>
@@ -72,6 +78,8 @@
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
 					<Add option="-DNDEBUG" />
+					<Add option="-DHAS_QUANTLIB" />
+					<Add option="-DHAS_HKW" />
 					<Add directory="../scen-gen_copulas" />
 				</Compiler>
 				<Linker>
@@ -98,6 +106,8 @@
 					<Add option="-fvisibility=hidden" />
 					<Add option="-fPIC" />
 					<Add option="-DBUILDING_DLL" />
+					<Add option="-DHAS_QUANTLIB" />
+					<Add option="-DHAS_HKW" />
 				</Compiler>
 				<Environment>
 					<Variable name="TG_TYPE" value="Debug" />
@@ -118,6 +128,8 @@
 					<Add option="-fPIC" />
 					<Add option="-DBUILDING_DLL" />
 					<Add option="-DNDEBUG" />
+					<Add option="-DHAS_QUANTLIB" />
+					<Add option="-DHAS_HKW" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -315,6 +327,22 @@
 			<Option target="UnitTest-Dbg" />
 			<Option target="fc-err_Dbg" />
 			<Option target="fc-err_Rel" />
+		</Unit>
+		<Unit filename="cop2Dinfo_w-quantlib.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="UnitTest-Dbg" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+		</Unit>
+		<Unit filename="cop2Dinfo_w-quantlib.hpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="UnitTest-Dbg" />
+			<Option target="UnitTest-Rel" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
 		</Unit>
 		<Unit filename="cop2Dsample.cpp">
 			<Option target="Debug" />

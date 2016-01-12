@@ -67,6 +67,7 @@ public:
 };
 
 
+#ifdef HAS_QUANTLIB
 class NormalMargins : public MarginsInfo {
 private:
 	VectorD means;  ///< vector of means
@@ -83,7 +84,7 @@ public:
 	NormalMargins(std::string fName,
 	              UnivarMargin::SamplePP const postP = UnivarMargin::PP_None);
 };
-
+#endif // HAS_QUANTLIB
 
 class SampleMargins : public MarginsInfo {
 private:
@@ -97,6 +98,7 @@ public:
 };
 
 
+#ifdef HAS_HKW
 /// class for all margins specified by their moments
 /**
 	\warning needs the moment-matching library by Michal Kaut
@@ -132,7 +134,7 @@ public:
 	MarginsByMoments(std::string fName, DimT const nScen, int const FoM = 0,
 	                 bool const matFmt = false);
 };
-
+#endif // HAS_HKW
 
 } // namespace MarginDistrib
 

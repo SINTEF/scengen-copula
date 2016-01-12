@@ -4,6 +4,9 @@
 #define COP_GEN_FC_ERR_HPP
 
 #include "copula-info.hpp"
+#include "margins.hpp"
+#include "copula-sample.hpp"
+
 
 namespace CopulaDef {
 
@@ -19,7 +22,7 @@ namespace CopulaDef {
 **/
 class CopInfoForecastErrors : public CopInfoData {
 private:
-	DimT N;        ///< number of 'real' variables; note that nVar = N * T
+	DimT N;        ///< number of 'real' variables; note that nVars = N * T
 	DimT T;        ///< number of stoch. periods (1..T; root/now = 0)
 	MatrixD fCast; ///< forecast for the whole time horizon [nVar, T]
 
@@ -40,7 +43,16 @@ private:
 	**/
 	void setup_2d_targets(int perVarDt, int intVarDt);
 
-	inline DimT rowOf(DimT i, DimT dt) { return (dt - 1) * N + i; }
+	/// get row of forecast for var. \c i and step \c dt in the historical data
+	/**
+		made static, so that it can be used outside of the class
+	**/
+	static DimT rowOf(DimT const i, DimT const dt, DimT const N, DimT const T)
+		{ return (dt - 1) * N + i; }
+
+	/// version of rowOf for use inside of the class => fewer parameters
+	inline DimT rowOf(DimT const i, DimT const dt)
+		{ return rowOf(i, dt, N, T); }
 
 public:
 	/// constructor with the historical forecast errors
@@ -74,7 +86,7 @@ public:
 		valurTimeDesc  ///< row(t): \c f(i,t-dt,t) for all dt; new-to-old
 	};
 
-	/// constructor with the historical forecast errors
+	/// constructor with the historical values and forecasts
 	/**
 		\param[in] forecast  forecast for the whole time horizon [N, T]
 		\param[in] histData  historical values and forecasts [nPts, N * (T+1)];
@@ -99,6 +111,22 @@ public:
 	**/
 	MatrixD const & hist_forecast_errors() const { return hData; }
 
+	/// compute historical forecast errors
+	/**
+		\param[in]  histData  historical values and forecasts [nPts, N * (T+1)];
+		                      columns are grouped by variables, for each (i, t)
+		                      we have: val(i,t), fc(i,t,t+1), fc(i,t,t+2), ...
+		                      where fc(i,t,t+dt) is forecast made at t for t+dt
+		\param[out] histFErr  the computed historical forecast errors [nVars, nPts]
+		\param[in]         N  the original dimension (number of orig. variables)
+		\param[in]  dataSort  sorting/structure of \c histData
+
+		\note This method is static, because we might need it before we get
+		      all the data to create an instance of the class
+	**/
+	static void histdata_to_errors(MatrixD const & histData, MatrixD & histFErr,
+	                               DimT const N, HistDataSort const dataSort);
+
 	/// convert scenarios of errors to scenarios of the original values
 	/**
 		\param[in]  errSc  error-scenarios; [nVars, nSc]
@@ -111,7 +139,136 @@ public:
 } // namespace CopulaDef
 
 
+/// classes and methods specific for the forecast-error-based generator
 namespace FcErr_Gen {
+
+class FcErrTreeGen;
+
+/// scenario tree for use in the forecast-error-based generator
+class ScenTree {
+friend class FcErrTreeGen;
+private:
+	/*
+	DimT N; ///< dimension, i.e., the number of variables/margins
+	DimT S; ///< number of scenarios
+	DimT T; ///< number of periods
+	*/
+
+	/// \name structures for storing the tree values
+	/**
+		We store the scenario tree as a fan, with matrix of values per scenario.
+		In addition, we add the possibility to have a value for common root
+		and a branching information per period.
+	**/
+	///@{
+		std::vector<MatrixD> scenVals; ///< scenario values; S * [T, N]
+		VectorI branching; ///< optional branching per period; [T]
+		VectorD rootVals;  ///< optional root values; [N]
+	///@}
+public:
+	ScenTree() = default;
+
+	/// check if the tree is empty
+	bool is_empty() const;
+
+	/// simple terminal printout of the values, one matrix per scenario
+	void display_per_scen() const;
+};
+
+
+/// the main generator
+class FcErrTreeGen {
+private:
+	DimT N; ///< dimension, i.e., the number of variables/margins
+	DimT S; ///< number of scenarios
+	DimT T; ///< number of periods
+
+	/// \name copula-selection parameters
+	/**
+		These parameters control which of the possible 2D copulas will be
+		used for scenario generation. The more copulas we use, the worse match
+		per copula can one expect .. so one should pick the most important ones.
+
+		\todo Add weights for the copulas in the heuristic?
+	**/
+	///@{
+	/// forecasts for the same variable, with varying forecast length
+	/**
+		For a variable representing (i, dt), we generate 2D-copulas joining
+		it with (i, dt ± u), for u = 1..perVarDt.
+		perVarDt >= 1
+	**/
+	int perVarDt;
+
+	/// forecasts for different variables, with varying forecast length
+	/**
+		for a variable representing (i, dt), we generate 2D-copulas joining
+		it with (j, dt ± u), for j≠i and u = 0..intVarDt.
+		intVarDt >= 0
+	**/
+	int intVarDt;
+	///@}
+
+	/// \name main data objects
+	/**
+		We want to allow both internal data and reference to the caller's data.
+		For this, each matrix X is defined as \c MatrixD _X and \c MatrixD & X.
+		If we get reference to the caller's data, we simply point \c X to it.
+		If we use internal data, these are stored in \c _X and \c X = \c _X.
+		In any case, we can simply use \c X throughout the class, as it
+		always points to the target data.
+	**/
+	///@{
+	MatrixD _histFErr;  ///< internal version of historical forecast errors
+	MatrixD _curFcast;  ///< internal version of the current forecast, [T, N]
+	MatrixD const & histFErr = _histFErr; ///< reference to historical forecast errors
+	MatrixD const & curFcast = _curFcast; ///< reference to current forecast, [T, N]
+	///@}
+
+public:
+	FcErrTreeGen() {}
+
+	FcErrTreeGen(MatrixD & histFcastErr) : histFErr(histFcastErr) {}
+
+	/// constructor with the historical values and forecasts
+	/**
+		\param[in] forecast  forecast for the whole time horizon [N, T]
+		\param[in] histData  historical values and forecasts [nPts, N * (T+1)];
+		                     columns are grouped by variables, for each (i, t)
+		                     we have: val(i,t), fc(i,t,t+1), fc(i,t,t+2), ...
+		                     where fc(i,t,t+dt) is forecast made at t for t+dt
+		\param[in] dataSort  sorting/structure of \c histData
+		\param[in] maxPerVarDt  for var. (i, dt), we generate 2D-copulas with
+		                        (i, dt ± u) for u = 1..perVarDt
+		\param[in] maxIntVarDt  for var. (i, dt), we generate 2D-copulas with
+		                        (j, dt ± u) for u = 0..intVarDt
+	**/
+	FcErrTreeGen(MatrixD const & forecast, MatrixD const & histData,
+	             CopulaDef::CopInfoForecastErrors::HistDataSort const dataSort,
+	             int maxPerVarDt = 1, int maxIntVarDt = 0);
+
+	/// generate a 2-stage tree (a fan), with given number of scenarios
+	/**
+		\param[in]    nScen  number of scenarios to generate
+		\param[out] outTree  the resulting scenario tree
+		\param[in]     nPer  number of periods to generate, nPer <= T; 0 means T
+	**/
+	void gen_2stage_tree(DimT const nScen, ScenTree & outTree,
+	                     DimT const nPer = 0);
+};
+
+
+/// add one stage to an existing scenario tree
+/**
+	\param[in] initTree  the tree we are adding to (might be empty)
+	\param[out] outTree  the extended tree
+	\param[in]    tgCop  specifications for generating the target cop
+	\param[in]      nBr  number of branches to create at each scenario
+	\param[in]       dT  number of periods to add to the tree (>=1)
+**/
+void add_one_stage(ScenTree const & initTree, ScenTree & outTree,
+                   CopulaDef::CopInfoForecastErrors const & tgCop,
+                   DimT const nBr, DimT const dT = 1);
 
 } // namespace FcErr_Gen
 

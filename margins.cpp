@@ -155,7 +155,7 @@ MixedMargins::MixedMargins(std::string const & tgFName, DimT const nScens,
 	}
 }
 
-
+#ifdef HAS_QUANTLIB
 // ----------------------------------------------------------------------------
 // class NormalMargins
 
@@ -210,6 +210,7 @@ void NormalMargins::init_margins(UnivarMargin::SamplePP const postP)
 	}
 
 }
+#endif // HAS_QUANTLIB
 
 
 // ----------------------------------------------------------------------------
@@ -232,6 +233,7 @@ void SampleMargins::init_margins(UnivarMargin::SamplePP const postP)
 }
 
 
+#ifdef HAS_HKW
 // --------------------------------------------------------------------------
 // class MarginsByMoments
 
@@ -299,3 +301,4 @@ void MarginsByMoments::init_margins()
 	}
 
 }
+#endif

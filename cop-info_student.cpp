@@ -3,6 +3,7 @@
 **/
 
 #include "copula-info.hpp"
+#include "cop2Dinfo_w-quantlib.hpp"
 
 #include <iostream>
 #include <fstream>
