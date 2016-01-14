@@ -33,10 +33,10 @@ TEST(ForecastErrorsGen, InputData) {
 	EXPECT_EQ(histData.size2(), N * (T+1)) << "checking number of columns";
 
 	// create a forecast equal to the first T observations
-	MatrixD forecast(N, T);
-	for (i = 0; i < N; ++i)
-		for (t = 0; t < T; ++t)
-			forecast(i, t) = histData(t, (T+1) * i);
+	MatrixD forecast(T, N);
+	for (t = 0; t < T; ++t)
+		for (i = 0; i < N; ++i)
+			forecast(t, i) = histData(t, (T+1) * i);
 	//DISPLAY_NL(forecast);
 
 	// parameters for the generation of 2D copulas
@@ -45,7 +45,7 @@ TEST(ForecastErrorsGen, InputData) {
 
 	auto p2tgCop
 		= boost::make_shared<CopulaDef::CopInfoForecastErrors>(
-			forecast, histData, DataSort::fCastTimeAsc, perVarDt, intVarDt);
+			N, histData, DataSort::fCastTimeAsc, perVarDt, intVarDt);
 	EXPECT_EQ(p2tgCop->dim(), N * T) << "checking dimension of the target cop.";
 	EXPECT_EQ(p2tgCop->get_nmb_2d_copulas(), N*(T-1) + N*(N-1)/2*T)
 		<< "checking the number of 2D targets"; // for perVarDt=1, intVarDt=0
@@ -75,7 +75,7 @@ TEST(ForecastErrorsGen, InputData) {
 
 	// convert to the scenarios for the original multi-period problem
 	std::vector<MatrixD> scens;  // dim = nSc * [T, N]
-	p2tgCop->errors_to_values(errScens, scens);
+	p2tgCop->errors_to_values(errScens, forecast, scens);
 	//for (s = 0; s < S; ++s) {
 	//	DISPLAY_NL(scens[s]);
 	//}
@@ -85,7 +85,7 @@ TEST(ForecastErrorsGen, InputData) {
 			for (i = 0; i < N; ++i) {
 				r = N * t + i; // rows grouped by time
 				EXPECT_DOUBLE_EQ(scens[s](t, i),
-				                 forecast(i, t) + errScens(r, s))
+				                 forecast(t, i) + errScens(r, s))
 				                 << "checking value (" << s << ", " << i
 				                 << ", " << t << ")";
 			}

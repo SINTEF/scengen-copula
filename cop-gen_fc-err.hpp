@@ -24,7 +24,7 @@ class CopInfoForecastErrors : public CopInfoData {
 private:
 	DimT N;        ///< number of 'real' variables; note that nVars = N * T
 	DimT T;        ///< number of stoch. periods (1..T; root/now = 0)
-	MatrixD fCast; ///< forecast for the whole time horizon [nVar, T]
+	//MatrixD fCast; ///< forecast for the whole time horizon [nVar, T]
 
 	/// override the default version from the base class
 	/**
@@ -57,7 +57,7 @@ private:
 public:
 	/// constructor with the historical forecast errors
 	/**
-		\param[in] forecast  forecast for the whole time horizon [N, T]
+		\param[in]  nmbVars  number of variables
 		\param[in] histFErr  historical forecast errors [N * T, nPts];
 		                     columns are grouped by periods: val(i,dt) for
 		                     (0,1), (1,1),...,(N,1), (0,2),...,(N-1,T)
@@ -66,8 +66,7 @@ public:
 		\param[in] intVarDt  for var. (i, dt), we generate 2D-copulas with
 		                     (j, dt ± u) for u = 0..intVarDt
 	**/
-	CopInfoForecastErrors(MatrixD const & forecast,
-	                      MatrixD const & histFErr,
+	CopInfoForecastErrors(DimT const nmbVars, MatrixD const & histFErr,
 	                      int perVarDt = 1, int intVarDt = 0);
 
 	/// different types of sorting of the input historical data
@@ -88,7 +87,7 @@ public:
 
 	/// constructor with the historical values and forecasts
 	/**
-		\param[in] forecast  forecast for the whole time horizon [N, T]
+		\param[in]  nmbVars  number of variables
 		\param[in] histData  historical values and forecasts [nPts, N * (T+1)];
 		                     columns are grouped by variables, for each (i, t)
 		                     we have: val(i,t), fc(i,t,t+1), fc(i,t,t+2), ...
@@ -99,8 +98,7 @@ public:
 		\param[in] intVarDt  for var. (i, dt), we generate 2D-copulas with
 		                     (j, dt ± u) for u = 0..intVarDt
 	**/
-	CopInfoForecastErrors(MatrixD const & forecast,
-	                      MatrixD const & histData,
+	CopInfoForecastErrors(DimT const nmbVars, MatrixD const & histData,
 	                      HistDataSort const dataSort,
 	                      int perVarDt = 1, int intVarDt = 0);
 
@@ -129,10 +127,11 @@ public:
 
 	/// convert scenarios of errors to scenarios of the original values
 	/**
-		\param[in]  errSc  error-scenarios; [nVars, nSc]
-		\param[out] scens  output scenarios; nSc * [T, N]
+		\param[in]    errSc  error-scenarios; [nVars, nSc]
+		\param[in] forecast  forecast for the whole time horizon; [T, N]
+		\param[out]   scens  output scenarios; nSc * [T, N]
 	**/
-	void errors_to_values(MatrixD const & errSc,
+	void errors_to_values(MatrixD const & errSc, MatrixD const & forecast,
 	                      std::vector<MatrixD> & scens) const;
 };
 
@@ -170,6 +169,15 @@ public:
 
 	/// check if the tree is empty
 	bool is_empty() const;
+
+	/// get the number of scenarios
+	DimT nmb_scens() const { return scenVals.size(); }
+
+	/// get the number of periods
+	DimT nmb_periods() const;
+
+	/// get the number of variables
+	DimT nmb_variables() const;
 
 	/// simple terminal printout of the values, one matrix per scenario
 	void display_per_scen() const;
@@ -217,13 +225,48 @@ private:
 		If we use internal data, these are stored in \c _X and \c X = \c _X.
 		In any case, we can simply use \c X throughout the class, as it
 		always points to the target data.
+
+		\note The references are denoted as const, so we can use const values
+		      in the constructor. (It looks strange with ref to const being
+		      initialized to non-const object, but it works..)
 	**/
 	///@{
-	MatrixD _histFErr;  ///< internal version of historical forecast errors
-	MatrixD _curFcast;  ///< internal version of the current forecast, [T, N]
-	MatrixD const & histFErr = _histFErr; ///< reference to historical forecast errors
-	MatrixD const & curFcast = _curFcast; ///< reference to current forecast, [T, N]
+	MatrixD _histFErr; ///< internal version of historical forecast errors; [nVars, nPts]
+	MatrixD const & histFErr = _histFErr; ///< ref. to historical forecast errors
+	//MatrixD _curFcast;  ///< internal version of the current forecast, [T, N]
+	//MatrixD const & curFcast = _curFcast; ///< ref. to current forecast, [T, N]
 	///@}
+
+	// add one stage to an existing scenario tree
+	/*
+		\param[in] initTree  the tree we are adding to (might be empty)
+		\param[out] outTree  the extended tree
+		\param[in]    tgCop  specifications for generating the target cop
+		\param[in]      nBr  number of branches to create at each scenario
+		\param[in]       dT  number of periods to add to the tree (>=1)
+	*//*
+	void add_one_stage(ScenTree const & initTree, ScenTree & outTree,
+	                   MatrixD const & forecast,
+	                   CopulaDef::CopInfoForecastErrors const & tgCop,
+	                   DimT const nBr, DimT const dT = 1);
+	*/
+
+	/// add one stage to an existing scenario tree
+	/**
+		\param[in]         nBr  number of branches to create at each scenario
+		\param[in]          dT  number of periods to add to the tree (>=1)
+		\param[out]   copRanks  the generated copula ranks, [nVar, nSc]
+		\param[in] p2prevRanks  copula ranks from the prev. iteration, [nVar, nSc]
+		\param[in]  p2forecast  vector of forecasts for the whole horizon; [T, N]
+		\param[out]  p2outTree  the resulting scenario tree (if required)
+
+		// the output scenario tree is needed only at the end
+		// in previous iterations, the last parameters would be empty
+	**/
+	void add_one_stage(DimT const nBr, DimT const dT, MatrixI * p2copRanks,
+	                  MatrixI const * p2prevRanks = nullptr,
+	                  MatrixD const * p2forecast = nullptr,
+	                  ScenTree * p2outTree = nullptr);
 
 public:
 	FcErrTreeGen() {}
@@ -232,7 +275,7 @@ public:
 
 	/// constructor with the historical values and forecasts
 	/**
-		\param[in] forecast  forecast for the whole time horizon [N, T]
+		\param[in]  nmbVars  number of stoch. variables
 		\param[in] histData  historical values and forecasts [nPts, N * (T+1)];
 		                     columns are grouped by variables, for each (i, t)
 		                     we have: val(i,t), fc(i,t,t+1), fc(i,t,t+2), ...
@@ -243,32 +286,39 @@ public:
 		\param[in] maxIntVarDt  for var. (i, dt), we generate 2D-copulas with
 		                        (j, dt ± u) for u = 0..intVarDt
 	**/
-	FcErrTreeGen(MatrixD const & forecast, MatrixD const & histData,
+	FcErrTreeGen(DimT const nmbVars, MatrixD const & histData,
 	             CopulaDef::CopInfoForecastErrors::HistDataSort const dataSort,
 	             int maxPerVarDt = 1, int maxIntVarDt = 0);
 
 	/// generate a 2-stage tree (a fan), with given number of scenarios
 	/**
+		\param[in] forecast  forecast for the whole horizon; [T, N]
 		\param[in]    nScen  number of scenarios to generate
 		\param[out] outTree  the resulting scenario tree
-		\param[in]     nPer  number of periods to generate, nPer <= T; 0 means T
 	**/
-	void gen_2stage_tree(DimT const nScen, ScenTree & outTree,
-	                     DimT const nPer = 0);
+	void gen_2stage_tree(MatrixD const & forecast, DimT const nScen,
+	                     ScenTree & outTree);
+
+	/// generate a regular multistage tree, with given branching per period
+	/**
+		\param[in]  forecast  forecast for the whole horizon; [T, N]
+		\param[in] branching  branching factor per period
+		\param[out]  outTree  the resulting scenario tree
+
+		\note By a regular tree we mean a scenario tree where all nodes
+		      in the same period have the same number of child nodes.
+	**/
+	void gen_reg_tree(MatrixD const & forecast, VectorI const & branching,
+	                  ScenTree & outTree);
 };
 
 
-/// add one stage to an existing scenario tree
-/**
-	\param[in] initTree  the tree we are adding to (might be empty)
-	\param[out] outTree  the extended tree
-	\param[in]    tgCop  specifications for generating the target cop
-	\param[in]      nBr  number of branches to create at each scenario
-	\param[in]       dT  number of periods to add to the tree (>=1)
-**/
-void add_one_stage(ScenTree const & initTree, ScenTree & outTree,
-                   CopulaDef::CopInfoForecastErrors const & tgCop,
-                   DimT const nBr, DimT const dT = 1);
+/*
+auto submatrix(MatrixD & X, DimT nR, DimT nC) -> decltype(ublas::subrange(X, 0, nR, 0, nC))
+{
+	return ublas::subrange(X, 0, nR, 0, nC);
+}
+*/
 
 } // namespace FcErr_Gen
 

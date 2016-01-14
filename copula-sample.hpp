@@ -74,7 +74,7 @@ public:
 	/// the main routine; returns the KS-distance
 	virtual double gen_sample();
 
-	/// get the ranks as one big matrix
+	/// get the ranks as one big matrix, [nVar, nSc]
 	void get_result_ranks(MatrixI & ranks);
 
 	/// print one 2D copula in a text format
