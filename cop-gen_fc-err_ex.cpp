@@ -13,7 +13,8 @@
 #include <fstream>
 
 using namespace Copula2D;
-using DataSort = CopulaDef::CopInfoForecastErrors::HistDataSort;
+using namespace FcErr_Gen;
+//using DataSort = CopulaDef::CopInfoForecastErrors::HistDataSort;
 
 // output level
 #ifdef NDEBUG
@@ -64,8 +65,8 @@ int main(int argc, char *argv[]) {
 		S = 12;
 
 		auto p2tgCop
-			= boost::make_shared<CopulaDef::CopInfoForecastErrors>(
-				N, histData, DataSort::fCastTimeAsc, perVarDt, intVarDt);
+			= boost::make_shared<CopInfoForecastErrors>(
+				N, histData, HistDataSort::fCastTimeAsc, perVarDt, intVarDt);
 		//DISPLAY_NL(p2tgCop->hist_forecast_errors());
 
 		// NB: the margins-object needs the matrix of errors (used for generation),
@@ -84,7 +85,7 @@ int main(int argc, char *argv[]) {
 
 		// convert to the scenarios for the original multi-period problem
 		std::vector<MatrixD> scens;  // dim = nSc * [T, N]
-		p2tgCop->errors_to_values(errScens, forecast, scens);
+		errors_to_values(errScens, forecast, scens);
 		for (s = 0; s < S; ++s) {
 			ECHO("values for scenario " << s+1 << ": " << std::endl << scens[s]);
 		}
@@ -129,7 +130,7 @@ int main(int argc, char *argv[]) {
 		int intVarDt = 0;
 		S = 12;
 
-		FcErr_Gen::FcErrTreeGen scenGen(N, histData, DataSort::fCastTimeAsc,
+		FcErr_Gen::FcErrTreeGen scenGen(N, histData, HistDataSort::fCastTimeAsc,
 		                                perVarDt, intVarDt);
 		FcErr_Gen::ScenTree scTree;
 		scenGen.gen_2stage_tree(forecast, S, scTree);
@@ -174,7 +175,7 @@ int main(int argc, char *argv[]) {
 		int intVarDt = 0;
 		//S = 12;
 
-		FcErr_Gen::FcErrTreeGen scenGen(N, histData, DataSort::fCastTimeAsc,
+		FcErr_Gen::FcErrTreeGen scenGen(N, histData, HistDataSort::fCastTimeAsc,
 		                                perVarDt, intVarDt);
 		FcErr_Gen::ScenTree scTree;
 

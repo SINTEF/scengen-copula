@@ -15,7 +15,7 @@ Cop2DSample::Cop2DSample(int const nSamples, Cop2DInfo * const p2TgCop,
 : N(nSamples), i2jC(nSamples, -1), j2iC(nSamples, -1),
   //tgCdfOfR(p2TgCop->get_cdf_grid()),
   tgCdfOfCol(nSamples),
-  p2prob(NULL), scenOfMarg1R(0), //cumProb(N),
+  p2prob(nullptr), scenOfMarg1R(0), //cumProb(N),
   //evalPtPos(1.0), copEvalPts(N),
   sampleId(id),
   p2tgInfo(p2TgCop)
@@ -47,7 +47,8 @@ Cop2DSample::Cop2DSample(int const nSamples, Cop2DInfo * const p2TgCop,
 // PUBLIC METHODS
 
 void Cop2DSample::set_scen_of_marg_1(VectorI const &margScen,
-                                     double const *p2scProb)
+                                     double const *p2scProb,
+                                     bool const allowDuplicates)
 {
 	if ((int) scenOfMarg1R.size() != N) {
 		assert ((int) scenOfMarg1R.size() == 0
@@ -56,6 +57,8 @@ void Cop2DSample::set_scen_of_marg_1(VectorI const &margScen,
 	}
 	int i, s;
 	double scPr;
+
+	allowCopiesInMarg1 = allowDuplicates; // store for later use
 
 	#ifndef NDEBUG
 		// extra checks - see the assert below
@@ -66,7 +69,8 @@ void Cop2DSample::set_scen_of_marg_1(VectorI const &margScen,
 
 	for (s = 0; s < N; s++) {
 		i = margScen[s]; // scenario s includes rank i
-		assert (scenOfMarg1R[i] < 0 && "each rank should be set only once!");
+		assert ((scenOfMarg1R[i] < 0 || allowCopiesInMarg1)
+		        && "each rank should be set only once!");
 		scenOfMarg1R[i] = s;
 	}
 
@@ -532,14 +536,7 @@ void Cop2DSample::cdf_dist_of_row(int const j, VectorD const &prevRowCdf,
 /// \todo do this; return false if this breaks another link
 void Cop2DSample::add_link(int const colR, int const rowR)
 {
-	if (i2jC[colR] >= 0 || j2iC[rowR] >= 0) {
-		/*
-		cout.flush();
-		cerr << "Error in add_link(" << colR << "," << rowR
-		     << ") - link already exists!" << endl;
-		cerr.flush();
-		return false;
-		*/
+	if ((i2jC[colR] >= 0 && !allowCopiesInMarg1) || j2iC[rowR] >= 0) {
 		std::stringstream sStr;
 		sStr << "Error in add_link(" << colR << "," << rowR
 		     << ") - link already exists!";

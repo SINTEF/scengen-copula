@@ -38,7 +38,7 @@ private:
 	**/
 	CopulaDef::CopInfoBy2D::Cop2DInfoPtMatrix & p2tgInfo;
 
-	/// array of pointers to the Cop2DSample objects
+	/// array of pointers to the Cop2DSample objects \todo use a smart pointer!?
 	Array2D<Cop2DSample *> p2sample2D;
 
 	double const *p2prob; ///< pointer to scen. probabilities (can be NULL)
@@ -53,6 +53,15 @@ private:
 
 	/// used to control the level of stochasticity of the results
 	unsigned minNumCandScens;  // minimal number of candidate points
+
+	/// number of margins with allowed duplicate values
+	/**
+		If we start with fixing the first M margins, these may include
+		duplicate values (the same rank in several scenarios).
+		Normally, this is not allowed. Setting this value to M will allow
+		duplicate values in all margins (i,j) with i<M.
+	**/
+	DimT nmbMargsWithDuplicates = 0;
 
 protected:
 	double gen_new_margin(DimT const iNew);
@@ -100,7 +109,11 @@ public:
 
 	/// this sets/fixes values for the first margins
 	/**
-        \param[in] X     matrix with the ranks being fixed [m x nSc]
+        \param[in]               X  matrix with the ranks being fixed; [m x nSc]
+        \param[in] allowDuplicates  Do we allow multiple scenarios with the same
+                                    rank? Normally, this should be \c false,
+                                    but we use it for multi-stage trees
+                                    generated from forecast errors.
 
         \note Must be called before \a gen_sample().
         \note We allow only fixing of the first margins. The reason is that
@@ -109,7 +122,7 @@ public:
               are not created at the moment - and target(j,i) is, in general,
               different from target(i,j)!
 	**/
-	void fix_marg_values(MatrixI const & X);
+	void fix_marg_values(MatrixI const & X, bool const allowDuplicates = false);
 
 	//int tmp_get_res(int const i, int const s) { return sample[i][s]; }
 };

@@ -8,12 +8,101 @@
 //#include <vector>
 //#include <cassert>
 
-using namespace std;
+//using namespace std;
 using namespace CopulaDef;
 using namespace Copula2D;
 using namespace FcErr_Gen;
 
-using DataSort = CopulaDef::CopInfoForecastErrors::HistDataSort;
+
+// --------------------------------------------------------------------------
+// static non-class functions - just for internal use
+
+/// get row of forecast for var. \c i and step \c dt in the historical data
+static DimT hist_data_row_of(DimT const i, DimT const dt,
+                             DimT const N, DimT const T)
+	{ return (dt - 1) * N + i; }
+
+static auto firstRows(MatrixD const & X, DimT nR) -> decltype(ublas::subrange(X, 0, 0, 0, 0))
+{
+	return ublas::subrange(X, 0, nR, 0, X.size2());
+}
+
+
+// --------------------------------------------------------------------------
+// non-class functions from the FcErr_Gen namespace
+
+/*
+	\param[in]  histData  historical values and forecasts [nPts, N * (T+1)];
+	                      columns are grouped by variables, for each (i, t)
+	                      we have: val(i,t), fc(i,t,t+1), fc(i,t,t+2), ...
+	                      where fc(i,t,t+dt) is forecast made at t for t+dt
+	\param[out] histFErr  the computed historical forecast errors [nVars, nPts]
+	\param[in]         N  the original dimension (number of orig. variables)
+	\param[in]  dataSort  sorting/structure of \c histData
+*/
+void FcErr_Gen::histdata_to_errors(MatrixD const & histData, MatrixD & histFErr,
+                                   DimT const N, HistDataSort const dataSort)
+{
+	DimT T = histData.size2() / N - 1;
+	if (histData.size2() != N * (T+1))
+		throw std::length_error("inconsistence in the size of historical data");
+	DimT nPts = histData.size1() - T; // need extra data to compute the errors
+	DimT nVars = N * T;
+
+	DimT i, dt, cF, cV, rE, j;
+
+	// fill the histFErr matrix (NB: transposed rel. to histData!)
+	histFErr.resize(nVars, nPts);
+	for (i = 0; i < N; ++i) {
+		cV = i * (T+1); // column of the variable value
+		for (dt = 1; dt <= T; ++dt) {
+			cF = cV + dt;      // column of the forecast
+			rE = hist_data_row_of(i, dt, N, T); // row within histFErr
+			for (j = 0; j < nPts; ++j) {
+				switch (dataSort) {
+				case HistDataSort::fCastTimeAsc:
+					histFErr(rE, j) = histData(j, cF) - histData(j + dt, cV);
+					break;
+				default:
+					throw std::logic_error("unsupported sorting option");
+				}
+			}
+		}
+	}
+}
+
+
+// convert scenarios of errors to scenarios of the original values
+/*
+	\param[in]  errSc  error-scenarios; [nVars, nSc]
+	\param[in] forecast  forecast for the whole time horizon; [T, N]
+	\param[out] scens  output scenarios; nSc * [T, N]
+*/
+void FcErr_Gen::errors_to_values(MatrixD const & errSc, MatrixD const & forecast,
+                                 std::vector<MatrixD> & scens)
+{
+	DimT nVars = errSc.size1();
+	DimT nSc = errSc.size2();
+	DimT T = forecast.size1();
+	DimT N = forecast.size2();
+	if (nVars != T * N)
+		throw std::length_error(
+			"inconsistent sizes of error and forecase matrices");
+
+	DimT i, r, s, t;
+
+	scens.resize(nSc);
+	for (s = 0; s < nSc; ++s) {
+		scens[s].resize(T, N);
+		for (t = 0; t < T; ++t) {
+			for (i = 0; i < N; ++i) {
+				r = N * t + i; // row in errSc
+				scens[s](t, i) = forecast(t, i) + errSc(r, s);
+			}
+		}
+	}
+}
+
 
 // --------------------------------------------------------------------------
 // class CopInfoForecastErrors
@@ -79,46 +168,13 @@ CopInfoForecastErrors::CopInfoForecastErrors(DimT const nmbVars,
 }
 
 
-/*
-	\param[in]  histData  historical values and forecasts [nPts, N * (T+1)];
-	                      columns are grouped by variables, for each (i, t)
-	                      we have: val(i,t), fc(i,t,t+1), fc(i,t,t+2), ...
-	                      where fc(i,t,t+dt) is forecast made at t for t+dt
-	\param[out] histFErr  the computed historical forecast errors [nVars, nPts]
-	\param[in]         N  the original dimension (number of orig. variables)
-	\param[in]  dataSort  sorting/structure of \c histData
-*/
-void CopInfoForecastErrors::histdata_to_errors(
-	MatrixD const & histData, MatrixD & histFErr,
-	DimT const N, HistDataSort const dataSort)
+// version of \c hist_data_row_of() for use inside the class (fewer parameters)
+DimT CopInfoForecastErrors::row_of(DimT const i, DimT const dt)
 {
-	DimT T = histData.size2() / N - 1;
-	if (histData.size2() != N * (T+1))
-		throw std::length_error("inconsistence in the size of historical data");
-	DimT nPts = histData.size1() - T; // need extra data to compute the errors
-	DimT nVars = N * T;
-
-	DimT i, dt, cF, cV, rE, j;
-
-	// fill the histFErr matrix (NB: transposed rel. to histData!)
-	histFErr.resize(nVars, nPts);
-	for (i = 0; i < N; ++i) {
-		cV = i * (T+1); // column of the variable value
-		for (dt = 1; dt <= T; ++dt) {
-			cF = cV + dt;      // column of the forecast
-			rE = rowOf(i, dt, N, T); // row within histFErr
-			for (j = 0; j < nPts; ++j) {
-				switch (dataSort) {
-				case HistDataSort::fCastTimeAsc:
-					histFErr(rE, j) = histData(j, cF) - histData(j + dt, cV);
-					break;
-				default:
-					throw std::logic_error("unsupported sorting option");
-				}
-			}
-		}
-	}
+	return hist_data_row_of(i, dt, N, T);
 }
+
+
 
 // creates objects for the 2D targets; called from the constructors
 /*
@@ -132,7 +188,8 @@ void CopInfoForecastErrors::setup_2d_targets(int perVarDt, int intVarDt)
 	assert (nVars > 0 && "must have a known dimension by now");
 	if (p2Info2D.size1() != nVars || p2Info2D.size2() != nVars) {
 		if (p2Info2D.size1() * p2Info2D.size2() > 0) {
-			cerr << "Warning: resizing the matrix of 2D-copula objects!" << endl;
+			std::cerr << "Warning: resizing the matrix of 2D-copula objects!"
+			          << std::endl;
 		}
 		p2Info2D.resize(nVars, nVars);
 	}
@@ -142,19 +199,19 @@ void CopInfoForecastErrors::setup_2d_targets(int perVarDt, int intVarDt)
 
 	for (i = 0; i < N; ++i) {
 		for (dt = 1; dt <= (int) T; ++dt) {
-			v1 = rowOf(i, dt);
+			v1 = row_of(i, dt);
 			assert (v1 >= 0 && v1 < nVars && "bound check");
 			// add copulas for one variable and varying dt
 			for (u = 1; u <= perVarDt; ++u) {
 				if (dt - u >= 1) {
-					v2 = rowOf(i, dt - u);
+					v2 = row_of(i, dt - u);
 					assert (v2 >= 0 && v1 < nVars && "bound check");
 					if (v2 > v1)
 						attach_2d_target(new Cop2DData(hData, v1, v2, this),
 						                 v1, v2);
 				}
 				if (dt + u <= (int) T) {
-					v2 = rowOf(i, dt + u);
+					v2 = row_of(i, dt + u);
 					assert (v2 >= 0 && v1 < nVars && "bound check");
 					if (v2 > v1)
 						attach_2d_target(new Cop2DData(hData, v1, v2, this),
@@ -166,14 +223,14 @@ void CopInfoForecastErrors::setup_2d_targets(int perVarDt, int intVarDt)
 				if (j != i) {
 					for (u = 0; u <= intVarDt; ++u) {
 						if (dt - u >= 1) {
-							v2 = rowOf(j, dt - u);
+							v2 = row_of(j, dt - u);
 							assert (v2 >= 0 && v1 < nVars && "bound check");
 							if (v2 > v1)
 								attach_2d_target(
 									new Cop2DData(hData, v1, v2, this), v1, v2);
 						}
 						if (dt + u <= (int) T) {
-							v2 = rowOf(j, dt + u);
+							v2 = row_of(j, dt + u);
 							assert (v2 >= 0 && v1 < nVars && "bound check");
 							if (v2 > v1)
 								attach_2d_target(
@@ -181,34 +238,6 @@ void CopInfoForecastErrors::setup_2d_targets(int perVarDt, int intVarDt)
 						}
 					}
 				}
-			}
-		}
-	}
-}
-
-// convert scenarios of errors to scenarios of the original values
-/*
-	\param[in]  errSc  error-scenarios; [nVars, nSc]
-	\param[in] forecast  forecast for the whole time horizon; [T, N]
-	\param[out] scens  output scenarios; nSc * [T, N]
-*/
-void CopInfoForecastErrors::errors_to_values(MatrixD const & errSc,
-                                             MatrixD const & forecast,
-                                             std::vector<MatrixD> & scens) const
-{
-	if (errSc.size1() != nVars)
-		throw std::length_error("wrong number of variables in errSc");
-	DimT nSc = errSc.size2();
-
-	DimT i, r, s, t;
-
-	scens.resize(nSc);
-	for (s = 0; s < nSc; ++s) {
-		scens[s].resize(T, N);
-		for (t = 0; t < T; ++t) {
-			for (i = 0; i < N; ++i) {
-				r = N * t + i; // row in errSc
-				scens[s](t, i) = forecast(t, i) + errSc(r, s);
 			}
 		}
 	}
@@ -253,12 +282,6 @@ void ScenTree::display_per_scen() const
 // class FcErrTreeGen
 
 
-auto firstRows(MatrixD const & X, DimT nR) -> decltype(ublas::subrange(X, 0, 0, 0, 0))
-{
-	return ublas::subrange(X, 0, nR, 0, X.size2());
-}
-
-
 // constructor with the historical values and forecasts
 /*
 	\param[in]  nmbVars  number of stoch. variables
@@ -273,7 +296,7 @@ auto firstRows(MatrixD const & X, DimT nR) -> decltype(ublas::subrange(X, 0, 0, 
 	                        (j, dt ± u) for u = 0..intVarDt
 */
 FcErrTreeGen::FcErrTreeGen(DimT const nmbVars, MatrixD const & histData,
-                           DataSort const dataSort,
+                           HistDataSort const dataSort,
                            int maxPerVarDt, int maxIntVarDt)
 : N(nmbVars), T(histData.size2() / N - 1),
   perVarDt(maxPerVarDt), intVarDt(maxIntVarDt)
@@ -285,8 +308,7 @@ FcErrTreeGen::FcErrTreeGen(DimT const nmbVars, MatrixD const & histData,
 	// note: We cannot use histFErr here, since it is a ref. to const matrix.
 	//       However, it works with _histFErr, which is a non-const matrix
 	//       .. even if histFErr references it .. weird but true
-	CopulaDef::CopInfoForecastErrors::histdata_to_errors(
-		histData, _histFErr, N, dataSort);
+	histdata_to_errors(histData, _histFErr, N, dataSort);
 }
 
 // generate a 2-stage tree (a fan), with given number of scenarios
@@ -298,7 +320,7 @@ FcErrTreeGen::FcErrTreeGen(DimT const nmbVars, MatrixD const & histData,
 void FcErrTreeGen::gen_2stage_tree(MatrixD const & forecast, DimT const nScen,
                                    ScenTree & outTree)
 {
-	auto p2tgCop = boost::make_shared<CopulaDef::CopInfoForecastErrors>(
+	auto p2tgCop = boost::make_shared<CopInfoForecastErrors>(
 		N, histFErr, perVarDt, intVarDt);
 
 	auto p2tgMargs = boost::make_shared<MarginDistrib::SampleMargins>
@@ -315,7 +337,7 @@ void FcErrTreeGen::gen_2stage_tree(MatrixD const & forecast, DimT const nScen,
 	//DISPLAY_NL(errScens);
 
 	// convert to the scenarios for the original multi-period problem
-	p2tgCop->errors_to_values(errScens, forecast, outTree.scenVals);
+	errors_to_values(errScens, forecast, outTree.scenVals);
 }
 
 
@@ -324,6 +346,7 @@ void FcErrTreeGen::gen_2stage_tree(MatrixD const & forecast, DimT const nScen,
 	\param[in]         nBr  number of branches to create at each scenario
 	\param[in]          dT  number of periods to add to the tree (>=1)
 	\param[out] p2copRanks  the generated copula ranks, [nVar, nSc]
+	\param[out]  totErrors  converted output values, [T * N, nSc]
 	\param[in] p2prevRanks  copula ranks from the prev. iteration, [nVar, nSc]
 	\param[in]  p2forecast  vector of forecasts for the whole horizon; [T, N]
 	\param[out]  p2outTree  the resulting scenario tree (if required)
@@ -332,10 +355,8 @@ void FcErrTreeGen::gen_2stage_tree(MatrixD const & forecast, DimT const nScen,
 	// in previous iterations, the last parameters would be empty
 */
 void FcErrTreeGen::add_one_stage(DimT const nBr, DimT const dT,
-                                 MatrixI * p2copRanks,
-                                 MatrixI const * p2prevRanks,
-                                 MatrixD const * p2forecast,
-                                 ScenTree * p2outTree)
+                                 MatrixI const & prevRanks,
+                                 MatrixI & copRanks, MatrixD & totErrors)
 {
 	DimT nPers = dT; // number of periods to generate
 	DimT nSc = nBr;  // number of scenarios to generate
@@ -345,18 +366,18 @@ void FcErrTreeGen::add_one_stage(DimT const nBr, DimT const dT,
 	// we use the fact that the columns of histFErr are sorted by periods:
 	// first N variables of the 1st period, then the 2nd period, etc.
 
-	if (p2prevRanks && p2prevRanks->size1() > 0) {
+	if (prevRanks.size1() > 0) {
 		// have a non-empty matrix of existing copula (from previous iteration)
-		nFixM = p2prevRanks->size1();
+		nFixM = prevRanks.size1();
 		nPers += nFixM / N; // have N margins per period
-		nSc *= p2prevRanks->size2();
+		nSc *= prevRanks.size2();
 	}
 
 	MatrixD const & errM = (nPers == T ? histFErr
 	                                   : firstRows(histFErr, nPers * N));
 	MSG(TrDetail2, "historical data for the new stage:" << std::endl << errM);
 
-	auto p2tgCop = boost::make_shared<CopulaDef::CopInfoForecastErrors>(
+	auto p2tgCop = boost::make_shared<CopInfoForecastErrors>(
 		N, errM, perVarDt, intVarDt);
 
 	CopulaScen::CopulaSample copSc(p2tgCop, nSc);
@@ -365,25 +386,43 @@ void FcErrTreeGen::add_one_stage(DimT const nBr, DimT const dT,
 		MatrixI fixedMargs(nFixM, nSc);
 		DimT s0, br;
 		s = 0;
-		for (s0 = 0; s0 < p2prevRanks->size2(); ++s0) {
+		for (s0 = 0; s0 < prevRanks.size2(); ++s0) {
 			for (br = 0; br < nBr; ++br) {
 				// cannot work with whole columns, since boost does not have
 				// vector + scalar overloaded
 				for (i = 0; i < nFixM; ++i)
-					fixedMargs(i, s) = nBr * (*p2prevRanks)(i, s0) + br;
+					fixedMargs(i, s) = nBr * prevRanks(i, s0);
 				//ublas::column(fixedMargs, s) = ublas::column(*p2prevRanks, s0);
 				++s;
 			}
 		}
 		assert (s == nSc && "consistency check");
-		DBGSHOW(TrDetail, *p2prevRanks);
+		DBGSHOW(TrDetail, prevRanks);
 		DBGSHOW(TrDetail, fixedMargs);
-		copSc.fix_marg_values(fixedMargs);
+		copSc.fix_marg_values(fixedMargs, true);
 	}
 
 	copSc.gen_sample();
-	copSc.get_result_ranks(*p2copRanks);
+	copSc.get_result_ranks(copRanks);
 
+	// transform margins to the target distribution
+	MatrixD errScens;  // dim = nVars, nSc]
+	auto p2tgMargs = boost::make_shared<MarginDistrib::SampleMargins>(errM);
+	p2tgMargs->get_margin_distr(copRanks, errScens);
+
+	// now, copy the result to totErrors, but only the periods generated here
+	if (totErrors.size1() > 0) {
+		DimT scenMult = totErrors.size2() / nSc;
+		if (nSc * scenMult != totErrors.size2())
+			throw std::length_error("inconsistent size of the output matrix");
+		for (i = nFixM; i < N * dT; ++i) {
+			for (s = 0; s < nSc; ++s)
+				for (DimT sM = 0; sM < scenMult; ++sM)
+					totErrors(i, scenMult * s + sM) = errScens(i, s);
+		}
+	}
+
+	/*
 	// check if the caller has asked to create the scenario tree
 	if (p2outTree) {
 		if (!p2forecast)
@@ -399,8 +438,9 @@ void FcErrTreeGen::add_one_stage(DimT const nBr, DimT const dT,
 		// convert to the scenarios for the original multi-period problem
 		// note: we cannot write p2outTree->branching, as we do not know
 		//       about branching in the previous periods .. left to the caller
-		p2tgCop->errors_to_values(errScens, *p2forecast, p2outTree->scenVals);
+		errors_to_values(errScens, *p2forecast, p2outTree->scenVals);
 	}
+	*/
 }
 
 
@@ -426,9 +466,16 @@ void FcErrTreeGen::gen_reg_tree(MatrixD const & forecast,
 	if (branching.size() < nmbPer)
 		nmbPer = branching.size();
 
-	MatrixI copRanks1, copRanks2;
-	MatrixI * p2initCopR = nullptr;
-	MatrixI * p2genCopR = &copRanks1;
+	MatrixI copRanks[2];
+	DimT outCopIndx = 0; // index of the output copula out of the two
+	//MatrixI copRanks1, copRanks2;
+	//MatrixI & initCopR = copRanks2;
+	//MatrixI & genCopR = copRanks1;
+
+	DimT t, nSc = 1; // total number of scenarios
+	for (t = 0; t < nmbPer; ++t)
+		nSc *= branching(t);
+	MatrixD errScens(N * nmbPer, nSc); // overall output matrix
 
 	DimT tBr = 0;     // period of the current branching
 	DimT tBrNext;     // period of the next branching
@@ -440,27 +487,16 @@ void FcErrTreeGen::gen_reg_tree(MatrixD const & forecast,
 		while (tBrNext < nmbPer && branching(tBrNext) == 1)
 			++tBrNext;
 
-		if (tBrNext < nmbPer) {
-			// not the last branching
-			add_one_stage(branching(tBr), tBrNext - tBr, p2genCopR, p2initCopR);
+		// not the last branching
+		add_one_stage(branching(tBr), tBrNext - tBr,
+		              copRanks[1-outCopIndx], copRanks[outCopIndx], errScens);
 
-			// switch the copula-ranks pointers
-			if (p2genCopR == &copRanks1) {
-				p2genCopR = &copRanks2;
-				p2initCopR = &copRanks1;
-			} else {
-				p2genCopR = &copRanks1;
-				p2initCopR = &copRanks2;
-			}
-
-			tBr = tBrNext;
-		} else {
-			// last branching - ask also for the tree with orig. values
-			add_one_stage(branching(tBr), tBrNext - tBr, p2genCopR, p2initCopR,
-			              &forecast, & outTree);
-			outTree.branching = branching; // copy it to the ScenTree object
-		}
+		outCopIndx = 1 - outCopIndx; // swap input and output copulas
+		tBr = tBrNext;
 	} while (tBrNext < nmbPer);
+
+	errors_to_values(errScens, forecast, outTree.scenVals);
+	outTree.branching = branching;
 }
 
 
