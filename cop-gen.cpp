@@ -1,26 +1,21 @@
 // main routine that generates scenarios for a copula given in a file
 
-#include <iostream>
-#include <fstream>
-#include <ctime> // needed on gcc-win
-//#include <tclap/CmdLine.h> // processing of command-line arguments
-
-// testing only!
-//#include <boost/numeric/ublas/symmetric.hpp>
-
 #include "copula-info.hpp"
 #include "cop2Dsample.hpp"
 #include "copula-sample.hpp"
 #include "margins.hpp"
+
+#include <iostream>
+#include <fstream>
+#include <ctime> // needed on gcc-win
+#include <boost/program_options.hpp>
+#include <sstream>
 
 using namespace std;
 using namespace Copula2D;
 using namespace CopulaScen;
 using namespace CopulaDef;
 using namespace MarginDistrib;
-
-#include <boost/program_options.hpp>
-#include <sstream>
 namespace prOpt = boost::program_options; // short-cut name
 
 
@@ -209,7 +204,7 @@ int main(int argc, char *argv[]) {
 		prOpt::notify(optV);
 
 		if (randSeed < 0) {
-			randSeed = time(NULL);
+			randSeed = time(nullptr);
 		}
 		if (optV.count("cop-output")) {
 			outputCopula = true;

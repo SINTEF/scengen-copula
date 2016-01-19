@@ -1,8 +1,7 @@
-/// main function for the forecast-error-based generator
-/**
-	\note The main function cannot be in \c cop-gen_fc-err.cpp, since
-	      this file is used also with other build targets.
-**/
+// examples of using the forecast-error-based generator
+// NB: NOT USED ANYWHERE
+//  - move some parts to test and delete the file!
+
 
 #include "cop-gen_fc-err.hpp"
 #include "copula-sample.hpp"
@@ -181,10 +180,12 @@ int main(int argc, char *argv[]) {
 
 		VectorI branching(T);
 		assert (T == 4 && "this test is fixed to four periods");
-		branching <<= 4, 1, 3, 1;
+		branching <<= 3, 3, 2, 1;
 
 		scenGen.gen_reg_tree(forecast, branching, scTree);
 		scTree.display_per_scen();
+		std::cout << std::endl;
+		scTree.display_per_var();
 	}
 
 	return 0;

@@ -220,6 +220,8 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-pedantic" />
+			<Add option="-Wzero-as-null-pointer-constant" />
 			<Add option="-std=c++11" />
 			<Add option="-Wall" />
 			<Add option="-Wno-unused-local-typedefs" />
@@ -265,6 +267,9 @@
 			<Option target="fc-err_Rel" />
 		</Unit>
 		<Unit filename="cop-gen_fc-err_ex.cpp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="cop-gen_fc-err_main.cpp">
 			<Option target="fc-err_Dbg" />
 			<Option target="fc-err_Rel" />
 		</Unit>

@@ -178,6 +178,11 @@ public:
 
 	/// simple terminal printout of the values, one matrix per scenario
 	void display_per_scen() const;
+
+	/// simple terminal printout of the values, one matrix per variable
+	/// \todo make aa version returning a stream or an array of matrices
+	///       so we can easily add other outputs
+	void display_per_var() const;
 };
 
 

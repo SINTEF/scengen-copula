@@ -273,7 +273,31 @@ void ScenTree::display_per_scen() const
 {
 	DimT s, S = scenVals.size();
 	for (s = 0; s < S; ++s) {
-		ECHO("values for scenario " << s+1 << ": " << std::endl << scenVals[s]);
+		std::cout << "values for scenario " << s+1 << ":" << std::endl
+		          << scenVals[s] << std::endl;
+	}
+}
+
+void ScenTree::display_per_var() const
+{
+	DimT s, S = scenVals.size();
+	DimT t, T = scenVals[0].size1();
+	DimT i, N = scenVals[0].size2();
+	for (i = 0; i < N; ++i) {
+		std::cout << "values for margin/variable " << i+1 << ":" << std::endl;
+		if (rootVals.size() == N) {
+			// copy the root value to all scenarios
+			for (s = 0; s < S; ++s)
+				std::cout << rootVals[i] << "\t";
+			std::cout << std::endl;
+		}
+
+		for (t = 0; t < T; ++t) {
+			for (s = 0; s < S; ++s)
+				std::cout << scenVals[s](t, i) << "\t";
+			std::cout << std::endl;
+		}
+		std::cout << std::endl;
 	}
 }
 
@@ -391,31 +415,33 @@ void FcErrTreeGen::add_one_stage(DimT const nBr, DimT const dT,
 				// cannot work with whole columns, since boost does not have
 				// vector + scalar overloaded
 				for (i = 0; i < nFixM; ++i)
-					fixedMargs(i, s) = nBr * prevRanks(i, s0);
+					fixedMargs(i, s) = nBr * prevRanks(i, s0) + nBr / 2;
 				//ublas::column(fixedMargs, s) = ublas::column(*p2prevRanks, s0);
 				++s;
 			}
 		}
 		assert (s == nSc && "consistency check");
-		DBGSHOW(TrDetail, prevRanks);
-		DBGSHOW(TrDetail, fixedMargs);
+		DBGSHOW_NL(TrDetail, prevRanks);
+		DBGSHOW_NL(TrDetail, fixedMargs);
 		copSc.fix_marg_values(fixedMargs, true);
 	}
 
 	copSc.gen_sample();
 	copSc.get_result_ranks(copRanks);
+	DBGSHOW_NL(TrDetail, copRanks);
 
 	// transform margins to the target distribution
 	MatrixD errScens;  // dim = nVars, nSc]
 	auto p2tgMargs = boost::make_shared<MarginDistrib::SampleMargins>(errM);
 	p2tgMargs->get_margin_distr(copRanks, errScens);
+	MSG(TrDetail, "generated matrix of errors:" << std::endl << errScens);
 
 	// now, copy the result to totErrors, but only the periods generated here
 	if (totErrors.size1() > 0) {
 		DimT scenMult = totErrors.size2() / nSc;
 		if (nSc * scenMult != totErrors.size2())
 			throw std::length_error("inconsistent size of the output matrix");
-		for (i = nFixM; i < N * dT; ++i) {
+		for (i = nFixM; i < nFixM + N * dT; ++i) {
 			for (s = 0; s < nSc; ++s)
 				for (DimT sM = 0; sM < scenMult; ++sM)
 					totErrors(i, scenMult * s + sM) = errScens(i, s);
@@ -472,11 +498,11 @@ void FcErrTreeGen::gen_reg_tree(MatrixD const & forecast,
 	//MatrixI & initCopR = copRanks2;
 	//MatrixI & genCopR = copRanks1;
 
-	DimT t, nSc = 1; // total number of scenarios
+	DimT t, nSc = 1;  // total number of scenarios
 	for (t = 0; t < nmbPer; ++t)
 		nSc *= branching(t);
-	MatrixD errScens(N * nmbPer, nSc); // overall output matrix
-
+	MatrixD errScens  // overall output matrix, initialized to zeros
+		= ublas::zero_matrix<double>(N * nmbPer, nSc);
 	DimT tBr = 0;     // period of the current branching
 	DimT tBrNext;     // period of the next branching
 	do {
@@ -490,11 +516,14 @@ void FcErrTreeGen::gen_reg_tree(MatrixD const & forecast,
 		// not the last branching
 		add_one_stage(branching(tBr), tBrNext - tBr,
 		              copRanks[1-outCopIndx], copRanks[outCopIndx], errScens);
+		MSG(TrDetail, "updated overall matrix of errors:" << std::endl
+		              << errScens);
 
 		outCopIndx = 1 - outCopIndx; // swap input and output copulas
 		tBr = tBrNext;
 	} while (tBrNext < nmbPer);
 
+	DBGSHOW_NL(TrDetail, forecast);
 	errors_to_values(errScens, forecast, outTree.scenVals);
 	outTree.branching = branching;
 }
