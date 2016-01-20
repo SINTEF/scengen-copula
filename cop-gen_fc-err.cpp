@@ -83,11 +83,14 @@ void FcErr_Gen::errors_to_values(MatrixD const & errSc, MatrixD const & forecast
 {
 	DimT nVars = errSc.size1();
 	DimT nSc = errSc.size2();
-	DimT T = forecast.size1();
 	DimT N = forecast.size2();
+	DimT T = nVars / N;
 	if (nVars != T * N)
-		throw std::length_error(
-			"inconsistent sizes of error and forecase matrices");
+		throw std::length_error
+			("inconsistent sizes of error and forecast matrices");
+	if (forecast.size1() < T)
+		throw std::length_error
+			("not enough periods in the forecast matrix");
 
 	DimT i, r, s, t;
 

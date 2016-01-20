@@ -189,7 +189,7 @@
 				<Option object_output=".obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="-c indep --dim 2 4" />
+				<Option parameters="--hist-data hist_fcasts.dat --forecast forecast.dat --scens 5" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>

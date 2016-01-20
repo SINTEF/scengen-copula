@@ -37,7 +37,8 @@ int main(int argc, char *argv[]) {
 	string forecastFName = "";  // file with the current forecast
 	string outputFName = "";    // output file name
 	DimT nSc = 0;               // number of scenarios to generate
-	DimT T = 0;                 // number of periods to generate
+	DimT nPer = 0;                 // number of periods to generate
+	DimT nVar = 0;                 // number of variables/margins
 	string branchingStr;        // list of branching factors as a string
 	VectorI branching;          // vector of branching factors
 	int perVarDt = 1;           // gen. 2D copulas up to t ± dt, for given var
@@ -76,7 +77,7 @@ int main(int argc, char *argv[]) {
 			("forecast,f", prOpt::value<string>(&forecastFName)->required(),
 			               "file with current forecast")
 			("scens,s", prOpt::value<DimT>(&nSc), "number of scenarios")
-			("periods,t", prOpt::value<DimT>(&T), "number of periods")
+			("periods,t", prOpt::value<DimT>(&nPer), "number of periods")
 			("branching,b", prOpt::value<string>(&branchingStr),
 			                "branches per per. (comma-separated list)")
 			("per-var-dt", prOpt::value<int>(&perVarDt)->default_value(1),
@@ -151,6 +152,48 @@ int main(int argc, char *argv[]) {
 		// now check the input - with throw an exception on errors
 		prOpt::notify(optV);
 
+		// read the input files
+		std::ifstream inFileStr(histDataFName);
+		if (!inFileStr) {
+			throw std::ios_base::failure("Could not open input file `"
+			                             + histDataFName + "'!");
+		}
+		inFileStr >> histData;
+		inFileStr.close();
+		TRACE(TrDetail, "histData: [" << histData.size1() << ", "
+		                << histData.size2() << "]");
+		//
+		inFileStr.open(forecastFName);
+		if (!inFileStr) {
+			throw std::ios_base::failure("Could not open input file `"
+			                             + forecastFName + "'!");
+		}
+		inFileStr >> forecast;
+		inFileStr.close();
+		TRACE(TrDetail, "forecast: [" << forecast.size1() << ", "
+		                << forecast.size2() << "]");
+		// dimension checks
+		nVar = forecast.size2();
+		DimT T = histData.size2() / nVar - 1;
+		if (histData.size2() != nVar * (T + 1))
+			throw std::length_error
+				("Inconsistent dimension of input matrices.");
+		if (optV.count("periods")) {
+			// number of periods given -> check that we have enough data
+			if (T < nPer)
+				throw std::length_error
+					("Not enough columns in the historical-data matrix.");
+			if (forecast.size1() < nPer)
+				throw std::length_error
+					("Not enough rows in the forecast matrix.");
+		} else {
+			// number of periods not given -> imply from other data
+			// (nPer = min(dt in forecast, dt in histData)
+			nPer = forecast.size1();
+			if (T < nPer)
+				nPer = T;
+		}
+
 		// post-processing - keep it here, so we can throw input-errors
 		outLvl = static_cast<OutputLevel>(outLvlInt);
 		srand(randSeed >= 0 ? randSeed : time(nullptr)); // set the random seed
@@ -169,41 +212,40 @@ int main(int argc, char *argv[]) {
 				if (brStrStr.peek() == ',')
 					brStrStr.ignore();
 			}
-			// compare the length of the vector to T (if provided)
-			if (T == 0) {
-				T = brVector.size();  // T not given .. use the length
-			} else {
-				if (T > brVector.size()) {
+			// compare the length of the vector to nPer (if provided)
+			if (optV.count("periods")) {
+				// specified number of periods - has to have enough data
+				if (brVector.size() < nPer) {
 					throw std::length_error
-						("not enough periods in the forecast data");
+						("not enough periods in the branching list");
+				}
+			} else  {
+				if (nPer == 0) {
+					//nPer = brVector.size();  // nPer not given
+					// if "periods" not given, it should be set from forecasts
+					throw std::logic_error("should never get here");
+				}
+				if (brVector.size() < nPer) {
+					// branching contains fewer periods than the forecast
+					nPer = brVector.size();
 				}
 			}
-			// now we have T > 0 && T <= length of the forecast
-			branching.resize(T);
-			for (i = 0; i < T; ++i)
+			// now we have nPer > 0 && nPer <= length of the forecast
+			branching.resize(nPer);
+			for (i = 0; i < nPer; ++i)
 				branching(i) = brVector[i];
 			DBGSHOW(TrDetail, branching);
 		} else {
-			// no 'branching -> need scenarios
+			// no 'branching' -> need scenarios
 			if (!optV.count("scens"))
 				throw std::runtime_error("needs either --scens or --branching");
 		}
-		// read the input files
-		std::ifstream inFileStr(histDataFName);
-		if (!inFileStr) {
-			throw std::ios_base::failure("Could not open input file `"
-			                             + histDataFName + "'!");
-		}
-		inFileStr >> histData;
-		inFileStr.close();
-		//
-		inFileStr.open(forecastFName);
-		if (!inFileStr) {
-			throw std::ios_base::failure("Could not open input file `"
-			                             + forecastFName + "'!");
-		}
-		inFileStr >> forecast;
-		inFileStr.close();
+		assert(nPer > 0 && "should have the number of periods at this point");
+		// dimension check:
+		if (histData.size2() < nVar * (nPer+1))
+			throw std::length_error
+				("Inconsistent dimension - not enough columns in hist. data");
+
 	}
 	catch(std::exception & e) {
 		std:: cerr << "Input error: " << e.what() << endl;
@@ -215,14 +257,17 @@ int main(int argc, char *argv[]) {
 		exit(2);
 	}
 
-	DimT N = forecast.size2();
-	// TO DO .. checks (and move into try{}?)
+	DBGSHOW(TrDetail, nVar);
+	DBGSHOW(TrDetail, nPer);
+	DBGSHOW(TrDetail, nSc);
 
-	FcErrTreeGen scenGen(N, histData, hDataSort, perVarDt, intVarDt);
+	FcErrTreeGen scenGen(nVar, histData, hDataSort, perVarDt, intVarDt);
 	ScenTree scTree;
 
 	if (nSc > 0) {
 		// two-stage tree
+		INFO("Generating a 2-stage tree with " << nSc << " scenarios and "
+		)
 		scenGen.gen_2stage_tree(forecast, nSc, scTree);
 	} else {
 		// multi-stage tree
