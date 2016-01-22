@@ -7,6 +7,8 @@
 #include "margins.hpp"
 #include "copula-sample.hpp"
 
+#include <iostream>
+
 
 /// classes and methods specific for the forecast-error-based generator
 namespace FcErr_Gen {
@@ -160,6 +162,9 @@ private:
 		std::vector<MatrixD> scenVals; ///< scenario values; S * [T, N]
 		VectorI branching; ///< optional branching per period; [T]
 		VectorD rootVals;  ///< optional root values; [N]
+
+		std::vector<MatrixD> varVals; ///< values per var, for output; N * [T, S]
+		void fill_vals_per_var();     ///< fill \c varVals from \c scenVals
 	///@}
 public:
 	ScenTree() = default;
@@ -176,13 +181,33 @@ public:
 	/// get the number of variables
 	DimT nmb_variables() const;
 
-	/// simple terminal printout of the values, one matrix per scenario
-	void display_per_scen() const;
+	/// set the current values
+	void set_root_values(VectorD const & curVal) { rootVals = curVal; }
+	/// set the current values
+	void set_root_values(std::vector<double> const & curVal);
 
-	/// simple terminal printout of the values, one matrix per variable
-	/// \todo make aa version returning a stream or an array of matrices
-	///       so we can easily add other outputs
-	void display_per_var() const;
+	/// simple stream printout of the values, one matrix per scenario
+	void display_per_scen(std::ostream & outStr = std::cout) const;
+
+	/// simple stream printout of the values, one matrix per variable
+	/**
+		\note Cannot be \c const, because it fills \c varVals if necessary
+	**/
+	void display_per_var(std::ostream & outStr = std::cout,
+	                     bool const useVarHeader = true,
+	                     std::string const varSep = "\n");
+
+	/// make a gnuplot script for plotting the data per
+	//void gnuplot_script_per_var(std::ostream & outStr) const;
+
+	/// make gnuplot charts, per variable
+	/**
+		\note Cannot be \c const, because it fills \c varVals if necessary
+		\todo ADD FILE OUTPUT
+		\todo ADD SYSTEM CALL TO GNUPLOT
+	**/
+	int make_gnuplot_charts(MatrixD const * const p2forecast,
+                            std::string const & gnuplotExe = "gnuplot");
 };
 
 

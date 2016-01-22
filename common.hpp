@@ -50,7 +50,7 @@ DimT const MaxVecLen = std::numeric_limits<VectorD::size_type>::max();
 		// Note: the vector_expression<VT> has only one method "()", which
 		// returns "& VT" or "const & VT" - a ref. to the included vector object.
 		for (auto it = v().begin(); it != v().end(); ++it) {
-			os << *it << " ";
+			os << *it << "\t";
 		}
 		return os;
 	}

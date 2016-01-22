@@ -37,19 +37,24 @@ int main(int argc, char *argv[]) {
 	string forecastFName = "";  // file with the current forecast
 	string outputFName = "";    // output file name
 	DimT nSc = 0;               // number of scenarios to generate
-	DimT nPer = 0;                 // number of periods to generate
-	DimT nVar = 0;                 // number of variables/margins
+	DimT nPer = 0;              // number of periods to generate
+	DimT nVar = 0;              // number of variables/margins
 	string branchingStr;        // list of branching factors as a string
 	VectorI branching;          // vector of branching factors
+	string curValStr;           // current values as a comma-separated list
 	int perVarDt = 1;           // gen. 2D copulas up to t ± dt, for given var
 	int intVarDt = 0;           // gen. 2D copulas up to t ± dt, between vars.
 	HistDataSort hDataSort = HistDataSort::fCastTimeAsc;  // for the input file
+	bool fcastInclCur = false;  // forecast starts with current values
 
 	int randSeed;               // random seed
 	int outLvlInt;              // output level as an integer
 
 	MatrixD histData;
 	MatrixD forecast;
+	VectorD curVal;
+
+	DimT i;
 
 	std::stringstream helpHeader;
 	helpHeader << "Scenario-generation code using historical forecast errors"
@@ -80,10 +85,14 @@ int main(int argc, char *argv[]) {
 			("periods,t", prOpt::value<DimT>(&nPer), "number of periods")
 			("branching,b", prOpt::value<string>(&branchingStr),
 			                "branches per per. (comma-separated list)")
+			("cur-val,c", prOpt::value<string>(&curValStr),
+			              "current values (comma-separated list)")
 			("per-var-dt", prOpt::value<int>(&perVarDt)->default_value(1),
 			               "gen. 2D copulas up to t±dt, for given var")
 			("int-var-dt", prOpt::value<int>(&intVarDt)->default_value(0),
 			               "gen. 2D copulas up to t±dt, between vars")
+			("fcast-incl-cur", prOpt::bool_switch(&fcastInclCur),
+			                   "forecast starts with current values")
 			;
 
 		// hidden options - allowed everywhere, but not shown to the user
@@ -152,6 +161,11 @@ int main(int argc, char *argv[]) {
 		// now check the input - with throw an exception on errors
 		prOpt::notify(optV);
 
+		// NB: optV.count("fcast-incl-cur") = 1 always!
+		if (fcastInclCur && optV.count("cur-val") > 0)
+			throw std::runtime_error("options --fcast-incl-cur and --curval "
+			                         "are mutually exclusive.");
+
 		// read the input files
 		std::ifstream inFileStr(histDataFName);
 		if (!inFileStr) {
@@ -170,6 +184,16 @@ int main(int argc, char *argv[]) {
 		}
 		inFileStr >> forecast;
 		inFileStr.close();
+		if (fcastInclCur) {
+			TRACE(TrDetail, "forecast incl. cur.: [" << forecast.size1() << ", "
+			                << forecast.size2() << "]");
+			DISPLAY_NL(forecast);
+			curVal = ublas::row(forecast, 0);
+			for (i = 1; i < forecast.size1(); ++i)
+				ublas::row(forecast, i - 1) = ublas::row(forecast, i);
+			forecast.resize(forecast.size1() - 1, forecast.size2(), true);
+			DISPLAY_NL(forecast);
+		}
 		TRACE(TrDetail, "forecast: [" << forecast.size1() << ", "
 		                << forecast.size2() << "]");
 		// dimension checks
@@ -205,7 +229,6 @@ int main(int argc, char *argv[]) {
 			// problem: ublas::vector does not have a push_back funtion!
 			std::stringstream brStrStr(branchingStr);
 			std::vector<DimT> brVector;
-			DimT i;
 			// src: http://stackoverflow.com/a/1894955/842693
 			while (brStrStr >> i) {
 				brVector.push_back(i);
@@ -220,10 +243,12 @@ int main(int argc, char *argv[]) {
 						("not enough periods in the branching list");
 				}
 			} else  {
-				if (nPer == 0) {
-					//nPer = brVector.size();  // nPer not given
-					// if "periods" not given, it should be set from forecasts
-					throw std::logic_error("should never get here");
+				assert (nPer > 0
+				        && "no --periods -> nPer is set from the forecast");
+				if (brVector.size() > nPer) {
+					// not enough periods in either forecast or hist. data
+					throw std::length_error("branching list contains more "
+					                        "periods than we have data for");
 				}
 				if (brVector.size() < nPer) {
 					// branching contains fewer periods than the forecast
@@ -274,9 +299,33 @@ int main(int argc, char *argv[]) {
 		assert (branching.size() > 0);
 		scenGen.gen_reg_tree(forecast, branching, scTree);
 	}
+	if (curValStr.size() > 0) {
+		// parse the string into std::vector
+		// problem: ublas::vector does not have a push_back funtion!
+		std::stringstream curValStrStr(curValStr);
+		std::vector<double> curValV;
+		double x;
+		// src: http://stackoverflow.com/a/1894955/842693
+		while (curValStrStr >> x) {
+			curValV.push_back(x);
+			if (curValStrStr.peek() == ',')
+				curValStrStr.ignore();
+		}
+		DBGSHOW(TrDetail, curValStr);
+		DBGSHOW(TrDetail, curValV);
+		// now copy it to the scenario-tree object
+		if (curValV.size() == nVar) {
+			scTree.set_root_values(curValV);
+		} else {
+			std::cerr << "Warning: wrong size of the current-value vector "
+			             "- ignoring it!" << std::endl;
+		}
+	}
 
 	scTree.display_per_scen();
 	scTree.display_per_var();
+
+	scTree.make_gnuplot_charts(&forecast);
 
 	return 0;
 }

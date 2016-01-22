@@ -1,6 +1,6 @@
 #include "cop-gen_fc-err.hpp"
 
-#include <iostream>
+//#include <iostream>
 #include <fstream>
 //#include <cmath>
 //#include <algorithm>
@@ -250,6 +250,33 @@ void CopInfoForecastErrors::setup_2d_targets(int perVarDt, int intVarDt)
 // --------------------------------------------------------------------------
 // class ScenTree
 
+void ScenTree::fill_vals_per_var()
+{
+	if (scenVals.size() == 0) {
+		std::cerr << "called fill_vals_per_var without output data - ignoring"
+		          << std::endl;
+		return;
+	}
+	DimT s, S = scenVals.size();
+	DimT t, T = scenVals[0].size1();
+	DimT i, N = scenVals[0].size2();
+	DimT r, R = T + (rootVals.size() == N ? 1 : 0);
+	varVals.resize(N);
+	for (i = 0; i < N; ++i) {
+		varVals[i].resize(R, S);
+		r = 0;
+		if (rootVals.size() == N) {
+			for (s = 0; s < S; ++s)
+				varVals[i](r, s) = rootVals(i);
+			++r;
+		}
+		for (t = 0; t < T; ++t)
+			for (s = 0; s < S; ++s)
+				varVals[i](t + r, s) = scenVals[s](t, i);
+	}
+}
+
+
 bool ScenTree::is_empty() const
 {
 	return (scenVals.size() == 0);
@@ -271,37 +298,109 @@ DimT ScenTree::nmb_variables() const
 	return scenVals[0].size2(); // assuming all scenarios are equal
 }
 
+void ScenTree::set_root_values(std::vector<double> const & curVal)
+{
+	DimT N = curVal.size();
+	if (scenVals.size() > 0 && N != scenVals[0].size2())
+		throw std::length_error("vector of root values has a wrong length");
+	DimT i;
+	rootVals.resize(N);
+	for (i = 0; i < N; ++i)
+		rootVals(i) = curVal[i];
+}
 
-void ScenTree::display_per_scen() const
+
+void ScenTree::display_per_scen(std::ostream & outStr) const
 {
 	DimT s, S = scenVals.size();
 	for (s = 0; s < S; ++s) {
-		std::cout << "values for scenario " << s+1 << ":" << std::endl
-		          << scenVals[s] << std::endl;
+		outStr << "# values for scenario " << s+1 << ":" << std::endl;
+		if (rootVals.size() == scenVals[0].size2())
+			outStr << rootVals << std::endl;
+		outStr << scenVals[s] << std::endl;
 	}
 }
 
-void ScenTree::display_per_var() const
+void ScenTree::display_per_var(std::ostream & outStr,
+                               bool const useVarHeader,
+                               std::string const varSep)
 {
-	DimT s, S = scenVals.size();
-	DimT t, T = scenVals[0].size1();
+	if (varVals.size() == 0)
+		fill_vals_per_var();
+
 	DimT i, N = scenVals[0].size2();
 	for (i = 0; i < N; ++i) {
-		std::cout << "values for margin/variable " << i+1 << ":" << std::endl;
-		if (rootVals.size() == N) {
-			// copy the root value to all scenarios
-			for (s = 0; s < S; ++s)
-				std::cout << rootVals[i] << "\t";
-			std::cout << std::endl;
-		}
-
-		for (t = 0; t < T; ++t) {
-			for (s = 0; s < S; ++s)
-				std::cout << scenVals[s](t, i) << "\t";
-			std::cout << std::endl;
-		}
-		std::cout << std::endl;
+		if (i > 0)
+			outStr << varSep;
+		if (useVarHeader)
+			outStr << "# scenarios for variable " << i+1 << ":" << std::endl;
+		outStr << varVals[i];
 	}
+}
+
+int ScenTree::make_gnuplot_charts(MatrixD const * const p2forecast,
+                                  std::string const & gnuplotExe)
+{
+	DimT s, S = scenVals.size();
+	DimT    T = scenVals[0].size1();
+	DimT i, N = scenVals[0].size2();
+
+	// file for the script
+	std::string scrFName;
+	{
+		std::stringstream scrFNameStr;
+		scrFNameStr << "make_plots_" << time(nullptr) << ".gp";
+		scrFName = scrFNameStr.str();
+	}
+	std::ofstream scrF(scrFName, std::ios::out);
+	if (!scrF)
+		throw std::ios_base::failure("could not open output file " + scrFName);
+
+	// file for the output scenario data
+	std::string outFName;
+	{
+		std::stringstream outFNameStr;
+		outFNameStr << "out_scens_" << time(nullptr) << ".out";
+		outFName = outFNameStr.str();
+	}
+	std::ofstream outF(outFName, std::ios::out);
+	if (!outF)
+		throw std::ios_base::failure("could not open output file " + outFName);
+
+	// first, write the data file
+	if (p2forecast) {
+		outF << "# forecast\n";
+		if (rootVals.size() == N)
+			outF << rootVals << '\n';
+		outF << *p2forecast << "\n\n";
+	}
+	display_per_var(outF, true, "\n\n");
+	outF.close();
+
+	// now write the script;
+	scrF << "set xrange [0:" << T << "]\n";
+	scrF << "set xtics 1\n";
+	scrF << "set key outside right\n";
+	scrF << "\n";
+	for (i = 0; i < N; ++i) {
+		scrF << "set title 'Scenarios for variable " << i+1 << "'\n";
+		scrF << "plot \\\n";
+		//
+		std::string xCol = ((rootVals.size() == N ? "0" : "($0+1)"));
+		if (p2forecast) {
+			for (s = 0; s < S; ++s)
+				scrF << "\t'" << outFName << "' using " << xCol << ":" << s+1 << " index " << i+1 << " w linespoints title 'scen " << s+1 << "', \\\n";
+			scrF << "\t'" << outFName << "' using " << xCol << ":" << i+1 << " index 0 w linespoints ls -1 lw 2 title 'forecast'\n";
+		} else {
+			for (s = 0; s < S; ++s)
+				scrF << "\t'" << outFName << "' using " << xCol << ":" << s+1 << " index " << i << " w linespoints title 'scen " << s+1 << "'" << (i < N-1 ? ", \\" : "") << '\n';
+		}
+		scrF << "pause -1 'press any key'\n";
+		scrF << "\n";
+	}
+	scrF.close();
+
+	return 0;
 }
 
 
