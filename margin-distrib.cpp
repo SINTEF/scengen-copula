@@ -104,6 +104,7 @@ UnivarMargin * UnivarMargin::make_new(string const & margName,
 	}
 	return UnivarMargin::nameMap.at(margNameLC)(paramStr, nSc);
 }
+
 // inverse CDF
 double UnivarMargin::inv_cdf(DimT const r, DimT const N) const
 {
