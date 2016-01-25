@@ -197,16 +197,17 @@ public:
 	                     bool const useVarHeader = true,
 	                     std::string const varSep = "\n");
 
-	/// make a gnuplot script for plotting the data per
-	//void gnuplot_script_per_var(std::ostream & outStr) const;
-
 	/// make gnuplot charts, per variable
 	/**
 		\note Cannot be \c const, because it fills \c varVals if necessary
-		\todo ADD FILE OUTPUT
-		\todo ADD SYSTEM CALL TO GNUPLOT
+
+		At the moment, this simply calls gnuplot using the \c system() command.
+		An alternative could be using the gnuplot-iostream interface from
+		http://www.stahlke.org/dan/gnuplot-iostream/, but that would introduce
+		extra dependency...
 	**/
-	int make_gnuplot_charts(MatrixD const * const p2forecast,
+	int make_gnuplot_charts(std::string const & baseFName,
+	                        MatrixD const * const p2forecast,
                             std::string const & gnuplotExe = "gnuplot");
 };
 

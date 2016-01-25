@@ -45,10 +45,12 @@ int main(int argc, char *argv[]) {
 	int perVarDt = 1;           // gen. 2D copulas up to t ± dt, for given var
 	int intVarDt = 0;           // gen. 2D copulas up to t ± dt, between vars.
 	HistDataSort hDataSort = HistDataSort::fCastTimeAsc;  // for the input file
-	bool fcastInclCur = false;  // forecast starts with current values
+	bool fcastInclCur = false;   // forecast starts with current values
+	string chartsBaseFName = ""; // base of the filename of output charts
+	string gnuplotExe = "";      // name of the gnuplot executable
 
-	int randSeed;               // random seed
-	int outLvlInt;              // output level as an integer
+	int randSeed;                // random seed
+	int outLvlInt;               // output level as an integer
 
 	MatrixD histData;
 	MatrixD forecast;
@@ -93,6 +95,8 @@ int main(int argc, char *argv[]) {
 			               "gen. 2D copulas up to t±dt, between vars")
 			("fcast-incl-cur", prOpt::bool_switch(&fcastInclCur),
 			                   "forecast starts with current values")
+			("charts-per-var", prOpt::value<string>(&chartsBaseFName),
+			                   "filename of output charts (without ext.)")
 			;
 
 		// hidden options - allowed everywhere, but not shown to the user
@@ -103,6 +107,9 @@ int main(int argc, char *argv[]) {
 			              "level of output")
 			("rand-seed,s", prOpt::value<int>(&randSeed)->default_value(-1),
 			                "random seed (-1 means time-based)")
+			("gnuplot-exe", prOpt::value<string>(&gnuplotExe)
+			                ->default_value("gnuplot"),
+			                "name of the gnuplot executable")
 			;
 
 		prOpt::options_description visibleOpt;
@@ -301,7 +308,7 @@ int main(int argc, char *argv[]) {
 	}
 	if (curValStr.size() > 0) {
 		// parse the string into std::vector
-		// problem: ublas::vector does not have a push_back funtion!
+		// problem: ublas::vector does not have a push_back function!
 		std::stringstream curValStrStr(curValStr);
 		std::vector<double> curValV;
 		double x;
@@ -322,10 +329,16 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	scTree.display_per_scen();
-	scTree.display_per_var();
+	if (outLvl >= TrDetail) {
+		scTree.display_per_scen();
+		scTree.display_per_var();
+		std::cout << std::endl;
+	}
 
-	scTree.make_gnuplot_charts(&forecast);
+	if (chartsBaseFName.size() > 0) {
+		INFO("Generating output charts.");
+		scTree.make_gnuplot_charts(chartsBaseFName, &forecast, gnuplotExe);
+	}
 
 	return 0;
 }

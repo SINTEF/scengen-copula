@@ -2,6 +2,8 @@
 
 //#include <iostream>
 #include <fstream>
+#include <cstdlib>  // for system() command
+#include <cstdio>   // for remove() command
 //#include <cmath>
 //#include <algorithm>
 //#include <deque>
@@ -338,7 +340,8 @@ void ScenTree::display_per_var(std::ostream & outStr,
 	}
 }
 
-int ScenTree::make_gnuplot_charts(MatrixD const * const p2forecast,
+int ScenTree::make_gnuplot_charts(std::string const & baseFName,
+                                  MatrixD const * const p2forecast,
                                   std::string const & gnuplotExe)
 {
 	DimT s, S = scenVals.size();
@@ -346,30 +349,30 @@ int ScenTree::make_gnuplot_charts(MatrixD const * const p2forecast,
 	DimT i, N = scenVals[0].size2();
 
 	// file for the script
-	std::string scrFName;
-	{
+	std::string scrFName = "make_plots.gp";
+	/*{
 		std::stringstream scrFNameStr;
 		scrFNameStr << "make_plots_" << time(nullptr) << ".gp";
 		scrFName = scrFNameStr.str();
-	}
+	}*/
 	std::ofstream scrF(scrFName, std::ios::out);
 	if (!scrF)
 		throw std::ios_base::failure("could not open output file " + scrFName);
 
 	// file for the output scenario data
-	std::string outFName;
-	{
+	std::string outFName = "out_scens.out";
+	/*{
 		std::stringstream outFNameStr;
 		outFNameStr << "out_scens_" << time(nullptr) << ".out";
 		outFName = outFNameStr.str();
-	}
+	}*/
 	std::ofstream outF(outFName, std::ios::out);
 	if (!outF)
 		throw std::ios_base::failure("could not open output file " + outFName);
 
 	// first, write the data file
 	if (p2forecast) {
-		outF << "# forecast\n";
+		outF << "# forecast" << '\n';
 		if (rootVals.size() == N)
 			outF << rootVals << '\n';
 		outF << *p2forecast << "\n\n";
@@ -378,27 +381,61 @@ int ScenTree::make_gnuplot_charts(MatrixD const * const p2forecast,
 	outF.close();
 
 	// now write the script;
-	scrF << "set xrange [0:" << T << "]\n";
-	scrF << "set xtics 1\n";
-	scrF << "set key outside right\n";
-	scrF << "\n";
+	scrF << "set xrange [-0.1:" << T + 0.1 << "]" << '\n';
+	scrF << "set xtics 1" << '\n';
+	DimT figW = 800;
+	if (S > 24)
+		scrF << "unset key" << '\n';  // too many scenarios to show a legend
+	else {
+		scrF << "set key outside right" << '\n';
+		figW += 160;
+	}
+	scrF << "set term png enhanced size " << figW << ",600 truecolor" << '\n';
+	scrF << '\n';
 	for (i = 0; i < N; ++i) {
-		scrF << "set title 'Scenarios for variable " << i+1 << "'\n";
-		scrF << "plot \\\n";
+		std::stringstream figFNameStr;
+		figFNameStr << baseFName << i+1 << ".png";
+		scrF << "set output '" << figFNameStr.str() << "'" << '\n';
+		scrF << "set title 'Scenarios for variable " << i+1 << "'" << '\n';
+
+		scrF << "plot \\" << '\n';
 		//
 		std::string xCol = ((rootVals.size() == N ? "0" : "($0+1)"));
 		if (p2forecast) {
 			for (s = 0; s < S; ++s)
-				scrF << "\t'" << outFName << "' using " << xCol << ":" << s+1 << " index " << i+1 << " w linespoints title 'scen " << s+1 << "', \\\n";
-			scrF << "\t'" << outFName << "' using " << xCol << ":" << i+1 << " index 0 w linespoints ls -1 lw 2 title 'forecast'\n";
+				scrF << "\t'" << outFName << "' using " << xCol << ":" << s+1
+				     << " index " << i+1 << " w linespoints title 'scen " << s+1
+				     << "', \\" << '\n';
+			scrF << "\t'" << outFName << "' using " << xCol << ":" << i+1
+			     << " index 0 w linespoints ls -1 lw 2 title 'forecast'\n";
 		} else {
 			for (s = 0; s < S; ++s)
-				scrF << "\t'" << outFName << "' using " << xCol << ":" << s+1 << " index " << i << " w linespoints title 'scen " << s+1 << "'" << (i < N-1 ? ", \\" : "") << '\n';
+				scrF << "\t'" << outFName << "' using " << xCol << ":" << s+1
+				     << " index " << i << " w linespoints title 'scen " << s+1
+				     << "'" << (i < N-1 ? ", \\" : "") << '\n';
 		}
-		scrF << "pause -1 'press any key'\n";
-		scrF << "\n";
+		//scrF << "pause -1 'press any key'\n";
+		scrF << "set output" << '\n';
+		scrF << '\n';
 	}
 	scrF.close();
+
+	std::stringstream gpCmd;
+	gpCmd << gnuplotExe << " " << scrFName;
+	if (system(nullptr) == 0) {
+		std::cerr << "Error: No command-line processor available "
+		             "-> cannot execute gnuplot.\n";
+	} else {
+		TRACE(TrDetail, "Executing system command '" << gpCmd.str() << "'");
+		int retV = system(gpCmd.str().c_str());
+		if (retV != 0) {
+			WARNING("Gnuplot command not successful, error code " << retV);
+		} else {
+			// everything OK -> delete the temp. files
+			remove(outFName.c_str());
+			remove(scrFName.c_str());
+		}
+	}
 
 	return 0;
 }
