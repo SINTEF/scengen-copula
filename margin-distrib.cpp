@@ -41,10 +41,14 @@ void MarginDistrib::make_distrib_name_map(DistribNameMapT & dMap) {
 
 // creates the map - new derived classes have to be added here!
 void UnivarMargin::init_name_map() {
+#ifdef HAS_HKW
 	add_to_map<MarginMoments>("moments");
 	add_to_map<MarginMoments>("m");
+#endif // HAS_HKW
+#ifdef HAS_QUANTLIB
 	add_to_map<MarginNormal>("normal");
 	add_to_map<MarginNormal>("n");
+#endif // HAS_QUANTLIB
 	add_to_map<MarginTriang>("triang");
 	//add_to_map<MarginSample>("sample");
 	//add_to_map<MarginSample>("data");
@@ -100,6 +104,7 @@ UnivarMargin * UnivarMargin::make_new(string const & margName,
 	}
 	return UnivarMargin::nameMap.at(margNameLC)(paramStr, nSc);
 }
+
 // inverse CDF
 double UnivarMargin::inv_cdf(DimT const r, DimT const N) const
 {
@@ -134,7 +139,7 @@ void UnivarMargin::inv_cdf(VectorI const & ranks, VectorD & values)
 // initialize the map - required!
 UnivMargNameMapT UnivarMargin::nameMap;
 
-
+#ifdef HAS_QUANTLIB
 // ---------------------------------------------------------------------------
 // class MarginNormal
 
@@ -157,7 +162,6 @@ MarginNormal::MarginNormal(std::istream & paramStr, DimT const nSc,
 	evMult *= sigma;
 }
 
-
 double MarginNormal::inv_cdf(DimT const r, DimT const N) const
 {
 	if (useCondEV) {
@@ -174,6 +178,7 @@ double MarginNormal::inv_cdf(DimT const r, DimT const N) const
 		return invCdfF((static_cast<double>(r) + 0.5) / N);
 	}
 }
+#endif // HAS_QUANTLIB
 
 
 // ---------------------------------------------------------------------------

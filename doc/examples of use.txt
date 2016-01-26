@@ -27,10 +27,10 @@
    >copula-gen --cop-type sample --input hist_data.txt --marg-type normal --marg-par normal_3d_moms.txt --output test-normal_val.out 100
    >copula-gen -c sample -i hist_data.txt -m normal -d normal_3d_moms.txt -o test-normal_val.out 100
 
-7. Generate 100 scenarios of two independent margins with moments from tg_moms.txt,
+7. Generate 100 scenarios of three independent margins with moments from tg_moms.txt,
    with moments compatible with spreadsheet formulas
-   >copula-gen --cop-type indep --dim 2 --marg-type moments --marg-par tg_moms.txt --form-of-moms 1 100
-   >copula-gen -c indep --dim 2 -m moments -d tg_moms.txt -f 1 100
+   >copula-gen --cop-type indep --dim 3 --marg-type moments --marg-par tg_moms.txt --form-of-moms 1 100
+   >copula-gen -c indep --dim 3 -m moments -d tg_moms.txt -f 1 100
 
 8. Simulating the old moment-matching heuristic (except that the correlations are approximate):
    generate 100 scenarios from normal copula with correlations from normal_3d_corrs.txt and

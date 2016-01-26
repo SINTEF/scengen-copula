@@ -9,10 +9,9 @@
 using std::string;
 
 
-// forward declarations
-// needed to make CopulaSample friend of Cop2DSample
+// forward declarations of classes that will be made friends:
 namespace CopulaScen {
-	class CopulaSample;
+	class CopulaSample; // will be friend of Cop2DSample
 }
 
 
@@ -36,9 +35,17 @@ private:
 		void update_j2iC_from_i2jC(); ///< synchronize j2iC with i2jC
 		void update_i2jC_from_j2iC(); ///< synchronize i2jC with j2iC
 
-		/// check consistency of the i->j and j->i links
+		/// check consistency of the i->j and j->i links (not used anywhere!)
 		bool have_valid_cop();
 	//@}
+
+	/// do we allow multiple scenarios with the same rank in margin 1?
+	/**
+		Normally, this should be \c false.
+		The only know reason why we could want this is when generating
+		multi-stage trees using the forecast-error approach.
+	**/
+	bool allowCopiesInMarg1 = false;
 
 	/// reference to a matrix of pre-computed cdf values - points to *p2tgInfo
 	//MatrixF const & tgCdfOfR;
@@ -53,7 +60,13 @@ private:
 		double const *p2prob;
 
 		/// scenarios of ranks of the 1st margin.
-		/// use \c p2prob[scenOfMarg1R[i]] to get probability of rank \c i
+		/**
+			use \c p2prob[scenOfMarg1R[i]] to get probability of rank \c i
+
+			\warning If \c allowCopiesInMarg1 is \c true, then one rank can be
+			         in several scenarios and another ranks in none, so this
+			         vector will include undefined values!
+		**/
 		VectorI scenOfMarg1R;
 
 		//Vector cumProb;     ///< cummulative probabilities
@@ -164,9 +177,11 @@ public:
 		           the first variable of the bivariate sample.
 		\param[in] p2scProb pointer to scenario probabilities;
 		           NULL means equiprobable scenarios
+		\param[in] allowDuplicates  allow duplicate values in \c margScen
 	**/
 	void set_scen_of_marg_1(VectorI const &margScen,
-	                        double const *p2scProb = NULL);
+	                        double const *p2scProb = nullptr,
+	                        bool const allowDuplicates = false);
 
 	/// the main heuristics (not used from the multi-variate code)
 	//double gen_heur();

@@ -50,7 +50,7 @@ DimT const MaxVecLen = std::numeric_limits<VectorD::size_type>::max();
 		// Note: the vector_expression<VT> has only one method "()", which
 		// returns "& VT" or "const & VT" - a ref. to the included vector object.
 		for (auto it = v().begin(); it != v().end(); ++it) {
-			os << *it << " ";
+			os << *it << "\t";
 		}
 		return os;
 	}
@@ -246,6 +246,9 @@ extern OutputLevel outLvl;
 #define ECHO(message) std::cout << message << std::endl; std::cout.flush()
 // this will produce message in all profiles (debug and release)
 #define MSG(lvl, txt) if (lvl <= outLvl) { ECHO(txt); }
+// specialized versions for different output levels
+#define WARNING(txt) MSG(TrWarn, "Warning: " << txt)
+#define INFO(txt) MSG(TrInfo, "Info: " << txt)
 // this will produce message only in debug profiles -> can be used in parts
 // where we do not waste time for checking outLvl in the release versions
 #ifndef NDEBUG
@@ -258,11 +261,15 @@ extern OutputLevel outLvl;
 // macros for displaying variable values (stand-alone and one for use in cout)
 // see http://hamersun.blogspot.com/2010/09/
 #define DISPLAY(var) std::cout << #var " = " << var << std::endl
+#define DISPLAY_NL(var) std::cout << #var " = " << std::endl << var << std::endl
 #define VALUE(var) #var " = " << var
+#define VALUE_NL(var) #var " = " << std::endl << var
 #ifndef NDEBUG
 	#define DBGSHOW(lvl, var) if (lvl <= outLvl) ECHO(VALUE(var))
+	#define DBGSHOW_NL(lvl, var) if (lvl <= outLvl) ECHO(VALUE_NL(var))
 #else
 	#define DBGSHOW(lvl, var)
+	#define DBGSHOW_NL(lvl, var)
 #endif
 
 #endif  // header guard

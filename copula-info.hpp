@@ -1,15 +1,15 @@
 #ifndef COPULA_INFO_HPP
 #define COPULA_INFO_HPP
 
+#include "common.hpp"
+#include "cop2Dinfo.hpp"
+
 #include <boost/numeric/ublas/symmetric.hpp>  // for correlation matrices
 #include <boost/numeric/ublas/triangular.hpp> // pts. to target 2D copulas
 #include <map>
 
-#include "common.hpp"
-#include "cop2Dinfo.hpp"
 
-
-namespace CopulaDef{
+namespace CopulaDef {
 
 /// \name objects for the copula name map, used in the main code
 ///@{
@@ -139,7 +139,6 @@ public:
 	/// cdf at vector \a u = (u_1, .. , u_n)
 	virtual double cdf(VectorD const u) const = 0;
 
-
 	/// initialize cdf grids for all the target 2D copulas; regular intervals
 	/**
 		\param[in] N size of the grid
@@ -159,6 +158,8 @@ public:
 	/// set the number of scenarios (passed to the bivariate copulas)
 	virtual void set_nmb_scens(DimT const nScens);
 
+	/// get the number of initialized 2D target copulas
+	DimT get_nmb_2d_copulas();
 
 	/// smart pointer to the class
 	typedef boost::shared_ptr<CopInfoBy2D> Ptr;
@@ -194,13 +195,13 @@ class CopInfoData : public CopInfoBy2D {
 protected:
 	DimT nPts; ///< number of the sample/data points (in the hist. data)
 
-private:
 	/// \name historical data, different formats
 	/**
 		All matrices have margins in rows, i.e. i-th margin is (i,*).
 	**/
 	///@{
 		MatrixD hData;  ///< hist. data, original values
+private:
 		MatrixI hRanks; ///< hist. data, ranks (values from 1 to N)
 		MatrixD hU01;   ///< hist. data, ranks scaled to U(0,1)
 	///@}
@@ -214,11 +215,18 @@ protected:
 	void fill_ranks_etc();
 
 	/// creates objects for the 2D targets; called from the constructors
-	void setup_2d_targets();
+	virtual void setup_2d_targets();
+
+	/// incomplete constructor, only for derived classes
+	CopInfoData(DimT const N, bool const hasCdf = false)
+	: CopInfoBy2D(N, hasCdf) {}
+
+	/// initialize with target data (for use with the incomplete constructor)
+	//void init_with_hist_data(MatrixD const & hDataMat);
 
 public:
 	/// constructor with the target data as input (matrix is [nVar * nPts])
-	CopInfoData(MatrixI const & hDataMat);
+	CopInfoData(MatrixD const & hDataMat);
 
 	/// constructor with file name of the target distribution
 	CopInfoData(std::string const & tgFName);
@@ -343,7 +351,6 @@ public:
 	}
 };
 
-
-} // namespace
+} // namespace CopulaDef
 
 #endif

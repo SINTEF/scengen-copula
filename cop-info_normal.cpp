@@ -4,6 +4,7 @@
 #include <fstream>
 
 #include "copula-info.hpp"
+#include "cop2Dinfo_w-quantlib.hpp"
 
 using namespace std;
 using namespace CopulaDef;

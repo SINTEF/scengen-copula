@@ -18,13 +18,13 @@ CopulaSample::CopulaSample(CopulaDef::CopInfoBy2D::Ptr p2tg, DimT const S,
   p2copInfo(p2tg.get()),
   p2tgInfo(p2tg->get_pts_to_2d_targets()),
   p2sample2D(nVar, nVar),
-  p2prob(NULL), sample(nVar),
+  p2prob(nullptr), sample(nVar),
   minNumCandScens(numCandPts)
 {
 	DimT i, j;
 	for (i = 0; i < nVar; i++) {
 		for (j = 0; j < nVar; j++) {
-			p2sample2D(i,j) = NULL;
+			p2sample2D(i,j) = nullptr;
 		}
 		sample[i].resize(nSc);
 	}
@@ -68,8 +68,12 @@ double CopulaSample::gen_new_margin(DimT const marg)
 			                                      cop2DId.str());
 			TRACE (TrDetail2, "Created new Cop2DSample with id = "
 			       << cop2DId.str());
+
+			bool canHaveDuplicates = i < nmbMargsWithDuplicates;
+
 			// initialize the 2D-sample generator with scenarios of the known margin
-			p2sample2D(i, marg)->set_scen_of_marg_1(sample[i], p2prob);
+			p2sample2D(i, marg)->set_scen_of_marg_1(sample[i], p2prob,
+			                                        canHaveDuplicates);
 		}
 	}
 	DimT nTg2Dcops = tg2Dcopulas.size();
@@ -169,9 +173,9 @@ double CopulaSample::gen_new_margin(DimT const marg)
 	// cleaning
 	for (i = 0; i < nVar; ++i) {
 		for (j = 0; j < nVar; ++j) {
-			if (p2sample2D(i, marg) != NULL) {
+			if (p2sample2D(i, marg) != nullptr) {
 				delete p2sample2D(i, marg);
-				p2sample2D(i, marg) = NULL;
+				p2sample2D(i, marg) = nullptr;
 				//! temp - should be done more carefully
 				// TEST TEMP
 				// - delete the whole object, of not shared with other cop. pairs
@@ -359,20 +363,23 @@ void CopulaSample::shuffle_results()
 }
 
 
-void CopulaSample::fix_marg_values(MatrixI const & X)
+void CopulaSample::fix_marg_values(MatrixI const & X, bool const allowDuplicates)
 {
-    DimT M = X.size1();
-    if (M > nVar)
-        throw std::length_error("Trying to fix more margins than we have available.");
-    if (X.size2() != nSc)
-        throw std::length_error("Trying to fix margins with wrong number of scenarios.");
+	DimT M = X.size1();
+	if (M > nVar)
+		throw std::length_error("Trying to fix more margins than we have available.");
+	if (X.size2() != nSc)
+		throw std::length_error("Trying to fix margins with wrong number of scenarios.");
 
-    DimT m;
-    for (m = 0; m < M; ++m) {
-        if (haveSc4Marg[m])
-            throw std::logic_error("Trying to fix an already fixed margin.");
-        sample[m] = ublas::row(X, m);
-        assert(sample[m].size() == nSc && "dimension check");
-        haveSc4Marg[m] = true;
-    }
+	DimT m;
+	for (m = 0; m < M; ++m) {
+		if (haveSc4Marg[m])
+			throw std::logic_error("Trying to fix an already fixed margin.");
+		sample[m] = ublas::row(X, m);
+		assert(sample[m].size() == nSc && "dimension check");
+		haveSc4Marg[m] = true;
+	}
+
+	if (allowDuplicates)
+		nmbMargsWithDuplicates = M; // store in the class for later use
 }

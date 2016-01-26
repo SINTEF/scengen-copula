@@ -12,7 +12,11 @@
 
 #include "common.hpp"
 
-#include <ql/math/distributions/normaldistribution.hpp> // for normal distrib.
+#ifdef HAS_QUANTLIB
+#include "external/QuantLib/math/distributions/normaldistribution.hpp" // for normal distrib.
+#endif
+
+//#include <ql/math/distributions/normaldistribution.hpp> // for normal distrib.
 #include <boost/math/distributions/beta.hpp>
 #include <boost/math/distributions/lognormal.hpp>
 #include <boost/math/distributions/poisson.hpp>
@@ -140,6 +144,7 @@ public:
 	typedef boost::shared_ptr<UnivarMargin> Ptr;
 };
 
+#ifdef HAS_QUANTLIB
 
 // ----------------------------------------------------------------------------
 /// margin with normal distribution
@@ -188,6 +193,7 @@ public:
 
 	double inv_cdf(DimT const r, DimT const N) const override;
 };
+#endif
 
 
 // ----------------------------------------------------------------------------
