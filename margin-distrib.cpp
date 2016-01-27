@@ -50,8 +50,8 @@ void UnivarMargin::init_name_map() {
 	add_to_map<MarginNormal>("n");
 #endif // HAS_QUANTLIB
 	add_to_map<MarginTriang>("triang");
-	//add_to_map<MarginSample>("sample");
-	//add_to_map<MarginSample>("data");
+	add_to_map<MarginSample>("sample");
+	add_to_map<MarginSample>("data");
 	add_to_map<MarginStudent>("student");
 	add_to_map<MarginLognormal>("lognormal");
 	add_to_map<MarginExp>("exponential");
@@ -282,6 +282,15 @@ MarginTriang::MarginTriang(std::istream & paramStr, DimT const nSc, bool const u
 : UnivarMargin(), useMinMax(useExtremes)
 {
 	paramStr >> min >> max >> mode;
+	if (!paramStr.eof()) {
+		string extra;
+		paramStr >> extra;
+		// convert to lower case (letter by letter)
+		for (auto & ltr: extra)
+			ltr = std::tolower(ltr);
+		if (extra.compare("x") == 0)
+			useMinMax = true;
+	}
 	guts_of_constructor();
 }
 
