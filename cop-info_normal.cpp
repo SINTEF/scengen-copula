@@ -1,10 +1,10 @@
 // implementation of class CopInfoNormal
 
-#include <iostream>
-#include <fstream>
-
 #include "copula-info.hpp"
 #include "cop2Dinfo_w-quantlib.hpp"
+
+#include <iostream>
+#include <fstream>
 
 using namespace std;
 using namespace CopulaDef;

@@ -54,7 +54,7 @@
 	- 8	if both errors < max, report the results (we have convergence),
 		otherwise report failure and return the best scenarios found
 **/
-DLL_PUBLIC int HKW_ScenGen(int const FormatOfMoms,
+HKW_DLL_EX int HKW_ScenGen(int const FormatOfMoms,
                            TMatrix const * const p_TarMoms,
                            TMatrix const * const p_TgCorrs,
                            TVector const * const p_Probs,
@@ -77,7 +77,7 @@ DLL_PUBLIC int HKW_ScenGen(int const FormatOfMoms,
 	we would not be able to access the scenario values. If we wanted to allow
 	it, we would have to pass a pointer to the array, i.e. double***).
 **/
-DLL_PUBLIC int scengen_HKW(double ** const tgMoms, int const FormatOfMoms,
+HKW_DLL_EX int scengen_HKW(double ** const tgMoms, int const FormatOfMoms,
                            double ** const tgCorrs, double * const probs,
                            int const nVar, int const nScen,
                            double ** const outSc,

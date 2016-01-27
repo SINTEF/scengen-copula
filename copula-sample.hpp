@@ -1,15 +1,13 @@
 #ifndef COP_SAMPLE_HPP
 #define COP_SAMPLE_HPP
 
-//#include <string>
-#include <utility> // to get std::pair<>
-
 #include "common.hpp"
 #include "cop2Dinfo.hpp"
 #include "cop2Dsample.hpp"
 #include "copula-info.hpp"
 
-//using std::string;
+#include <utility> // to get std::pair<>
+
 using Copula2D::Cop2DInfo;
 using Copula2D::Cop2DSample;
 
@@ -41,7 +39,7 @@ private:
 	/// array of pointers to the Cop2DSample objects \todo use a smart pointer!?
 	Array2D<Cop2DSample *> p2sample2D;
 
-	double const *p2prob; ///< pointer to scen. probabilities (can be NULL)
+	double const *p2prob; ///< pointer to scen. probabilities (can be nullptr)
 
 	/// This is the main matrix, including all the scenarios.
 	/**

@@ -1,9 +1,9 @@
 // implementation of class CopulaSample
 
+#include "copula-sample.hpp"
+
 #include <iostream>
 #include <fstream>
-
-#include "copula-sample.hpp"
 
 using namespace std;
 using namespace CopulaScen;
@@ -147,7 +147,7 @@ double CopulaSample::gen_new_margin(DimT const marg)
 			    << "; dist = " << minDist << " (min dist = "
 			    << candScens.get_best_cand_value() << ")" << endl);
 
-		scProb = (p2prob == NULL ? 1.0 / nSc : p2prob[s]);
+		scProb = (p2prob == nullptr ? 1.0 / nSc : p2prob[s]);
 		totDist += scProb * minDist;
 		sample[marg][s] = iR;
 		scenUsed[s] = true;

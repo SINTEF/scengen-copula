@@ -9,7 +9,6 @@
 #include <gtest/gtest.h>
 
 using namespace Copula2D;
-using DataSort = CopulaDef::CopInfoForecastErrors::HistDataSort;
 
 TEST(ForecastErrorsGen, InputData) {
 	MatrixD histData;
@@ -21,7 +20,7 @@ TEST(ForecastErrorsGen, InputData) {
 	DimT i, r, s, t;
 
 	// read the input file
-	std::string histDataFName = "test_fcast-err.dat";
+	std::string histDataFName = "hist-fcasts.dat";
 	std::ifstream histDataStr(histDataFName);
 	if (!histDataStr) {
 		throw std::ios_base::failure("Could not open input file `"
@@ -44,8 +43,9 @@ TEST(ForecastErrorsGen, InputData) {
 	int intVarDt = 0;
 
 	auto p2tgCop
-		= boost::make_shared<CopulaDef::CopInfoForecastErrors>(
-			N, histData, DataSort::fCastTimeAsc, perVarDt, intVarDt);
+		= boost::make_shared<FcErr_Gen::CopInfoForecastErrors>(
+			N, histData, FcErr_Gen::HistDataSort::fCastTimeAsc,
+			perVarDt, intVarDt);
 	EXPECT_EQ(p2tgCop->dim(), N * T) << "checking dimension of the target cop.";
 	EXPECT_EQ(p2tgCop->get_nmb_2d_copulas(), N*(T-1) + N*(N-1)/2*T)
 		<< "checking the number of 2D targets"; // for perVarDt=1, intVarDt=0
@@ -75,7 +75,7 @@ TEST(ForecastErrorsGen, InputData) {
 
 	// convert to the scenarios for the original multi-period problem
 	std::vector<MatrixD> scens;  // dim = nSc * [T, N]
-	p2tgCop->errors_to_values(errScens, forecast, scens);
+	FcErr_Gen::errors_to_values(errScens, forecast, scens);
 	//for (s = 0; s < S; ++s) {
 	//	DISPLAY_NL(scens[s]);
 	//}

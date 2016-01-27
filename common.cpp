@@ -1,8 +1,9 @@
-//#include <cmath>
-#include <ostream>
-
 #include "common.hpp"
 #include "ranker.h"
+
+#include <boost/numeric/ublas/symmetric.hpp>
+#include <ostream>
+//#include <cmath>
 
 using std::cout;
 using std::cerr;
@@ -46,8 +47,6 @@ std::istream & operator>> (std::istream & is, ublas::matrix<T> & M)
 	}
 	return is;
 }
-
-#include <boost/numeric/ublas/symmetric.hpp>
 
 /// stream input for ublas symmetric matrices
 template<class T>
@@ -169,9 +168,8 @@ void get_ranks_or_rows(MatrixD const & valMat, MatrixI & rankMat)
 template<typename T>
 double vec_mean(ublas::vector<T> const & v)
 {
-	typename ublas::vector<T>::const_iterator it;
 	double mu = 0.0;
-	for (it = v.begin(); it != v.end(); ++it)
+	for (auto it = v.begin(); it != v.end(); ++it)
 		mu += v(*it);
 	return mu / v.size();
 }
@@ -180,12 +178,11 @@ template double vec_mean(VectorD const &); // compile this for VectorD
 
 template<typename T>
 double vec_std_dev(ublas::vector<T> const & v, double const mean,
-                   bool const unbiased = false)
+                   bool const unbiased)
 {
-	typename ublas::vector<T>::const_iterator it;
 	DimT N = v.size();
 	double stD = 0.0;
-	for (it = v.begin(); it != v.end(); ++it)
+	for (auto it = v.begin(); it != v.end(); ++it)
 		stD += pow(v(*it), 2);
 	stD /= N;            // std = E[X^2]
 	stD -= pow(mean, 2); // std = E[X^2] - (EX)^2 = Var(X)

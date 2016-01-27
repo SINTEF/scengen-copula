@@ -13,7 +13,7 @@
 **/
 namespace ExtScenGenHKW {
 	extern "C" {
-		#define NO_DLL_DEFS // not using DLLs -> ignore DLL export/import macros
+		// NB: needs HKW_NO_DLL_DEFS defined at some place
 		#include <scen-gen_HKW/HKW_sg.h>
 	}
 }
@@ -89,7 +89,7 @@ void MarginMoments::gen_scen(DimT const nSc)
 	double * hkwTgCorrs[1];  ///< target correlations
 	double dummyCorr = 1.0;
 	hkwTgCorrs[0] = &dummyCorr;
-	double * prob = nullptr;  ///< target probabilities (NULL for equiprob.)
+	double * prob = nullptr;  ///< target probabilities (nullptr for equiprob.)
 	double * hkwOutSc[1];     ///< the output array
 	hkwOutSc[0] = &sortedVals(0); // write directly to the vector - check!
 	int hkwOutLvl;            ///< the output level
@@ -135,7 +135,7 @@ void MarginMoments::gen_scen(DimT const nSc)
 		hkwTgMoms,  // target moments
 		formOfMoms, // format of moments
 		hkwTgCorrs, // target correlations
-		prob,       // target probabilities (can be NULL)
+		prob,       // target probabilities (can be nullptr)
 		1,          // number of random variables
 		nSc,        // number of scenarios to generate
 		hkwOutSc,   // output - the array of generated scenario values

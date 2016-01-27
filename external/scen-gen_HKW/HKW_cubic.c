@@ -11,12 +11,12 @@
 	 moment[0..4][0..6] ... 'momF(i,j)' used inside the code
 	 */
 
+#include "HKW_cubic.h"
+#include "misc_macros.h"
+
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
-
-#include "HKW_cubic.h"
-#include "misc_macros.h"
 
 void momF1(double value[7],double *xk);
 void momF2(double value[7],double *xk);

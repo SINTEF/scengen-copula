@@ -2,12 +2,13 @@
    All the functions are independent on the SG-algorithm!!!
    */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
 #include "matrix.h"       // my matrix class
 #include "misc_macros.h"
 #include "sg_functions.h"
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
 
 
 // check consistency of the target matrices

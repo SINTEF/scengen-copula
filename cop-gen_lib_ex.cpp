@@ -7,6 +7,7 @@
 **/
 
 #include "cop-gen_lib.hpp"
+
 #include <boost/numeric/ublas/assignment.hpp> // assignment operator <<=
 #include <boost/numeric/ublas/io.hpp>         // output operator <<
 
