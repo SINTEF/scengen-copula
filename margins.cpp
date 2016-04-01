@@ -1,9 +1,9 @@
+#include "margins.hpp"
+#include "margin-distrib_moments.hpp"
+
 #include <fstream>
 #include <ios>
 #include <map>
-
-#include "margins.hpp"
-#include "margin-distrib_moments.hpp"
 
 using namespace MarginDistrib;
 using std::cout;

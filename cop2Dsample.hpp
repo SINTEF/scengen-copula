@@ -1,10 +1,10 @@
 #ifndef COP_2D_SAMPLE_HPP
 #define COP_2D_SAMPLE_HPP
 
-#include <algorithm>
-
 #include "common.hpp"
 #include "cop2Dinfo.hpp"
+
+#include <algorithm>
 
 using std::string;
 
@@ -56,7 +56,7 @@ private:
 	/// \name connection to scenarios of the main alg.
 	//@{
 		/// pointer to scenario probabilities.
-		/// can be NULL, implying equiprobable scenarios/samples
+		/// can be nullptr, implying equiprobable scenarios/samples
 		double const *p2prob;
 
 		/// scenarios of ranks of the 1st margin.
@@ -165,9 +165,9 @@ public:
 		             includes (consists of) rank \c i in the first variable
 		             of the bivariate sample (i.e. column \c i).
 		\param[in] p2scProb pointer to scenario probabilities;
-		           NULL means equiprobable scenarios
+		           nullptr means equiprobable scenarios
 	**/
-	//void set_scen_of_i(IVector const &scenOfColR, double const *p2scProb = NULL);
+	//void set_scen_of_i(IVector const &scenOfColR, double const *p2scProb = nullptr);
 
 	/// set the scenarios for the the first margin
 	/**
@@ -176,7 +176,7 @@ public:
 		           means that scenario \c s includes (consists of) rank \c i in
 		           the first variable of the bivariate sample.
 		\param[in] p2scProb pointer to scenario probabilities;
-		           NULL means equiprobable scenarios
+		           nullptr means equiprobable scenarios
 		\param[in] allowDuplicates  allow duplicate values in \c margScen
 	**/
 	void set_scen_of_marg_1(VectorI const &margScen,
@@ -269,7 +269,7 @@ public:
 	**/
 	// NEVER USED!
 	//void cdf_dist_of_col(int const i, VectorD const &prevColCdf,
-	//                     VectorD &rowCdfDist, bool rowFree[] = NULL);
+	//                     VectorD &rowCdfDist, bool rowFree[] = nullptr);
 
 	/// Compute the cdf-distance of for a whole row, given Cdf of prev. row.
 	/**
@@ -281,7 +281,7 @@ public:
 		            the columns with 'false' need not be defined.
 	**/
 	void cdf_dist_of_row(int const j, VectorD const &prevRowCdf,
-	                     VectorD &colCdfDist, bool colFree[] = NULL);
+	                     VectorD &colCdfDist, bool colFree[] = nullptr);
 
 	/// \todo do this; throw if this breaks another link
 	void add_link(int const colR, int const rowR);

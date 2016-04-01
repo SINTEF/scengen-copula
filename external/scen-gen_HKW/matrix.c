@@ -4,11 +4,12 @@
 /***  author: Michal Kaut                                          ***/
 /*********************************************************************/
 
+#include "matrix.h"
+#include "misc_macros.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include "matrix.h"
-#include "misc_macros.h"
 
 #define Ident(i,j) (i==j ? 1 : 0)
 

@@ -124,7 +124,7 @@ void CopInfoBy2D::init_cdf_grids(DimT const N, bool const useTgPos,
 	for (i = 0; i < nVars; ++i) {
 		for (j = i+1; j < nVars; ++j) {
 			if (p2Info2D(i, j)) {
-				assert (p2Info2D(i, j).get() != NULL && "testing the null-check");
+				assert (p2Info2D(i, j).get() != nullptr && "testing the null-check");
 				if (useTgPos)
 					p2Info2D(i, j)->init_cdf_grid(N);
 				else
@@ -141,7 +141,7 @@ void CopInfoBy2D::init_cdf_grids(VectorD const & gridPos)
 	for (i = 0; i < nVars; ++i) {
 		for (j = i+1; j < nVars; ++j) {
 			if (p2Info2D(i, j)) {
-				assert (p2Info2D(i, j).get() != NULL && "testing the null-check");
+				assert (p2Info2D(i, j).get() != nullptr && "testing the null-check");
 				p2Info2D(i, j)->init_cdf_grid(gridPos);
 			}
 		}

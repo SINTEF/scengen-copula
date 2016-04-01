@@ -1,7 +1,7 @@
+#include "cop2Dsample.hpp"
+
 #include <iostream>
 #include <fstream>
-
-#include "cop2Dsample.hpp"
 
 using namespace std;
 using namespace Copula2D;
@@ -443,7 +443,7 @@ void Cop2DSample::CandList::insert_cand(int const index, double const error)
 void Cop2DSample::cdf_dist_of_col(int const i, VectorD const &prevColCdf,
                                   VectorD &rowCdfDist, bool rowFree[])
 {
-	assert (rowFree == NULL && "handling of rowFree is not yet implented...");
+	assert (rowFree == nullptr && "handling of rowFree is not yet implented...");
 
 	double probCol = (p2prob ? p2prob[scenOfMarg1R[i]] : 1.0 / N);
 	int j, jj;
@@ -471,7 +471,7 @@ void Cop2DSample::cdf_dist_of_col(int const i, VectorD const &prevColCdf,
 		}
 		TRACE (TrDetail2, "Cop2DSample::cdf_dist_of_col(" << i
 		       << "): dist(" << i << "," << j << ") = " << dist);
-		if (rowFree == NULL || rowFree[j])
+		if (rowFree == nullptr || rowFree[j])
 			rowCdfDist[j] = dist;
 		else
 			rowCdfDist[j] = DblInf;
@@ -486,7 +486,7 @@ void Cop2DSample::cdf_dist_of_col(int const i, VectorD const &prevColCdf,
 void Cop2DSample::cdf_dist_of_row(int const j, VectorD const &prevRowCdf,
                                   VectorD &colCdfDist, bool colFree[])
 {
-	assert (colFree == NULL && "handling of colFree is not yet implented...");
+	assert (colFree == nullptr && "handling of colFree is not yet implented...");
 
 	double probRow = (p2prob ? p2prob[scenOfMarg1R[j]] : 1.0 / N); /// \todo CHECK !
 	int i, ii;
@@ -525,7 +525,7 @@ void Cop2DSample::cdf_dist_of_row(int const j, VectorD const &prevRowCdf,
 		}
 		TRACE (TrDetail2, "Cop2DSample::cdf_dist_of_row(" << j
 		       << "): dist(" << i << "," << j << ") = " << dist);
-		if (colFree == NULL || colFree[i])
+		if (colFree == nullptr || colFree[i])
 			colCdfDist[i] = dist;
 		else
 			colCdfDist[i] = DblInf;

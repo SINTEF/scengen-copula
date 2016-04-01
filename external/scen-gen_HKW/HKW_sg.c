@@ -4,15 +4,15 @@
 /***  author: Michal Kaut                                          ***/
 /*********************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
-
 #include "HKW_sg.h"
 #include "HKW_cubic.h"    // cubic transformation
 #include "misc_macros.h"  // misc. C macros used here (like frand)
 #include "sg_functions.h" // general functions needed for SG
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
 
 
 #define StartWithCubic 1 /// Start with the cubic distribution

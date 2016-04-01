@@ -489,7 +489,7 @@ protected:
 public:
 	/// constructor with a matrix and row numbers
 	Cop2DData(MatrixD & histData, int const i, int const j,
-	          CopulaDef::CopInfoData * const  multiCopInf = NULL);
+	          CopulaDef::CopInfoData * const  multiCopInf = nullptr);
 
 	// at the moment, this is not supported
 	// would probably have to add a private member with a matrix, since

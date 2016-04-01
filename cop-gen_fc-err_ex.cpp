@@ -2,7 +2,6 @@
 // NB: NOT USED ANYWHERE
 //  - move some parts to test and delete the file!
 
-
 #include "cop-gen_fc-err.hpp"
 #include "copula-sample.hpp"
 #include "margins.hpp"
