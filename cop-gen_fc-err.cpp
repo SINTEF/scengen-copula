@@ -41,7 +41,7 @@ static auto firstRows(MatrixD const & X, DimT nR) -> decltype(ublas::subrange(X,
 	\param[out] histFErr  the computed historical forecast errors [nVars, nPts]
 	\param[in]         N  the original dimension (number of orig. variables)
 	\param[in]  dataSort  sorting/structure of \c histData
-*/
+*//*
 void FcErr_Gen::histdata_to_errors(MatrixD const & histData, MatrixD & histFErr,
                                    DimT const N, HistDataSort const dataSort)
 {
@@ -71,6 +71,83 @@ void FcErr_Gen::histdata_to_errors(MatrixD const & histData, MatrixD & histFErr,
 			}
 		}
 	}
+}*/
+
+/*
+	\param[in]  histData  historical values and forecasts [nPts, nPts];
+	\param[out] histFErr  the computed historical forecast errors [nVars, nPts]
+	\param[in]         N  the original dimension (number of orig. variables)
+	\param[in]   dataFmt  data format of \c histData
+*/
+void FcErr_Gen::process_hist_data(MatrixD const & histData, MatrixD & histFErr,
+                                  DimT const N, HistDataFormat const dataFmt)
+{
+	HistDataFormat curFmt = dataFmt; // current format, updated on the way
+
+	if ((dataFmt & HistDataFormat::newToOld) == HistDataFormat::newToOld) {
+		throw std::logic_error
+			("new-to-old sorting of historical data is not supported yet");
+	}
+	if ((dataFmt & HistDataFormat::rowPerVal) == HistDataFormat::rowPerVal) {
+		throw std::logic_error("row-per-value format is not supported yet");
+	}
+
+	DimT T;     // number of periods
+	DimT nPts;  // number of observations in the data
+	DimT nVars; // number of generated variables; = N * T
+	DimT i, dt, cF, cV, rE, j;
+
+	if ((curFmt & HistDataFormat::hasErrors) == HistDataFormat::hasErrors) {
+		// histData includes errors
+		T = histData.size2() / N;
+		nPts = histData.size1();
+		nVars = N * T;
+		histFErr.resize(nVars, nPts, false); // transposed rel. to histData!
+
+		if ((curFmt & HistDataFormat::grByPer) == HistDataFormat::grByPer) {
+			// correct grouping -> just copy the data
+			for (i = 0; i < nVars; ++i)
+				for (j = 0; j < nPts; ++j)
+					histFErr(i, j) = histData(j, i);
+		} else {
+			// need to reorder the columns
+			for (dt = 0; dt < T; ++dt) {
+				for (i = 0; i < N; ++i) {
+					rE = dt * N + i; // var. row in histFErr
+					cV = i * T + dt; // var. column in histData
+					for (j = 0; j < nPts; ++j) {
+						histFErr(rE, j) = histData(j, cV);
+					}
+				}
+			}
+			curFmt |= HistDataFormat::grByPer; // update the indicator
+		}
+	}
+	else
+	{
+		// the data are given as values + forecasts
+		T = histData.size2() / N - 1;
+		nPts = histData.size1() - T; // need extra data to compute the errors
+		nVars = N * T;
+		histFErr.resize(nVars, nPts, false); // transport rel. to histData!
+
+		for (i = 0; i < N; ++i) {
+			cV = i * (T+1); // column of the variable value
+			for (dt = 1; dt <= T; ++dt) {
+				cF = cV + dt;      // column of the forecast
+				rE = hist_data_row_of(i, dt, N, T); // row within histFErr
+				for (j = 0; j < nPts; ++j) {
+					// NB: this assumes the default format!
+					histFErr(rE, j) = histData(j, cF) - histData(j + dt, cV);
+				}
+			}
+		}
+		curFmt |= HistDataFormat::hasErrors; // update the indicator
+		curFmt |= HistDataFormat::grByPer;   // update the indicator
+	}
+
+	assert (curFmt == (HistDataFormat::grByPer | HistDataFormat::hasErrors)
+	        && "check that we have the correct format at the end");
 }
 
 
@@ -148,7 +225,7 @@ CopInfoForecastErrors::CopInfoForecastErrors(DimT const nmbVars,
 	                     (i, dt ± u) for u = 1..perVarDt
 	\param[in] intVarDt  for var. (i, dt), we generate 2D-copulas with
 	                     (j, dt ± u) for u = 0..intVarDt
-*/
+*//*
 CopInfoForecastErrors::CopInfoForecastErrors(DimT const nmbVars,
                                              MatrixD const & histData,
                                              HistDataSort const dataSort,
@@ -171,7 +248,7 @@ CopInfoForecastErrors::CopInfoForecastErrors(DimT const nmbVars,
 	fill_ranks_etc();                     // fill hRanks and hU01
 	setup_2d_targets(perVarDt, intVarDt); // create the bivariate copula objects
 }
-
+*/
 
 // version of \c hist_data_row_of() for use inside the class (fewer parameters)
 DimT CopInfoForecastErrors::row_of(DimT const i, DimT const dt)
@@ -444,6 +521,37 @@ int ScenTree::make_gnuplot_charts(std::string const & baseFName,
 // --------------------------------------------------------------------------
 // class FcErrTreeGen
 
+FcErrTreeGen::FcErrTreeGen(DimT const nmbVars, MatrixD const & histData,
+                           HistDataFormat const dataFormat,
+                           int maxPerVarDt, int maxIntVarDt)
+: N(nmbVars), perVarDt(maxPerVarDt), intVarDt(maxIntVarDt)
+{
+	if ((dataFormat & HistDataFormat::newToOld) == HistDataFormat::newToOld) {
+		throw std::logic_error
+			("new-to-old sorting of historical data is not supported yet");
+	}
+	if ((dataFormat & HistDataFormat::hasErrors) == HistDataFormat::hasErrors) {
+		// histData includes historical forecast errors
+		T = histData.size2() / N;
+		if (histData.size2() != N * T)
+			throw std::length_error("inconsistent dimensions of input data");
+		_histFErr = histData; // copy the data
+	} else {
+		// histData includes observed value and forecasts
+		T = histData.size2() / N - 1;
+		if (histData.size2() != N * (T+1))
+			throw std::length_error("inconsistent dimensions of input data");
+
+	}
+
+	// convert to the desired format: HistDataFormat(::grByPer & ::hasErrors)
+	// note: We cannot use histFErr here, since it is a ref. to const matrix.
+	//       However, it works with _histFErr, which is a non-const matrix
+	process_hist_data(histData, _histFErr, N, dataFormat);
+
+	DISPLAY_NL(histFErr);
+}
+
 
 // constructor with the historical values and forecasts
 /*
@@ -457,7 +565,7 @@ int ScenTree::make_gnuplot_charts(std::string const & baseFName,
 	                        (i, dt ± u) for u = 1..perVarDt
 	\param[in] maxIntVarDt  for var. (i, dt), we generate 2D-copulas with
 	                        (j, dt ± u) for u = 0..intVarDt
-*/
+*//*
 FcErrTreeGen::FcErrTreeGen(DimT const nmbVars, MatrixD const & histData,
                            HistDataSort const dataSort,
                            int maxPerVarDt, int maxIntVarDt)
@@ -472,7 +580,7 @@ FcErrTreeGen::FcErrTreeGen(DimT const nmbVars, MatrixD const & histData,
 	//       However, it works with _histFErr, which is a non-const matrix
 	//       .. even if histFErr references it .. weird but true
 	histdata_to_errors(histData, _histFErr, N, dataSort);
-}
+}*/
 
 // generate a 2-stage tree (a fan), with given number of scenarios
 /*

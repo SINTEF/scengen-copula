@@ -44,7 +44,8 @@ int main(int argc, char *argv[]) {
 	string curValStr;           // current values as a comma-separated list
 	int perVarDt = 1;           // gen. 2D copulas up to t ± dt, for given var
 	int intVarDt = 0;           // gen. 2D copulas up to t ± dt, between vars.
-	HistDataSort hDataSort = HistDataSort::fCastTimeAsc;  // for the input file
+	//HistDataSort hDataSort = HistDataSort::fCastTimeAsc;  // for the input file
+	HistDataFormat hDataFmt = HistDataFormat::standard;  // for the input file
 	bool fcastInclCur = false;   // forecast starts with current values
 	string chartsBaseFName = ""; // base of the filename of output charts
 	string gnuplotExe = "";      // name of the gnuplot executable
@@ -81,6 +82,8 @@ int main(int argc, char *argv[]) {
 		confOpt.add_options()
 			("hist-data,d", prOpt::value<string>(&histDataFName)->required(),
 			                "file with historical data")
+			// a switch without associated variable - can only check presence
+			("data-is-err,e", "historical data contains forecast errors")
 			("forecast,f", prOpt::value<string>(&forecastFName)->required(),
 			               "file with current forecast")
 			("scens,s", prOpt::value<DimT>(&nSc), "number of scenarios")
@@ -90,9 +93,9 @@ int main(int argc, char *argv[]) {
 			("cur-val,c", prOpt::value<string>(&curValStr),
 			              "current values (comma-separated list)")
 			("per-var-dt", prOpt::value<int>(&perVarDt)->default_value(1),
-			               "gen. 2D copulas up to t±dt, for given var")
+			               "gen. 2D copulas up to t+/-dt, for given var")
 			("int-var-dt", prOpt::value<int>(&intVarDt)->default_value(0),
-			               "gen. 2D copulas up to t±dt, between vars")
+			               "gen. 2D copulas up to t+/-dt, between vars")
 			("fcast-incl-cur", prOpt::bool_switch(&fcastInclCur),
 			                   "forecast starts with current values")
 			("charts-per-var", prOpt::value<string>(&chartsBaseFName),
@@ -167,6 +170,10 @@ int main(int argc, char *argv[]) {
 
 		// now check the input - with throw an exception on errors
 		prOpt::notify(optV);
+
+		if (optV.count("data-is-err")) {
+			hDataFmt |= HistDataFormat::hasErrors;
+		}
 
 		// NB: optV.count("fcast-incl-cur") = 1 always!
 		if (fcastInclCur && optV.count("cur-val") > 0)
@@ -293,7 +300,7 @@ int main(int argc, char *argv[]) {
 	DBGSHOW(TrDetail, nPer);
 	DBGSHOW(TrDetail, nSc);
 
-	FcErrTreeGen scenGen(nVar, histData, hDataSort, perVarDt, intVarDt);
+	FcErrTreeGen scenGen(nVar, histData, hDataFmt, perVarDt, intVarDt);
 	ScenTree scTree;
 
 	if (nSc > 0) {

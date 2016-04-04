@@ -220,11 +220,13 @@
 			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-pedantic" />
 			<Add option="-Wzero-as-null-pointer-constant" />
-			<Add option="-std=c++11" />
+			<Add option="-pedantic" />
 			<Add option="-Wall" />
+			<Add option="-std=c++11" />
 			<Add option="-Wno-unused-local-typedefs" />
+			<Add option="-Wno-zero-as-null-pointer-constant" />
+			<Add option="-ftemplate-backtrace-limit=0" />
 			<Add directory="external" />
 		</Compiler>
 		<Linker>
@@ -716,6 +718,10 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+		</Unit>
+		<Unit filename="external/bitmask_operators.hpp">
+			<Option target="fc-err_Dbg" />
+			<Option target="fc-err_Rel" />
 		</Unit>
 		<Unit filename="external/ranker.h">
 			<Option target="Debug" />

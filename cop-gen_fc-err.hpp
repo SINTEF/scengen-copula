@@ -7,6 +7,8 @@
 #include "margins.hpp"
 #include "copula-sample.hpp"
 
+#include "bitmask_operators.hpp"
+
 #include <iostream>
 
 
@@ -21,13 +23,34 @@ namespace FcErr_Gen {
 	Row for time \c t always includes \c val(i,t), but may include
 	different forecast. In addition, the data might be sorted ascending
 	(old-to-new) or descending (new-to-old) in time.
-*/
+*//*
 enum class HistDataSort {
 	fCastTimeAsc,  ///< row(t): \c f(i,t,t+dt) for all dt; old-to-new
 	fCastTimeDesc, ///< row(t): \c f(i,t,t+dt) for all dt; new-to-old
 	valueTimeAsc,  ///< row(t): \c f(i,t-dt,t) for all dt; old-to-new
-	valurTimeDesc  ///< row(t): \c f(i,t-dt,t) for all dt; new-to-old
+	valueTimeDesc  ///< row(t): \c f(i,t-dt,t) for all dt; new-to-old
+};*/
+
+/// different formats of historical input data
+/**
+	This includes binary indicators for format of the historical data.
+	These can be combined used the templates from bitmask_operators.hpp.
+
+	In all cases, the data have variables in columns and observations in rows.
+
+	If ::hasErrors==0, then the data consists of the actual observed values,
+	followed by forecasts. Timing of the forecasts is controlled by ::rowPerVal.
+**/
+enum class HistDataFormat {
+	standard  = 0, ///< standard/default format
+	grByPer   = 1, ///< values grouped by period; default = grouped by var.
+	hasErrors = 2, ///< data consists of errors; default = values and forecasts
+	newToOld  = 4, ///< values are sorted new-to-old; default = old-to-new
+	rowPerVal = 8  ///< row(t) includes forecasts for value at time t;
+	               ///< default = row(t) includes forecasts made at time t;
+	               ///< this is valid only if hasErrors = 0
 };
+
 
 /*
 /// get row of forecast for var. \c i and step \c dt in the historical data
@@ -100,9 +123,11 @@ public:
 		\param[in] intVarDt  for var. (i, dt), we generate 2D-copulas with
 		                     (j, dt ± u) for u = 0..intVarDt
 	**/
+	/* NOT USED
 	CopInfoForecastErrors(DimT const nmbVars, MatrixD const & histData,
 	                      HistDataSort const dataSort,
 	                      int perVarDt = 1, int intVarDt = 0);
+	*/
 
 	/// get the matrix of historical forecast errors
 	/**
@@ -126,8 +151,21 @@ public:
 	\note This method is static, because we might need it before we get
 	      all the data to create an instance of the class
 **/
-void histdata_to_errors(MatrixD const & histData, MatrixD & histFErr,
-                        DimT const N, HistDataSort const dataSort);
+//void histdata_to_errors(MatrixD const & histData, MatrixD & histFErr,
+//                        DimT const N, HistDataSort const dataSort);
+
+/// process historical data (compute historical forecast errors etc)
+/**
+	\param[in]  histData  historical values and forecasts [nPts, nVars];
+	\param[out] histFErr  the computed historical forecast errors [nVars, nPts]
+	\param[in]         N  the original dimension (number of orig. variables)
+	\param[in]   dataFmt  data format of \c histData
+
+	The output of \c histFErr is transposed ([nVars, nPts]) and its format
+	should be \c (HistDataFormat::grByPer & HistDataFormat::::hasErrors).
+**/
+void process_hist_data(MatrixD const & histData, MatrixD & histFErr,
+                       DimT const N, HistDataFormat const dataFmt);
 
 
 /// convert scenarios of errors to scenarios of the original values
@@ -297,9 +335,24 @@ private:
 	                   MatrixD & totErrors);
 
 public:
-	FcErrTreeGen() {}
+	FcErrTreeGen() = delete; ///< no default/empty constructor
 
-	FcErrTreeGen(MatrixD & histFcastErr) : histFErr(histFcastErr) {}
+	/// constructor with the historical forecast errors
+	//FcErrTreeGen(DimT const nmbVars, MatrixD const & histFcastErr) : histFErr(histFcastErr) {}
+
+	/// constructor with historical data
+	/**
+		\param[in]  nmbVars  number of stoch. variables
+		\param[in] histData  historical values and forecasts [nPts, nVars];
+		\param[in] dataSort  sorting/structure of \c histData
+		\param[in] maxPerVarDt  for var. (i, dt), we generate 2D-copulas with
+		                        (i, dt ± u) for u = 1..perVarDt
+		\param[in] maxIntVarDt  for var. (i, dt), we generate 2D-copulas with
+		                        (j, dt ± u) for u = 0..intVarDt
+	**/
+	FcErrTreeGen(DimT const nmbVars, MatrixD const & histData,
+	             HistDataFormat const dataFormat,
+	             int maxPerVarDt = 1, int maxIntVarDt = 0);
 
 	/// constructor with the historical values and forecasts
 	/**
@@ -314,9 +367,9 @@ public:
 		\param[in] maxIntVarDt  for var. (i, dt), we generate 2D-copulas with
 		                        (j, dt ± u) for u = 0..intVarDt
 	**/
-	FcErrTreeGen(DimT const nmbVars, MatrixD const & histData,
-	             HistDataSort const dataSort,
-	             int maxPerVarDt = 1, int maxIntVarDt = 0);
+	//FcErrTreeGen(DimT const nmbVars, MatrixD const & histData,
+	//             HistDataSort const dataSort,
+	//             int maxPerVarDt = 1, int maxIntVarDt = 0);
 
 	/// generate a 2-stage tree (a fan), with given number of scenarios
 	/**
@@ -349,5 +402,15 @@ auto submatrix(MatrixD & X, DimT nR, DimT nC) -> decltype(ublas::subrange(X, 0, 
 */
 
 } // namespace FcErr_Gen
+
+// generate logical operators for this enum class
+// uses bitmask_operators.hpp, see
+// https://www.justsoftwaresolutions.co.uk/cplusplus/using-enum-classes-as-bitfields.html
+// NB: must be in the main namespace! for an alternative approach, see
+//     http://stackoverflow.com/a/28423827/842693
+template<>
+struct enable_bitmask_operators<FcErr_Gen::HistDataFormat>{
+    static const bool enable=true;
+};
 
 #endif // COP_GEN_FC_ERR_HPP
