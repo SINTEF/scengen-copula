@@ -35,7 +35,8 @@ int main(int argc, char *argv[]) {
 
 	string histDataFName = "";  // file with all historical data
 	string forecastFName = "";  // file with the current forecast
-	string outputFName = "";    // output file name
+	string outPerScFName = "";  // file name for output per scenario
+	string outPerVarFName = ""; // file name for output per variable/margin
 	DimT nSc = 0;               // number of scenarios to generate
 	DimT nPer = 0;              // number of periods to generate
 	DimT nVar = 0;              // number of variables/margins
@@ -71,7 +72,7 @@ int main(int argc, char *argv[]) {
 		prOpt::options_description genOpt("Generic options");
 		std::string configFName; // config file name
 		genOpt.add_options()
-			("version,v", "print version string")
+			("version,V", "print version string")
 			("help,h",    "produce help message")
 			("config", prOpt::value<string>(&configFName), "config file name")
 			("all-help",  "help including hidden options")
@@ -98,6 +99,10 @@ int main(int argc, char *argv[]) {
 			               "gen. 2D copulas up to t+/-dt, between vars")
 			("fcast-incl-cur", prOpt::bool_switch(&fcastInclCur),
 			                   "forecast starts with current values")
+			("out-per-var,o", prOpt::value<string>(&outPerVarFName),
+			                  "output file, data sorted per variable")
+			("out-per-sc,O", prOpt::value<string>(&outPerScFName),
+			                 "output file, data sorted per scenario")
 			("charts-per-var", prOpt::value<string>(&chartsBaseFName),
 			                   "filename of output charts (without ext.)")
 			;
@@ -212,10 +217,7 @@ int main(int argc, char *argv[]) {
 		                << forecast.size2() << "]");
 		// dimension checks
 		nVar = forecast.size2();
-		DimT T = histData.size2() / nVar - 1;
-		if (histData.size2() != nVar * (T + 1))
-			throw std::length_error
-				("Inconsistent dimension of input matrices.");
+		DimT T = nmb_dts_in_data(histData, hDataFmt, nVar);
 		if (optV.count("periods")) {
 			// number of periods given -> check that we have enough data
 			if (T < nPer)
@@ -253,8 +255,9 @@ int main(int argc, char *argv[]) {
 			if (optV.count("periods")) {
 				// specified number of periods - has to have enough data
 				if (brVector.size() < nPer) {
-					throw std::length_error
-						("not enough periods in the branching list");
+					WARNING("not enough periods in the branching list .. "
+					        "filling with 1s.")
+					brVector.resize(nPer, 1);  // resize and fill with 1s
 				}
 			} else  {
 				assert (nPer > 0
@@ -280,8 +283,8 @@ int main(int argc, char *argv[]) {
 				throw std::runtime_error("needs either --scens or --branching");
 		}
 		assert(nPer > 0 && "should have the number of periods at this point");
-		// dimension check:
-		if (histData.size2() < nVar * (nPer+1))
+		// final dimension check:
+		if (nmb_dts_in_data(histData, hDataFmt, nVar) < nPer)
 			throw std::length_error
 				("Inconsistent dimension - not enough columns in hist. data");
 
@@ -336,10 +339,30 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
+	// output
+	if (outPerVarFName.length() > 0) {
+		std::ofstream outF(outPerVarFName, std::ios::out);
+		if (!outF)
+			throw std::ios_base::failure("could not open output file "
+			                             + outPerVarFName);
+		scTree.display_per_var(outF);
+		outF.close();
+	}
+	//
+	if (outPerScFName.length() > 0) {
+		std::ofstream outF(outPerScFName, std::ios::out);
+		if (!outF)
+			throw std::ios_base::failure("could not open output file "
+			                             + outPerScFName);
+		scTree.display_per_var(outF);
+		outF.close();
+	}
+
 	if (outLvl >= TrDetail) {
 		scTree.display_per_scen();
+		std::cout << '\n';
 		scTree.display_per_var();
-		std::cout << std::endl;
+		std::cout << '\n';
 	}
 
 	if (chartsBaseFName.size() > 0) {

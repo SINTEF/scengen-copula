@@ -33,45 +33,33 @@ static auto firstRows(MatrixD const & X, DimT nR) -> decltype(ublas::subrange(X,
 // --------------------------------------------------------------------------
 // non-class functions from the FcErr_Gen namespace
 
+
+// return the number of forecast steps in historical data
 /*
-	\param[in]  histData  historical values and forecasts [nPts, N * (T+1)];
-	                      columns are grouped by variables, for each (i, t)
-	                      we have: val(i,t), fc(i,t,t+1), fc(i,t,t+2), ...
-	                      where fc(i,t,t+dt) is forecast made at t for t+dt
-	\param[out] histFErr  the computed historical forecast errors [nVars, nPts]
+	\param[in]  histData  historical values and forecasts [nPts, nVars];
+	\param[in]   dataFmt  data format of \c histData
 	\param[in]         N  the original dimension (number of orig. variables)
-	\param[in]  dataSort  sorting/structure of \c histData
-*//*
-void FcErr_Gen::histdata_to_errors(MatrixD const & histData, MatrixD & histFErr,
-                                   DimT const N, HistDataSort const dataSort)
+*/
+DimT FcErr_Gen::nmb_dts_in_data(MatrixD const & histData,
+                                HistDataFormat const dataFmt, DimT const N)
 {
-	DimT T = histData.size2() / N - 1;
-	if (histData.size2() != N * (T+1))
-		throw std::length_error("inconsistence in the size of historical data");
-	DimT nPts = histData.size1() - T; // need extra data to compute the errors
-	DimT nVars = N * T;
-
-	DimT i, dt, cF, cV, rE, j;
-
-	// fill the histFErr matrix (NB: transposed rel. to histData!)
-	histFErr.resize(nVars, nPts);
-	for (i = 0; i < N; ++i) {
-		cV = i * (T+1); // column of the variable value
-		for (dt = 1; dt <= T; ++dt) {
-			cF = cV + dt;      // column of the forecast
-			rE = hist_data_row_of(i, dt, N, T); // row within histFErr
-			for (j = 0; j < nPts; ++j) {
-				switch (dataSort) {
-				case HistDataSort::fCastTimeAsc:
-					histFErr(rE, j) = histData(j, cF) - histData(j + dt, cV);
-					break;
-				default:
-					throw std::logic_error("unsupported sorting option");
-				}
-			}
-		}
+	DimT T;
+	if ((dataFmt & HistDataFormat::hasErrors) == HistDataFormat::hasErrors) {
+		// data includes errors -> one column per variable and time step
+		T = histData.size2() / N;
+		if (histData.size2() != N * T)
+			throw std::length_error
+				("Inconsistent dimensions of input matrices.");
+	} else {
+		// forecasts and values -> 1 extra column per variable
+		T = histData.size2() / N - 1;
+		if (histData.size2() != N * (T + 1))
+			throw std::length_error
+				("Inconsistent dimensions of input matrices.");
 	}
-}*/
+	return T;
+}
+
 
 /*
 	\param[in]  histData  historical values and forecasts [nPts, nPts];
@@ -212,43 +200,6 @@ CopInfoForecastErrors::CopInfoForecastErrors(DimT const nmbVars,
 	setup_2d_targets(perVarDt, intVarDt);
 }
 
-
-// constructor with the historical forecast errors
-/*
-	\param[in]  nmbVars  number of variables
-	\param[in] histData  historical values and forecasts [nPts, N * (T+1)];
-	                     columns are grouped by variables, for each (i, t)
-	                     we have: val(i,t), fc(i,t,t+1), fc(i,t,t+2), ...
-	                     where fc(i,t,t+dt) is forecast made at t for t+dt
-	\param[in] dataSort  sorting/structure of \c histData
-	\param[in] perVarDt  for var. (i, dt), we generate 2D-copulas with
-	                     (i, dt ± u) for u = 1..perVarDt
-	\param[in] intVarDt  for var. (i, dt), we generate 2D-copulas with
-	                     (j, dt ± u) for u = 0..intVarDt
-*//*
-CopInfoForecastErrors::CopInfoForecastErrors(DimT const nmbVars,
-                                             MatrixD const & histData,
-                                             HistDataSort const dataSort,
-                                             int perVarDt, int intVarDt)
-: CopInfoData(histData.size2() - nmbVars, true), // the first param is N * T
-  N(nmbVars), T(histData.size2() / nmbVars - 1)
-{
-	if (histData.size2() != N * (T+1))
-		throw std::length_error("inconsistent dimensions of input data");
-
-	// set the number of historical data points (defined in CopInfoData)
-	// - smaller than the the size of histData, because we lose some
-	//   data for computing the errors/differences
-	nPts = histData.size1() - T;
-
-	// fill the hData matrix (NB: transposed rel. to histData!)
-	histdata_to_errors(histData, hData, N, dataSort);
-
-	// rest of the setup
-	fill_ranks_etc();                     // fill hRanks and hU01
-	setup_2d_targets(perVarDt, intVarDt); // create the bivariate copula objects
-}
-*/
 
 // version of \c hist_data_row_of() for use inside the class (fewer parameters)
 DimT CopInfoForecastErrors::row_of(DimT const i, DimT const dt)
@@ -521,6 +472,16 @@ int ScenTree::make_gnuplot_charts(std::string const & baseFName,
 // --------------------------------------------------------------------------
 // class FcErrTreeGen
 
+// constructor with the historical data
+/*
+	\param[in]     nmbVars  number of stoch. variables
+	\param[in]    histData  historical data [nPts, nVars]
+	\param[in]  dataFormat  format of \c histData
+	\param[in] maxPerVarDt  for var. (i, dt), we generate 2D-copulas with
+	                        (i, dt ± u) for u = 1..perVarDt
+	\param[in] maxIntVarDt  for var. (i, dt), we generate 2D-copulas with
+	                        (j, dt ± u) for u = 0..intVarDt
+*/
 FcErrTreeGen::FcErrTreeGen(DimT const nmbVars, MatrixD const & histData,
                            HistDataFormat const dataFormat,
                            int maxPerVarDt, int maxIntVarDt)
@@ -549,38 +510,9 @@ FcErrTreeGen::FcErrTreeGen(DimT const nmbVars, MatrixD const & histData,
 	//       However, it works with _histFErr, which is a non-const matrix
 	process_hist_data(histData, _histFErr, N, dataFormat);
 
-	DISPLAY_NL(histFErr);
+	DBGSHOW_NL(TrDetail, histFErr);
 }
 
-
-// constructor with the historical values and forecasts
-/*
-	\param[in]  nmbVars  number of stoch. variables
-	\param[in] histData  historical values and forecasts [nPts, N * (T+1)];
-	                     columns are grouped by variables, for each (i, t)
-	                     we have: val(i,t), fc(i,t,t+1), fc(i,t,t+2), ...
-	                     where fc(i,t,t+dt) is forecast made at t for t+dt
-	\param[in] dataSort  sorting/structure of \c histData
-	\param[in] maxPerVarDt  for var. (i, dt), we generate 2D-copulas with
-	                        (i, dt ± u) for u = 1..perVarDt
-	\param[in] maxIntVarDt  for var. (i, dt), we generate 2D-copulas with
-	                        (j, dt ± u) for u = 0..intVarDt
-*//*
-FcErrTreeGen::FcErrTreeGen(DimT const nmbVars, MatrixD const & histData,
-                           HistDataSort const dataSort,
-                           int maxPerVarDt, int maxIntVarDt)
-: N(nmbVars), T(histData.size2() / N - 1),
-  perVarDt(maxPerVarDt), intVarDt(maxIntVarDt)
-{
-	if (histData.size2() != N * (T+1))
-		throw std::length_error("inconsistent dimensions of input data");
-
-	// create the matrix of historical forecast errors
-	// note: We cannot use histFErr here, since it is a ref. to const matrix.
-	//       However, it works with _histFErr, which is a non-const matrix
-	//       .. even if histFErr references it .. weird but true
-	histdata_to_errors(histData, _histFErr, N, dataSort);
-}*/
 
 // generate a 2-stage tree (a fan), with given number of scenarios
 /*
