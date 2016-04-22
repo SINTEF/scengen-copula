@@ -43,10 +43,11 @@ int main(int argc, char *argv[]) {
 	string branchingStr;        // list of branching factors as a string
 	VectorI branching;          // vector of branching factors
 	string curValStr;           // current values as a comma-separated list
-	int perVarDt = 1;           // gen. 2D copulas up to t Â± dt, for given var
-	int intVarDt = 0;           // gen. 2D copulas up to t Â± dt, between vars.
+	int perVarDt = 1;           // gen. 2D copulas up to t ± dt, for given var
+	int intVarDt = 0;           // gen. 2D copulas up to t ± dt, between vars.
 	//HistDataSort hDataSort = HistDataSort::fCastTimeAsc;  // for the input file
 	HistDataFormat hDataFmt = HistDataFormat::standard;  // for the input file
+	bool useRelError = false;    // use relative error (per cent)
 	bool fcastInclCur = false;   // forecast starts with current values
 	string chartsBaseFName = ""; // base of the filename of output charts
 	string gnuplotExe = "";      // name of the gnuplot executable
@@ -87,18 +88,20 @@ int main(int argc, char *argv[]) {
 			("data-is-err,e", "historical data contains forecast errors")
 			("forecast,f", prOpt::value<string>(&forecastFName)->required(),
 			               "file with current forecast")
+			("rel-err,r", prOpt::bool_switch(&useRelError),
+			              "use relative errors (per cent)")
 			("scens,s", prOpt::value<DimT>(&nSc), "number of scenarios")
 			("periods,t", prOpt::value<DimT>(&nPer), "number of periods")
 			("branching,b", prOpt::value<string>(&branchingStr),
 			                "branches per per. (comma-separated list)")
 			("cur-val,c", prOpt::value<string>(&curValStr),
 			              "current values (comma-separated list)")
+			("fcast-incl-cur", prOpt::bool_switch(&fcastInclCur),
+			                   "forecast starts with current values")
 			("per-var-dt", prOpt::value<int>(&perVarDt)->default_value(1),
 			               "gen. 2D copulas up to t+/-dt, for given var")
 			("int-var-dt", prOpt::value<int>(&intVarDt)->default_value(0),
 			               "gen. 2D copulas up to t+/-dt, between vars")
-			("fcast-incl-cur", prOpt::bool_switch(&fcastInclCur),
-			                   "forecast starts with current values")
 			("out-per-var,o", prOpt::value<string>(&outPerVarFName),
 			                  "output file, data sorted per variable")
 			("out-per-sc,O", prOpt::value<string>(&outPerScFName),
@@ -110,10 +113,10 @@ int main(int argc, char *argv[]) {
 		// hidden options - allowed everywhere, but not shown to the user
 		prOpt::options_description hiddenOpt("Hidden options");
 		hiddenOpt.add_options()
-			("out-lvl,l", prOpt::value<int>(&outLvlInt)
+			("out-lvl,L", prOpt::value<int>(&outLvlInt)
 			              ->default_value(static_cast<int>(defOutLvl)),
 			              "level of output")
-			("rand-seed,s", prOpt::value<int>(&randSeed)->default_value(-1),
+			("rand-seed,R", prOpt::value<int>(&randSeed)->default_value(-1),
 			                "random seed (-1 means time-based)")
 			("gnuplot-exe", prOpt::value<string>(&gnuplotExe)
 			                ->default_value("gnuplot"),
@@ -303,7 +306,7 @@ int main(int argc, char *argv[]) {
 	DBGSHOW(TrDetail, nPer);
 	DBGSHOW(TrDetail, nSc);
 
-	FcErrTreeGen scenGen(nVar, histData, hDataFmt, perVarDt, intVarDt);
+	FcErrTreeGen scenGen(nVar, histData, hDataFmt, useRelError, perVarDt, intVarDt);
 	ScenTree scTree;
 
 	if (nSc > 0) {

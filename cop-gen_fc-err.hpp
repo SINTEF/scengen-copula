@@ -112,12 +112,14 @@ DimT nmb_dts_in_data(MatrixD const & histData, HistDataFormat const dataFmt,
 	\param[out] histFErr  the computed historical forecast errors [nVars, nPts]
 	\param[in]         N  the original dimension (number of orig. variables)
 	\param[in]   dataFmt  data format of \c histData
+	\param[in]   relDiff  use relative differences (per cent)
 
 	The output of \c histFErr is transposed ([nVars, nPts]) and its format
 	should be \c (HistDataFormat::grByPer & HistDataFormat::::hasErrors).
 **/
 void process_hist_data(MatrixD const & histData, MatrixD & histFErr,
-                       DimT const N, HistDataFormat const dataFmt);
+                       DimT const N, HistDataFormat const dataFmt,
+                       bool const relDiff = false);
 
 
 /// convert scenarios of errors to scenarios of the original values
@@ -125,9 +127,10 @@ void process_hist_data(MatrixD const & histData, MatrixD & histFErr,
 	\param[in]    errSc  error-scenarios; [nVars, nSc]
 	\param[in] forecast  forecast for the whole time horizon; [T, N]
 	\param[out]   scens  output scenarios; nSc * [T, N]
+	\param[in]  relDiff  use relative differences (per cent)
 **/
 void errors_to_values(MatrixD const & errSc, MatrixD const & forecast,
-                      std::vector<MatrixD> & scens);
+                      std::vector<MatrixD> & scens, bool const relDiff = false);
 
 
 class FcErrTreeGen; // forward declaration
@@ -249,6 +252,7 @@ private:
 		      initialized to non-const object, but it works..)
 	**/
 	///@{
+		bool errIsRel;     ///< if true, the errors are relative (in per cent)
 		MatrixD _histFErr; ///< internal version of historical forecast errors; [nVars, nPts]
 		MatrixD const & histFErr = _histFErr; ///< ref. to historical forecast errors
 		//MatrixD _curFcast;  ///< internal version of the current forecast, [T, N]
@@ -280,6 +284,7 @@ public:
 		\param[in]  nmbVars  number of stoch. variables
 		\param[in] histData  historical values and forecasts [nPts, nVars];
 		\param[in] dataSort  sorting/structure of \c histData
+		\param[in] useRelError  if true, use relative error (per cent)
 		\param[in] maxPerVarDt  for var. (i, dt), we generate 2D-copulas with
 		                        (i, dt ± u) for u = 1..perVarDt
 		\param[in] maxIntVarDt  for var. (i, dt), we generate 2D-copulas with
@@ -287,7 +292,8 @@ public:
 	**/
 	FcErrTreeGen(DimT const nmbVars, MatrixD const & histData,
 	             HistDataFormat const dataFormat,
-	             int maxPerVarDt = 1, int maxIntVarDt = 0);
+	             bool const useRelError = false,
+	             int const maxPerVarDt = 1, int const maxIntVarDt = 0);
 
 	/// generate a 2-stage tree (a fan), with given number of scenarios
 	/**

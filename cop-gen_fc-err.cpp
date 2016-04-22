@@ -68,7 +68,8 @@ DimT FcErr_Gen::nmb_dts_in_data(MatrixD const & histData,
 	\param[in]   dataFmt  data format of \c histData
 */
 void FcErr_Gen::process_hist_data(MatrixD const & histData, MatrixD & histFErr,
-                                  DimT const N, HistDataFormat const dataFmt)
+                                  DimT const N, HistDataFormat const dataFmt,
+                                  bool const relDiff)
 {
 	HistDataFormat curFmt = dataFmt; // current format, updated on the way
 
@@ -125,8 +126,14 @@ void FcErr_Gen::process_hist_data(MatrixD const & histData, MatrixD & histFErr,
 				cF = cV + dt;      // column of the forecast
 				rE = hist_data_row_of(i, dt, N, T); // row within histFErr
 				for (j = 0; j < nPts; ++j) {
-					// NB: this assumes the default format!
-					histFErr(rE, j) = histData(j, cF) - histData(j + dt, cV);
+					// NB: this assumes the default input-file format!
+					if (relDiff) {
+						// error = (value-forecast) / forecast = value/forecast - 1
+						histFErr(rE, j) = histData(j + dt, cV) / histData(j, cF) - 1;
+					} else {
+						// error = value - forecast
+						histFErr(rE, j) = histData(j + dt, cV) - histData(j, cF);
+					}
 				}
 			}
 		}
@@ -146,7 +153,8 @@ void FcErr_Gen::process_hist_data(MatrixD const & histData, MatrixD & histFErr,
 	\param[out] scens  output scenarios; nSc * [T, N]
 */
 void FcErr_Gen::errors_to_values(MatrixD const & errSc, MatrixD const & forecast,
-                                 std::vector<MatrixD> & scens)
+                                 std::vector<MatrixD> & scens,
+                                 bool const relDiff)
 {
 	DimT nVars = errSc.size1();
 	DimT nSc = errSc.size2();
@@ -167,7 +175,10 @@ void FcErr_Gen::errors_to_values(MatrixD const & errSc, MatrixD const & forecast
 		for (t = 0; t < T; ++t) {
 			for (i = 0; i < N; ++i) {
 				r = N * t + i; // row in errSc
-				scens[s](t, i) = forecast(t, i) + errSc(r, s);
+				if (relDiff)
+					scens[s](t, i) = forecast(t, i) * (1 + errSc(r, s));
+				else
+					scens[s](t, i) = forecast(t, i) + errSc(r, s);
 			}
 		}
 	}
@@ -184,9 +195,9 @@ void FcErr_Gen::errors_to_values(MatrixD const & errSc, MatrixD const & forecast
 	                     columns are grouped by periods: val(i,dt) for
 	                     (0,1), (1,1),...,(N,1), (0,2),...,(N-1,T)
 	\param[in] perVarDt  for var. (i, dt), we generate 2D-copulas with
-	                     (i, dt Â± u) for u = 1..perVarDt
+	                     (i, dt ± u) for u = 1..perVarDt
 	\param[in] intVarDt  for var. (i, dt), we generate 2D-copulas with
-	                     (j, dt Â± u) for u = 0..intVarDt
+	                     (j, dt ± u) for u = 0..intVarDt
 */
 CopInfoForecastErrors::CopInfoForecastErrors(DimT const nmbVars,
 	                                         MatrixD const & histFErr,
@@ -212,9 +223,9 @@ DimT CopInfoForecastErrors::row_of(DimT const i, DimT const dt)
 // creates objects for the 2D targets; called from the constructors
 /*
 	\param[in] perVarDt  for var. (i, dt), we generate 2D-copulas with
-	                     (i, dt Â± u) for u = 1..perVarDt
+	                     (i, dt ± u) for u = 1..perVarDt
 	\param[in] intVarDt  for var. (i, dt), we generate 2D-copulas with
-	                     (j, dt Â± u) for u = 0..intVarDt
+	                     (j, dt ± u) for u = 0..intVarDt
 */
 void CopInfoForecastErrors::setup_2d_targets(int perVarDt, int intVarDt)
 {
@@ -478,14 +489,15 @@ int ScenTree::make_gnuplot_charts(std::string const & baseFName,
 	\param[in]    histData  historical data [nPts, nVars]
 	\param[in]  dataFormat  format of \c histData
 	\param[in] maxPerVarDt  for var. (i, dt), we generate 2D-copulas with
-	                        (i, dt Â± u) for u = 1..perVarDt
+	                        (i, dt ± u) for u = 1..perVarDt
 	\param[in] maxIntVarDt  for var. (i, dt), we generate 2D-copulas with
-	                        (j, dt Â± u) for u = 0..intVarDt
+	                        (j, dt ± u) for u = 0..intVarDt
 */
 FcErrTreeGen::FcErrTreeGen(DimT const nmbVars, MatrixD const & histData,
                            HistDataFormat const dataFormat,
+                           bool const useRelError,
                            int maxPerVarDt, int maxIntVarDt)
-: N(nmbVars), perVarDt(maxPerVarDt), intVarDt(maxIntVarDt)
+: N(nmbVars), perVarDt(maxPerVarDt), intVarDt(maxIntVarDt), errIsRel(useRelError)
 {
 	if ((dataFormat & HistDataFormat::newToOld) == HistDataFormat::newToOld) {
 		throw std::logic_error

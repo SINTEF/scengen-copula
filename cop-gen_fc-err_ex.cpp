@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
 		S = 12;
 
 		FcErr_Gen::FcErrTreeGen scenGen(N, histData, HistDataSort::fCastTimeAsc,
-		                                perVarDt, intVarDt);
+		                                false, perVarDt, intVarDt);
 		FcErr_Gen::ScenTree scTree;
 		scenGen.gen_2stage_tree(forecast, S, scTree);
 		scTree.display_per_scen();
@@ -174,7 +174,7 @@ int main(int argc, char *argv[]) {
 		//S = 12;
 
 		FcErr_Gen::FcErrTreeGen scenGen(N, histData, HistDataSort::fCastTimeAsc,
-		                                perVarDt, intVarDt);
+		                                false, perVarDt, intVarDt);
 		FcErr_Gen::ScenTree scTree;
 
 		VectorI branching(T);
