@@ -17,6 +17,7 @@
 					<Add option="-g" />
 					<Add option="-DHAS_QUANTLIB" />
 					<Add option="-DHAS_HKW" />
+					<Add option="-DHKW_NO_DLL_DEFS" />
 				</Compiler>
 				<Linker>
 					<Add library="boost_program_options" />
@@ -37,6 +38,7 @@
 					<Add option="-DNDEBUG" />
 					<Add option="-DHAS_QUANTLIB" />
 					<Add option="-DHAS_HKW" />
+					<Add option="-DHKW_NO_DLL_DEFS" />
 				</Compiler>
 				<Linker>
 					<Add library="boost_program_options" />
@@ -56,6 +58,7 @@
 					<Add option="-g" />
 					<Add option="-DHAS_QUANTLIB" />
 					<Add option="-DHAS_HKW" />
+					<Add option="-DHKW_NO_DLL_DEFS" />
 					<Add directory="../scen-gen_copulas" />
 				</Compiler>
 				<Linker>
@@ -80,6 +83,7 @@
 					<Add option="-DNDEBUG" />
 					<Add option="-DHAS_QUANTLIB" />
 					<Add option="-DHAS_HKW" />
+					<Add option="-DHKW_NO_DLL_DEFS" />
 					<Add directory="../scen-gen_copulas" />
 				</Compiler>
 				<Linker>
@@ -108,6 +112,7 @@
 					<Add option="-DBUILDING_DLL" />
 					<Add option="-DHAS_QUANTLIB" />
 					<Add option="-DHAS_HKW" />
+					<Add option="-DHKW_NO_DLL_DEFS" />
 				</Compiler>
 				<Environment>
 					<Variable name="TG_TYPE" value="Debug" />
@@ -130,6 +135,7 @@
 					<Add option="-DNDEBUG" />
 					<Add option="-DHAS_QUANTLIB" />
 					<Add option="-DHAS_HKW" />
+					<Add option="-DHKW_NO_DLL_DEFS" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -218,14 +224,58 @@
 					<Variable name="TG_TYPE" value="Release" />
 				</Environment>
 			</Target>
+			<Target title="x32 Release">
+				<Option output="bin/Release/scen-gen_cop_32" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/Release" />
+				<Option object_output=".obj/Release-32/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option projectLibDirsRelation="2" />
+				<Compiler>
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-O3" />
+					<Add option="-m32" />
+					<Add option="-DNDEBUG" />
+					<Add option="-DHAS_QUANTLIB" />
+					<Add option="-DHAS_HKW" />
+					<Add option="-DHKW_NO_DLL_DEFS" />
+				</Compiler>
+				<Linker>
+					<Add option="-m32" />
+					<Add library="boost_program_options" />
+					<Add directory="C:/Users/mkaut/Apps/programming/MinGW-w64/local/lib32" />
+				</Linker>
+				<Environment>
+					<Variable name="TG_TYPE" value="Release" />
+				</Environment>
+			</Target>
+			<Target title="x32 fc-err_Rel">
+				<Option output="bin/Release/scen-gen_cop_32_fc-err" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin/Release" />
+				<Option object_output=".obj/Release-32/fc-err" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option projectLibDirsRelation="2" />
+				<Compiler>
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-O3" />
+					<Add option="-DNDEBUG" />
+				</Compiler>
+				<Linker>
+					<Add library="boost_program_options" />
+					<Add directory="C:/Users/mkaut/Apps/programming/MinGW-w64/local/lib32" />
+				</Linker>
+				<Environment>
+					<Variable name="TG_TYPE" value="Release" />
+				</Environment>
+			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-Wzero-as-null-pointer-constant" />
-			<Add option="-pedantic" />
-			<Add option="-Wall" />
 			<Add option="-std=c++11" />
+			<Add option="-Wall" />
+			<Add option="-pedantic" />
+
 			<Add option="-Wno-unused-local-typedefs" />
-			<Add option="-Wno-zero-as-null-pointer-constant" />
 			<Add option="-ftemplate-backtrace-limit=0" />
 			<Add directory="external" />
 		</Compiler>
@@ -241,6 +291,8 @@
 			<Option target="UnitTest-Dbg" />
 			<Option target="fc-err_Dbg" />
 			<Option target="fc-err_Rel" />
+			<Option target="x32 Release" />
+			<Option target="x32 fc-err_Rel" />
 		</Unit>
 		<Unit filename="common.hpp">
 			<Option target="Debug" />
@@ -251,22 +303,27 @@
 			<Option target="UnitTest-Dbg" />
 			<Option target="fc-err_Dbg" />
 			<Option target="fc-err_Rel" />
+			<Option target="x32 Release" />
+			<Option target="x32 fc-err_Rel" />
 		</Unit>
 		<Unit filename="cop-gen.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="cop-gen_fc-err.cpp">
 			<Option target="fc-err_Dbg" />
 			<Option target="fc-err_Rel" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 fc-err_Rel" />
 		</Unit>
 		<Unit filename="cop-gen_fc-err.hpp">
 			<Option target="UnitTest-Dbg" />
 			<Option target="UnitTest-Rel" />
 			<Option target="fc-err_Dbg" />
 			<Option target="fc-err_Rel" />
+			<Option target="x32 fc-err_Rel" />
 		</Unit>
 		<Unit filename="cop-gen_fc-err_ex.cpp">
 			<Option target="&lt;{~None~}&gt;" />
@@ -274,6 +331,7 @@
 		<Unit filename="cop-gen_fc-err_main.cpp">
 			<Option target="fc-err_Dbg" />
 			<Option target="fc-err_Rel" />
+			<Option target="x32 fc-err_Rel" />
 		</Unit>
 		<Unit filename="cop-gen_lib.cpp">
 			<Option target="lib_Debug" />
@@ -298,6 +356,8 @@
 			<Option target="UnitTest-Dbg" />
 			<Option target="fc-err_Dbg" />
 			<Option target="fc-err_Rel" />
+			<Option target="x32 Release" />
+			<Option target="x32 fc-err_Rel" />
 		</Unit>
 		<Unit filename="cop-info_normal.cpp">
 			<Option target="Debug" />
@@ -306,6 +366,7 @@
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="cop-info_student.cpp">
 			<Option target="Debug" />
@@ -314,6 +375,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="cop2Dinfo.cpp">
 			<Option target="Debug" />
@@ -324,6 +386,8 @@
 			<Option target="UnitTest-Dbg" />
 			<Option target="fc-err_Dbg" />
 			<Option target="fc-err_Rel" />
+			<Option target="x32 Release" />
+			<Option target="x32 fc-err_Rel" />
 		</Unit>
 		<Unit filename="cop2Dinfo.hpp">
 			<Option target="Debug" />
@@ -334,6 +398,8 @@
 			<Option target="UnitTest-Dbg" />
 			<Option target="fc-err_Dbg" />
 			<Option target="fc-err_Rel" />
+			<Option target="x32 Release" />
+			<Option target="x32 fc-err_Rel" />
 		</Unit>
 		<Unit filename="cop2Dinfo_w-quantlib.cpp">
 			<Option target="Debug" />
@@ -342,6 +408,7 @@
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="cop2Dinfo_w-quantlib.hpp">
 			<Option target="Debug" />
@@ -350,6 +417,7 @@
 			<Option target="UnitTest-Rel" />
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="cop2Dsample.cpp">
 			<Option target="Debug" />
@@ -360,6 +428,8 @@
 			<Option target="UnitTest-Dbg" />
 			<Option target="fc-err_Dbg" />
 			<Option target="fc-err_Rel" />
+			<Option target="x32 Release" />
+			<Option target="x32 fc-err_Rel" />
 		</Unit>
 		<Unit filename="cop2Dsample.hpp">
 			<Option target="Debug" />
@@ -370,6 +440,8 @@
 			<Option target="UnitTest-Dbg" />
 			<Option target="fc-err_Dbg" />
 			<Option target="fc-err_Rel" />
+			<Option target="x32 Release" />
+			<Option target="x32 fc-err_Rel" />
 		</Unit>
 		<Unit filename="copula-info.cpp">
 			<Option target="Debug" />
@@ -380,6 +452,8 @@
 			<Option target="UnitTest-Dbg" />
 			<Option target="fc-err_Dbg" />
 			<Option target="fc-err_Rel" />
+			<Option target="x32 Release" />
+			<Option target="x32 fc-err_Rel" />
 		</Unit>
 		<Unit filename="copula-info.hpp">
 			<Option target="Debug" />
@@ -390,6 +464,8 @@
 			<Option target="UnitTest-Dbg" />
 			<Option target="fc-err_Dbg" />
 			<Option target="fc-err_Rel" />
+			<Option target="x32 Release" />
+			<Option target="x32 fc-err_Rel" />
 		</Unit>
 		<Unit filename="copula-sample.cpp">
 			<Option target="Debug" />
@@ -400,6 +476,8 @@
 			<Option target="UnitTest-Dbg" />
 			<Option target="fc-err_Dbg" />
 			<Option target="fc-err_Rel" />
+			<Option target="x32 Release" />
+			<Option target="x32 fc-err_Rel" />
 		</Unit>
 		<Unit filename="copula-sample.hpp">
 			<Option target="Debug" />
@@ -410,6 +488,8 @@
 			<Option target="UnitTest-Dbg" />
 			<Option target="fc-err_Dbg" />
 			<Option target="fc-err_Rel" />
+			<Option target="x32 Release" />
+			<Option target="x32 fc-err_Rel" />
 		</Unit>
 		<Unit filename="dll_export_def.h">
 			<Option target="lib_Debug" />
@@ -422,6 +502,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/config.mingw.hpp">
 			<Option target="Debug" />
@@ -430,6 +511,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/config.msvc.hpp">
 			<Option target="Debug" />
@@ -438,6 +520,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/config.sun.hpp">
 			<Option target="Debug" />
@@ -446,6 +529,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/errors.cpp">
 			<Option target="Debug" />
@@ -454,6 +538,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/errors.hpp">
 			<Option target="Debug" />
@@ -462,6 +547,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/array.hpp">
 			<Option target="Debug" />
@@ -470,6 +556,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/beta.cpp">
 			<Option target="Debug" />
@@ -478,6 +565,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/beta.hpp">
 			<Option target="Debug" />
@@ -486,6 +574,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/comparison.hpp">
 			<Option target="Debug" />
@@ -494,6 +583,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/distributions/bivariatenormaldistribution.cpp">
 			<Option target="Debug" />
@@ -502,6 +592,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/distributions/bivariatenormaldistribution.hpp">
 			<Option target="Debug" />
@@ -510,6 +601,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/distributions/bivariatestudenttdistribution.cpp">
 			<Option target="Debug" />
@@ -518,6 +610,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/distributions/bivariatestudenttdistribution.hpp">
 			<Option target="Debug" />
@@ -526,6 +619,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/distributions/gammadistribution.cpp">
 			<Option target="Debug" />
@@ -534,6 +628,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/distributions/gammadistribution.hpp">
 			<Option target="Debug" />
@@ -542,6 +637,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/distributions/normaldistribution.cpp">
 			<Option target="Debug" />
@@ -550,6 +646,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/distributions/normaldistribution.hpp">
 			<Option target="Debug" />
@@ -558,6 +655,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/distributions/studenttdistribution.cpp">
 			<Option target="Debug" />
@@ -566,6 +664,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/distributions/studenttdistribution.hpp">
 			<Option target="Debug" />
@@ -574,6 +673,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/errorfunction.cpp">
 			<Option target="Debug" />
@@ -582,6 +682,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/errorfunction.hpp">
 			<Option target="Debug" />
@@ -590,6 +691,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/integrals/gaussianorthogonalpolynomial.cpp">
 			<Option target="Debug" />
@@ -598,6 +700,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/integrals/gaussianorthogonalpolynomial.hpp">
 			<Option target="Debug" />
@@ -606,6 +709,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/integrals/gaussianquadratures.cpp">
 			<Option target="Debug" />
@@ -614,6 +718,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/integrals/gaussianquadratures.hpp">
 			<Option target="Debug" />
@@ -622,6 +727,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/matrix.cpp">
 			<Option target="Debug" />
@@ -630,6 +736,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/matrix.hpp">
 			<Option target="Debug" />
@@ -638,6 +745,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/matrixutilities/symmetricschurdecomposition.cpp">
 			<Option target="Debug" />
@@ -646,6 +754,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/matrixutilities/symmetricschurdecomposition.hpp">
 			<Option target="Debug" />
@@ -654,6 +763,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/matrixutilities/tqreigendecomposition.cpp">
 			<Option target="Debug" />
@@ -662,6 +772,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/math/matrixutilities/tqreigendecomposition.hpp">
 			<Option target="Debug" />
@@ -670,6 +781,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/mathconstants.hpp">
 			<Option target="Debug" />
@@ -678,6 +790,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/qldefines.hpp">
 			<Option target="Debug" />
@@ -686,6 +799,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/types.hpp">
 			<Option target="Debug" />
@@ -694,6 +808,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/userconfig.hpp">
 			<Option target="Debug" />
@@ -702,6 +817,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/utilities/disposable.hpp">
 			<Option target="Debug" />
@@ -710,6 +826,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/QuantLib/utilities/null.hpp">
 			<Option target="Debug" />
@@ -718,6 +835,7 @@
 			<Option target="lib_Debug" />
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/bitmask_operators.hpp">
 			<Option target="fc-err_Dbg" />
@@ -732,6 +850,8 @@
 			<Option target="UnitTest-Dbg" />
 			<Option target="fc-err_Dbg" />
 			<Option target="fc-err_Rel" />
+			<Option target="x32 Release" />
+			<Option target="x32 fc-err_Rel" />
 		</Unit>
 		<Unit filename="external/scen-gen_HKW/HKW_cubic.c">
 			<Option compilerVar="CC" />
@@ -741,6 +861,7 @@
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/scen-gen_HKW/HKW_cubic.h">
 			<Option target="Debug" />
@@ -749,6 +870,7 @@
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/scen-gen_HKW/HKW_sg.c">
 			<Option compilerVar="CC" />
@@ -758,6 +880,7 @@
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/scen-gen_HKW/HKW_sg.h">
 			<Option target="Debug" />
@@ -766,6 +889,14 @@
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
+		</Unit>
+		<Unit filename="external/scen-gen_HKW/dll_export_def.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="lib_Debug" />
+			<Option target="lib_Release" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/scen-gen_HKW/matrix.c">
 			<Option compilerVar="CC" />
@@ -775,6 +906,7 @@
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/scen-gen_HKW/matrix.h">
 			<Option target="Debug" />
@@ -783,6 +915,7 @@
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/scen-gen_HKW/misc_macros.h">
 			<Option target="Debug" />
@@ -791,6 +924,7 @@
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/scen-gen_HKW/sg_functions.c">
 			<Option compilerVar="CC" />
@@ -800,6 +934,7 @@
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="external/scen-gen_HKW/sg_functions.h">
 			<Option target="Debug" />
@@ -808,6 +943,7 @@
 			<Option target="lib_Release" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="margin-distrib.cpp">
 			<Option target="Debug" />
@@ -818,6 +954,8 @@
 			<Option target="UnitTest-Dbg" />
 			<Option target="fc-err_Dbg" />
 			<Option target="fc-err_Rel" />
+			<Option target="x32 Release" />
+			<Option target="x32 fc-err_Rel" />
 		</Unit>
 		<Unit filename="margin-distrib.hpp">
 			<Option target="Debug" />
@@ -828,6 +966,8 @@
 			<Option target="UnitTest-Dbg" />
 			<Option target="fc-err_Dbg" />
 			<Option target="fc-err_Rel" />
+			<Option target="x32 Release" />
+			<Option target="x32 fc-err_Rel" />
 		</Unit>
 		<Unit filename="margin-distrib_moments.cpp">
 			<Option target="Debug" />
@@ -836,6 +976,7 @@
 			<Option target="lib_Debug" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="margin-distrib_moments.hpp">
 			<Option target="Debug" />
@@ -844,6 +985,7 @@
 			<Option target="lib_Debug" />
 			<Option target="UnitTest-Rel" />
 			<Option target="UnitTest-Dbg" />
+			<Option target="x32 Release" />
 		</Unit>
 		<Unit filename="margins.cpp">
 			<Option target="Debug" />
@@ -854,6 +996,8 @@
 			<Option target="UnitTest-Dbg" />
 			<Option target="fc-err_Dbg" />
 			<Option target="fc-err_Rel" />
+			<Option target="x32 Release" />
+			<Option target="x32 fc-err_Rel" />
 		</Unit>
 		<Unit filename="margins.hpp">
 			<Option target="Debug" />
@@ -864,6 +1008,8 @@
 			<Option target="UnitTest-Dbg" />
 			<Option target="fc-err_Dbg" />
 			<Option target="fc-err_Rel" />
+			<Option target="x32 Release" />
+			<Option target="x32 fc-err_Rel" />
 		</Unit>
 		<Unit filename="tests/common-test.cpp">
 			<Option target="UnitTest-Rel" />

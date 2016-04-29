@@ -1,0 +1,18 @@
+17
+sample file.dat 	// sample from file.dat; the file includes a vector
+sample file.dat 2 	// sample from 2nd col. of file.dat (a matrix); 
+data   file.dat 1   // 'data' is synonymous to 'sample'
+normal 0 1      	// normal distribution [mean, std.dev.]
+n 1 2           	// 'n' is a shortcut for 'normal'
+moments 0 1 0 3 	// 4 moments [mean, std.dev., skew, kurt]
+m 1 2 1 4       	// 'm' is a shortcut for 'moments'
+triang 2 5 3    	// triang. distrib. [min, max, mode]9
+triang 2 5 3 x  	// triang. distrib. with values at the extremes
+student 2 0 1       // student's t distrib. [dof, mean, std.dev.]
+lognormal 0 1      	// lognormal distribution [mu, sigma]
+beta 2 3            // beta distribution [a, b]
+beta 2 3 1 5        // scaled beta distribution [a, b, min, max]
+exponential 3   	// exponential distribution [lambda]
+exp 5           	// 'exp' is a shortcut for 'exponential'
+poisson 3           // Poisson distribution [lambda]
+uniform 1 5     	// continuous uniform distrib. [min, max]
