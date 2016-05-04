@@ -74,7 +74,7 @@ TEST(ForecastErrorsGen, InputData) {
 
 	// convert to the scenarios for the original multi-period problem
 	std::vector<MatrixD> scens;  // dim = nSc * [T, N]
-	FcErr_Gen::errors_to_values(errScens, forecast, scens);
+	FcErr_Gen::errors_to_scens(errScens, forecast, scens);
 	//for (s = 0; s < S; ++s) {
 	//	DISPLAY_NL(scens[s]);
 	//}

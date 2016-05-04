@@ -128,12 +128,29 @@ void process_hist_data(MatrixD const & histData, MatrixD & histFErr,
 	\param[in] forecast  forecast for the whole time horizon; [T, N]
 	\param[out]   scens  output scenarios; nSc * [T, N]
 	\param[in]  relDiff  use relative differences (per cent)
+
+	This version takes the generated 1-period sample of prediction errors
+	and combines them with the supplied forecast to create multi-period
+	scenarios for the original values.
 **/
-void errors_to_values(MatrixD const & errSc, MatrixD const & forecast,
+void errors_to_scens(MatrixD const & errSc, MatrixD const & forecast,
                       std::vector<MatrixD> & scens, bool const relDiff = false);
+
+/// convert generated errors (2-stage) to scenarios of the error terms
+/**
+	\param[in]    errSc  error-scenarios; [nVars, nSc]
+	\param[in]        N  number of the original variables
+	\param[out]   scens  output scenarios; nSc * [T, N]
+
+	This version simply re-arranges the values from the generated
+	1-period samples to multi-period scenarios.
+**/
+void errors_to_scens(MatrixD const & errSc, DimT const N,
+                     std::vector<MatrixD> & scens);
 
 
 class FcErrTreeGen; // forward declaration
+
 
 /// scenario tree for use in the forecast-error-based generator
 class ScenTree {
@@ -255,8 +272,9 @@ private:
 		bool errIsRel;     ///< if true, the errors are relative (in per cent)
 		MatrixD _histFErr; ///< internal version of historical forecast errors; [nVars, nPts]
 		MatrixD const & histFErr = _histFErr; ///< ref. to historical forecast errors
-		//MatrixD _curFcast;  ///< internal version of the current forecast, [T, N]
-		//MatrixD const & curFcast = _curFcast; ///< ref. to current forecast, [T, N]
+
+		MatrixD _curFcast;  ///< internal version of the current forecast, [T, N]
+		MatrixD const & curFcast = _curFcast; ///< ref. to current forecast, [T, N]
 	///@}
 
 	/// add one stage to an existing scenario tree
@@ -295,26 +313,28 @@ public:
 	             bool const useRelError = false,
 	             int const maxPerVarDt = 1, int const maxIntVarDt = 0);
 
+	/// set a forecast
+	/**
+		\param[in] forecast  the current forecast
+	**/
+	void set_forecast(MatrixD const & forecast) { _curFcast = forecast; }
+
 	/// generate a 2-stage tree (a fan), with given number of scenarios
 	/**
-		\param[in] forecast  forecast for the whole horizon; [T, N]
 		\param[in]    nScen  number of scenarios to generate
 		\param[out] outTree  the resulting scenario tree
 	**/
-	void gen_2stage_tree(MatrixD const & forecast, DimT const nScen,
-	                     ScenTree & outTree);
+	void gen_2stage_tree(DimT const nScen, ScenTree & outTree);
 
 	/// generate a regular multistage tree, with given branching per period
 	/**
-		\param[in]  forecast  forecast for the whole horizon; [T, N]
 		\param[in] branching  branching factor per period
 		\param[out]  outTree  the resulting scenario tree
 
 		\note By a regular tree we mean a scenario tree where all nodes
 		      in the same period have the same number of child nodes.
 	**/
-	void gen_reg_tree(MatrixD const & forecast, VectorI const & branching,
-	                  ScenTree & outTree);
+	void gen_reg_tree(VectorI const & branching, ScenTree & outTree);
 };
 
 } // namespace FcErr_Gen

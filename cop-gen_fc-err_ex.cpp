@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
 
 		// convert to the scenarios for the original multi-period problem
 		std::vector<MatrixD> scens;  // dim = nSc * [T, N]
-		errors_to_values(errScens, forecast, scens);
+		errors_to_scens(errScens, forecast, scens);
 		for (s = 0; s < S; ++s) {
 			ECHO("values for scenario " << s+1 << ": " << std::endl << scens[s]);
 		}

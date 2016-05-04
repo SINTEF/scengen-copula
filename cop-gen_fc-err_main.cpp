@@ -45,7 +45,6 @@ int main(int argc, char *argv[]) {
 	string curValStr;           // current values as a comma-separated list
 	int perVarDt = 1;           // gen. 2D copulas up to t ± dt, for given var
 	int intVarDt = 0;           // gen. 2D copulas up to t ± dt, between vars.
-	//HistDataSort hDataSort = HistDataSort::fCastTimeAsc;  // for the input file
 	HistDataFormat hDataFmt = HistDataFormat::standard;  // for the input file
 	bool useRelError = false;    // use relative error (per cent)
 	bool fcastInclCur = false;   // forecast starts with current values
@@ -59,6 +58,8 @@ int main(int argc, char *argv[]) {
 	MatrixD forecast;
 	VectorD curVal;
 
+	bool hasForecast = false;
+
 	DimT i;
 
 	std::stringstream helpHeader;
@@ -68,7 +69,7 @@ int main(int argc, char *argv[]) {
 	           << " [options]" << endl
 	           << " Help: " << argv[0] << " --help" << endl;
 
-	try{
+	try {
 		// generic options; allowed only from the command line
 		prOpt::options_description genOpt("Generic options");
 		std::string configFName; // config file name
@@ -86,12 +87,13 @@ int main(int argc, char *argv[]) {
 			                "file with historical data")
 			// a switch without associated variable - can only check presence
 			("data-is-err,e", "historical data contains forecast errors")
-			("forecast,f", prOpt::value<string>(&forecastFName)->required(),
+			("forecast,f", prOpt::value<string>(&forecastFName),
 			               "file with current forecast")
 			("rel-err,r", prOpt::bool_switch(&useRelError),
 			              "use relative errors (per cent)")
 			("scens,s", prOpt::value<DimT>(&nSc), "number of scenarios")
 			("periods,t", prOpt::value<DimT>(&nPer), "number of periods")
+			("nmb-vars,n", prOpt::value<DimT>(&nVar), "number of variables")
 			("branching,b", prOpt::value<string>(&branchingStr),
 			                "branches per per. (comma-separated list)")
 			("cur-val,c", prOpt::value<string>(&curValStr),
@@ -183,6 +185,10 @@ int main(int argc, char *argv[]) {
 			hDataFmt |= HistDataFormat::hasErrors;
 		}
 
+		if (optV.count("forecast") + optV.count("nmb-vars") == 0)
+			throw std::runtime_error("needs either --forecast or --nmb-vars "
+			                         "specified.");
+
 		// NB: optV.count("fcast-incl-cur") = 1 always!
 		if (fcastInclCur && optV.count("cur-val") > 0)
 			throw std::runtime_error("options --fcast-incl-cur and --curval "
@@ -199,45 +205,52 @@ int main(int argc, char *argv[]) {
 		TRACE(TrDetail, "histData: [" << histData.size1() << ", "
 		                << histData.size2() << "]");
 		//
-		inFileStr.open(forecastFName);
-		if (!inFileStr) {
-			throw std::ios_base::failure("Could not open input file `"
-			                             + forecastFName + "'!");
-		}
-		inFileStr >> forecast;
-		inFileStr.close();
-		if (fcastInclCur) {
-			TRACE(TrDetail, "forecast incl. cur.: [" << forecast.size1() << ", "
+		if (forecastFName.size() > 0) {
+			inFileStr.open(forecastFName);
+			if (!inFileStr) {
+				throw std::ios_base::failure("Could not open input file `"
+											 + forecastFName + "'!");
+			}
+			inFileStr >> forecast;
+			inFileStr.close();
+			hasForecast = true;
+			if (fcastInclCur) {
+				TRACE(TrDetail, "forecast incl. cur.: [" << forecast.size1()
+								 << ", " << forecast.size2() << "]");
+				DISPLAY_NL(forecast);
+				curVal = ublas::row(forecast, 0);
+				for (i = 1; i < forecast.size1(); ++i)
+					ublas::row(forecast, i - 1) = ublas::row(forecast, i);
+				forecast.resize(forecast.size1() - 1, forecast.size2(), true);
+				DISPLAY_NL(forecast);
+			}
+			TRACE(TrDetail, "forecast: [" << forecast.size1() << ", "
 			                << forecast.size2() << "]");
-			DISPLAY_NL(forecast);
-			curVal = ublas::row(forecast, 0);
-			for (i = 1; i < forecast.size1(); ++i)
-				ublas::row(forecast, i - 1) = ublas::row(forecast, i);
-			forecast.resize(forecast.size1() - 1, forecast.size2(), true);
-			DISPLAY_NL(forecast);
 		}
-		TRACE(TrDetail, "forecast: [" << forecast.size1() << ", "
-		                << forecast.size2() << "]");
 		// dimension checks
-		nVar = forecast.size2();
+		if (optV.count("nmb-vars") == 0) {
+			assert (forecast.size2() > 0 && "no nmb-vars -> needs forecast");
+			nVar = forecast.size2();
+		}
 		DimT T = nmb_dts_in_data(histData, hDataFmt, nVar);
 		if (optV.count("periods")) {
 			// number of periods given -> check that we have enough data
 			if (T < nPer)
 				throw std::length_error
 					("Not enough columns in the historical-data matrix.");
-			if (forecast.size1() < nPer)
+			if (hasForecast > 0 && forecast.size1() < nPer)
 				throw std::length_error
 					("Not enough rows in the forecast matrix.");
 		} else {
 			// number of periods not given -> imply from other data
 			// (nPer = min(dt in forecast, dt in histData)
-			nPer = forecast.size1();
+			if (hasForecast && forecast.size1() < nPer)
+				nPer = forecast.size1();
 			if (T < nPer)
 				nPer = T;
 		}
 
-		// post-processing - keep it here, so we can throw input-errors
+		// input post-processing - keep it here, so we can throw input-errors
 		outLvl = static_cast<OutputLevel>(outLvlInt);
 		srand(randSeed >= 0 ? randSeed : time(nullptr)); // set the random seed
 		if (optV.count("branching")) {
@@ -309,68 +322,83 @@ int main(int argc, char *argv[]) {
 	FcErrTreeGen scenGen(nVar, histData, hDataFmt, useRelError, perVarDt, intVarDt);
 	ScenTree scTree;
 
-	if (nSc > 0) {
-		// two-stage tree
-		INFO("Generating a 2-stage tree with " << nSc << " scenarios and "
-		)
-		scenGen.gen_2stage_tree(forecast, nSc, scTree);
-	} else {
-		// multi-stage tree
-		assert (branching.size() > 0);
-		scenGen.gen_reg_tree(forecast, branching, scTree);
-	}
-	if (curValStr.size() > 0) {
-		// parse the string into std::vector
-		// problem: ublas::vector does not have a push_back function!
-		std::stringstream curValStrStr(curValStr);
-		std::vector<double> curValV;
-		double x;
-		// src: http://stackoverflow.com/a/1894955/842693
-		while (curValStrStr >> x) {
-			curValV.push_back(x);
-			if (curValStrStr.peek() == ',')
-				curValStrStr.ignore();
-		}
-		DBGSHOW(TrDetail, curValStr);
-		DBGSHOW(TrDetail, curValV);
-		// now copy it to the scenario-tree object
-		if (curValV.size() == nVar) {
-			scTree.set_root_values(curValV);
+	if (hasForecast)
+		scenGen.set_forecast(forecast);
+
+	try {
+		if (nSc > 0) {
+			// two-stage tree
+			INFO("Generating a 2-stage tree with " << nSc << " scenarios and "
+			     << nPer << " periods.");
+			scenGen.gen_2stage_tree(nSc, scTree);
 		} else {
-			std::cerr << "Warning: wrong size of the current-value vector "
-			             "- ignoring it!" << std::endl;
+			// multi-stage tree
+			assert (branching.size() > 0);
+			scenGen.gen_reg_tree(branching, scTree);
 		}
+		if (curValStr.size() > 0) {
+			// parse the string into std::vector
+			// problem: ublas::vector does not have a push_back function!
+			std::stringstream curValStrStr(curValStr);
+			std::vector<double> curValV;
+			double x;
+			// src: http://stackoverflow.com/a/1894955/842693
+			while (curValStrStr >> x) {
+				curValV.push_back(x);
+				if (curValStrStr.peek() == ',')
+					curValStrStr.ignore();
+			}
+			DBGSHOW(TrDetail, curValStr);
+			DBGSHOW(TrDetail, curValV);
+			// now copy it to the scenario-tree object
+			if (curValV.size() == nVar) {
+				scTree.set_root_values(curValV);
+			} else {
+				std::cerr << "Warning: wrong size of the current-value vector "
+				             "- ignoring it!" << '\n';
+			}
+		}
+	} // try block
+	catch(std::exception & e) {
+		std:: cerr << "Scenario generation failed: " << e.what() << '\n';
+		exit(1);
 	}
 
 	// output
-	if (outPerVarFName.length() > 0) {
-		std::ofstream outF(outPerVarFName, std::ios::out);
-		if (!outF)
-			throw std::ios_base::failure("could not open output file "
-			                             + outPerVarFName);
-		scTree.display_per_var(outF);
-		outF.close();
-	}
-	//
-	if (outPerScFName.length() > 0) {
-		std::ofstream outF(outPerScFName, std::ios::out);
-		if (!outF)
-			throw std::ios_base::failure("could not open output file "
-			                             + outPerScFName);
-		scTree.display_per_var(outF);
-		outF.close();
-	}
+	try {
+		if (outPerVarFName.length() > 0) {
+			std::ofstream outF(outPerVarFName, std::ios::out);
+			if (!outF)
+				throw std::ios_base::failure("could not open output file "
+				                             + outPerVarFName);
+			scTree.display_per_var(outF);
+			outF.close();
+		}
+		//
+		if (outPerScFName.length() > 0) {
+			std::ofstream outF(outPerScFName, std::ios::out);
+			if (!outF)
+				throw std::ios_base::failure("could not open output file "
+				                             + outPerScFName);
+			scTree.display_per_var(outF);
+			outF.close();
+		}
 
-	if (outLvl >= TrDetail) {
-		scTree.display_per_scen();
-		std::cout << '\n';
-		scTree.display_per_var();
-		std::cout << '\n';
-	}
+		if (outLvl >= TrDetail2) {
+			scTree.display_per_scen();
+			std::cout << '\n';
+			scTree.display_per_var();
+			std::cout << '\n';
+		}
 
-	if (chartsBaseFName.size() > 0) {
-		INFO("Generating output charts.");
-		scTree.make_gnuplot_charts(chartsBaseFName, &forecast, gnuplotExe);
+		if (chartsBaseFName.size() > 0) {
+			INFO("Generating output charts.");
+			scTree.make_gnuplot_charts(chartsBaseFName, &forecast, gnuplotExe);
+		}
+	} // try block
+		catch(std::exception & e) {
+		std:: cerr << "Output error: " << e.what() << '\n';
+		exit(1);
 	}
 
 	return 0;

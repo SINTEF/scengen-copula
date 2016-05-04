@@ -152,10 +152,12 @@ void FcErr_Gen::process_hist_data(MatrixD const & histData, MatrixD & histFErr,
 	\param[in] forecast  forecast for the whole time horizon; [T, N]
 	\param[out] scens  output scenarios; nSc * [T, N]
 */
-void FcErr_Gen::errors_to_values(MatrixD const & errSc, MatrixD const & forecast,
+void FcErr_Gen::errors_to_scens(MatrixD const & errSc, MatrixD const & forecast,
                                  std::vector<MatrixD> & scens,
                                  bool const relDiff)
 {
+	assert (errSc.size1() * errSc.size2() > 0 && "check non-empty input");
+	assert (forecast.size1() * forecast.size2() > 0 && "check non-empty input");
 	DimT nVars = errSc.size1();
 	DimT nSc = errSc.size2();
 	DimT N = forecast.size2();
@@ -179,6 +181,37 @@ void FcErr_Gen::errors_to_values(MatrixD const & errSc, MatrixD const & forecast
 					scens[s](t, i) = forecast(t, i) * (1 + errSc(r, s));
 				else
 					scens[s](t, i) = forecast(t, i) + errSc(r, s);
+			}
+		}
+	}
+}
+
+// convert generated errors (2-stage) to scenarios of the error terms
+/*
+	\param[in]    errSc  error-scenarios; [nVars, nSc]
+	\param[in]        N  number of the original variables
+	\param[out]   scens  output scenarios; nSc * [T, N]
+*/
+void FcErr_Gen::errors_to_scens(MatrixD const & errSc, DimT const N,
+                                std::vector<MatrixD> & scens)
+{
+	assert (errSc.size1() * errSc.size2() > 0 && "check non-empty input");
+	DimT nVars = errSc.size1();
+	DimT nSc = errSc.size2();
+	DimT T = nVars / N;
+	if (nVars != T * N)
+		throw std::length_error
+			("inconsistent sizes of error and forecast matrices");
+
+	DimT i, r, s, t;
+
+	scens.resize(nSc);
+	for (s = 0; s < nSc; ++s) {
+		scens[s].resize(T, N);
+		for (t = 0; t < T; ++t) {
+			for (i = 0; i < N; ++i) {
+				r = N * t + i; // row in errSc
+				scens[s](t, i) = errSc(r, s);
 			}
 		}
 	}
@@ -386,6 +419,7 @@ int ScenTree::make_gnuplot_charts(std::string const & baseFName,
 	DimT s, S = scenVals.size();
 	DimT    T = scenVals[0].size1();
 	DimT i, N = scenVals[0].size2();
+	bool hasFcast = p2forecast && (p2forecast->size1()*p2forecast->size2() > 0);
 
 	// file for the script
 	std::string scrFName = "make_plots.gp";
@@ -410,7 +444,7 @@ int ScenTree::make_gnuplot_charts(std::string const & baseFName,
 		throw std::ios_base::failure("could not open output file " + outFName);
 
 	// first, write the data file
-	if (p2forecast) {
+	if (hasFcast) {
 		outF << "# forecast" << '\n';
 		if (rootVals.size() == N)
 			outF << rootVals << '\n';
@@ -440,7 +474,7 @@ int ScenTree::make_gnuplot_charts(std::string const & baseFName,
 		scrF << "plot \\" << '\n';
 		//
 		std::string xCol = ((rootVals.size() == N ? "0" : "($0+1)"));
-		if (p2forecast) {
+		if (hasFcast) {
 			for (s = 0; s < S; ++s)
 				scrF << "\t'" << outFName << "' using " << xCol << ":" << s+1
 				     << " index " << i+1 << " w linespoints title 'scen " << s+1
@@ -451,7 +485,7 @@ int ScenTree::make_gnuplot_charts(std::string const & baseFName,
 			for (s = 0; s < S; ++s)
 				scrF << "\t'" << outFName << "' using " << xCol << ":" << s+1
 				     << " index " << i << " w linespoints title 'scen " << s+1
-				     << "'" << (i < N-1 ? ", \\" : "") << '\n';
+				     << "'" << (s < S-1 ? ", \\" : "") << '\n';
 		}
 		//scrF << "pause -1 'press any key'\n";
 		scrF << "set output" << '\n';
@@ -520,7 +554,7 @@ FcErrTreeGen::FcErrTreeGen(DimT const nmbVars, MatrixD const & histData,
 	// convert to the desired format: HistDataFormat(::grByPer & ::hasErrors)
 	// note: We cannot use histFErr here, since it is a ref. to const matrix.
 	//       However, it works with _histFErr, which is a non-const matrix
-	process_hist_data(histData, _histFErr, N, dataFormat);
+	process_hist_data(histData, _histFErr, N, dataFormat, errIsRel);
 
 	DBGSHOW_NL(TrDetail, histFErr);
 }
@@ -528,13 +562,13 @@ FcErrTreeGen::FcErrTreeGen(DimT const nmbVars, MatrixD const & histData,
 
 // generate a 2-stage tree (a fan), with given number of scenarios
 /*
-	\param[in] forecast  forecast for the whole horizon; [T, N]
 	\param[in]    nScen  number of scenarios to generate
 	\param[out] outTree  the resulting scenario tree
 */
-void FcErrTreeGen::gen_2stage_tree(MatrixD const & forecast, DimT const nScen,
-                                   ScenTree & outTree)
+void FcErrTreeGen::gen_2stage_tree(DimT const nScen, ScenTree & outTree)
 {
+	assert (N > 0 && "sanity check");
+
 	auto p2tgCop = boost::make_shared<CopInfoForecastErrors>(
 		N, histFErr, perVarDt, intVarDt);
 
@@ -552,7 +586,10 @@ void FcErrTreeGen::gen_2stage_tree(MatrixD const & forecast, DimT const nScen,
 	//DISPLAY_NL(errScens);
 
 	// convert to the scenarios for the original multi-period problem
-	errors_to_values(errScens, forecast, outTree.scenVals);
+	if (curFcast.size1() > 0)
+		errors_to_scens(errScens, curFcast, outTree.scenVals, errIsRel);
+	else
+		errors_to_scens(errScens, N, outTree.scenVals);
 }
 
 
@@ -655,7 +692,7 @@ void FcErrTreeGen::add_one_stage(DimT const nBr, DimT const dT,
 		// convert to the scenarios for the original multi-period problem
 		// note: we cannot write p2outTree->branching, as we do not know
 		//       about branching in the previous periods .. left to the caller
-		errors_to_values(errScens, *p2forecast, p2outTree->scenVals);
+		errors_to_scens(errScens, *p2forecast, p2outTree->scenVals);
 	}
 	*/
 }
@@ -663,23 +700,23 @@ void FcErrTreeGen::add_one_stage(DimT const nBr, DimT const dT,
 
 // generate a regular multistage tree, with given branching per period
 /*
-	\param[in]  forecast  forecast for the whole horizon; [T, N]
 	\param[in] branching  branching factor per period
 	\param[out]  outTree  the resulting scenario tree
 
 	\note By a regular tree we mean a scenario tree where all nodes
 	      in the same period have the same number of child nodes.
 */
-void FcErrTreeGen::gen_reg_tree(MatrixD const & forecast,
-                                VectorI const & branching, ScenTree & outTree)
+void FcErrTreeGen::gen_reg_tree(VectorI const & branching, ScenTree & outTree)
 {
-	if (forecast.size2() != N)
-		throw std::length_error("wrong number of variables in the forecast");
 	DimT nmbPer = T;  // number of periods we generate scenarios for
-	if (branching.size() != forecast.size1())
-		WARNING("different number of periods in branching vector and forecast")
-	if (forecast.size1() < nmbPer)
-		nmbPer = forecast.size1();
+	if (curFcast.size1() > 0) {
+		if (curFcast.size2() != N)
+			throw std::length_error("wrong number of variables in the forecast");
+		if (branching.size() != curFcast.size1())
+			WARNING("different number of periods in branching vector and forecast");
+		if (curFcast.size1() < nmbPer)
+			nmbPer = curFcast.size1();
+	}
 	if (branching.size() < nmbPer)
 		nmbPer = branching.size();
 
@@ -714,8 +751,12 @@ void FcErrTreeGen::gen_reg_tree(MatrixD const & forecast,
 		tBr = tBrNext;
 	} while (tBrNext < nmbPer);
 
-	DBGSHOW_NL(TrDetail, forecast);
-	errors_to_values(errScens, forecast, outTree.scenVals);
+	if (curFcast.size1() > 0) {
+		DBGSHOW_NL(TrDetail, curFcast);
+		errors_to_scens(errScens, curFcast, outTree.scenVals, errIsRel);
+	} else {
+		errors_to_scens(errScens, N, outTree.scenVals);
+	}
 	outTree.branching = branching;
 }
 
