@@ -13,14 +13,14 @@ using namespace CopulaDef;
 
 
 CopInfoStudent::CopInfoStudent(unsigned degF, MatrixD const & correls)
-: CopInfoNormal(correls), dof(degF)
+: CopInfoNormal(correls, false), dof(degF)
 {
 	setup_2d_targets(); // create the matrix of bivariate copula objects
 }
 
 // constructor with DoF and a file with correlations
 CopInfoStudent::CopInfoStudent(unsigned degF, std::string const & tgFName)
-: CopInfoNormal(tgFName), dof(degF)
+: CopInfoNormal(tgFName, false), dof(degF)
 {
 	setup_2d_targets(); // create the matrix of bivariate copula objects
 }

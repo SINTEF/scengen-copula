@@ -235,7 +235,7 @@ void FcErr_Gen::errors_to_scens(MatrixD const & errSc, DimT const N,
 CopInfoForecastErrors::CopInfoForecastErrors(DimT const nmbVars,
 	                                         MatrixD const & histFErr,
 	                                         int perVarDt, int intVarDt)
-: CopInfoData(histFErr),
+: CopInfoData(histFErr, false), // 'false' prohibits call of setup_2d_targets()
   N(nmbVars), T(histFErr.size1() / N)
 {
 	if (histFErr.size1() != N * T)
@@ -306,7 +306,7 @@ void CopInfoForecastErrors::setup_2d_targets(int perVarDt, int intVarDt)
 								attach_2d_target(
 									new Cop2DData(hData, v1, v2, this), v1, v2);
 						}
-						if (dt + u <= (int) T) {
+						if (u > 0 && dt + u <= (int) T) {
 							v2 = row_of(j, dt + u);
 							assert (v2 >= 0 && v1 < nVars && "bound check");
 							if (v2 > v1)

@@ -209,7 +209,7 @@ int main(int argc, char *argv[]) {
 			inFileStr.open(forecastFName);
 			if (!inFileStr) {
 				throw std::ios_base::failure("Could not open input file `"
-											 + forecastFName + "'!");
+				                             + forecastFName + "'!");
 			}
 			inFileStr >> forecast;
 			inFileStr.close();
@@ -244,7 +244,7 @@ int main(int argc, char *argv[]) {
 		} else {
 			// number of periods not given -> imply from other data
 			// (nPer = min(dt in forecast, dt in histData)
-			if (hasForecast && forecast.size1() < nPer)
+			if (hasForecast)
 				nPer = forecast.size1();
 			if (T < nPer)
 				nPer = T;

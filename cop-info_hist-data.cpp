@@ -12,13 +12,14 @@ using namespace std;
 using namespace CopulaDef;
 
 
-CopInfoData::CopInfoData(MatrixD const & hDataMat)
+CopInfoData::CopInfoData(MatrixD const & hDataMat, bool const runSetup)
 : CopInfoBy2D(hDataMat.size1(), true),
   nPts(hDataMat.size2()),
   hData(hDataMat), hRanks(nVars, nPts), hU01(nVars, nPts)
 {
 	fill_ranks_etc();   // fills hRanks and hU01
-	setup_2d_targets(); // create the matrix of bivariate copula objects
+	if (runSetup)
+		setup_2d_targets(); // create the matrix of bivariate copula objects
 }
 
 

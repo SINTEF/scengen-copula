@@ -10,14 +10,15 @@ using namespace std;
 using namespace CopulaDef;
 
 
-CopInfoNormal::CopInfoNormal(MatrixD const & correls)
+CopInfoNormal::CopInfoNormal(MatrixD const & correls, bool const runSetup)
 : CopInfoBy2D(correls.size1(), false), correlMat(correls)
 {
-	setup_2d_targets(); // create the matrix of bivariate copula objects
+	if (runSetup)
+		setup_2d_targets(); // create the matrix of bivariate copula objects
 }
 
 
-CopInfoNormal::CopInfoNormal(std::string const & tgFName)
+CopInfoNormal::CopInfoNormal(std::string const & tgFName, bool const runSetup)
 : CopInfoBy2D(0, false)
 {
 	try {
@@ -28,7 +29,8 @@ CopInfoNormal::CopInfoNormal(std::string const & tgFName)
 		//cerr << "       The error message was: " << e.what() << endl;
 		throw; // re-throw the exception
 	}
-	setup_2d_targets(); // create the matrix of bivariate copula objects
+	if (runSetup)
+		setup_2d_targets(); // create the matrix of bivariate copula objects
 }
 
 

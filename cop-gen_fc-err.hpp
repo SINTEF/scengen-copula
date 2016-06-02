@@ -58,7 +58,7 @@ private:
 		which is too early. We therefore keep this empty and create
 		a new version to be called from the constructors here.
 	**/
-	void setup_2d_targets() override {}
+	//void setup_2d_targets() override {}
 
 	/// creates objects for the 2D targets; called from the constructors
 	/**

@@ -206,7 +206,6 @@ private:
 		MatrixD hU01;   ///< hist. data, ranks scaled to U(0,1)
 	///@}
 
-protected:
 	/// read the target distribution from a file
 	/// \note remember to enclose this in a try{} block!
 	void read_tg_file(std::string const & tgFName);
@@ -214,9 +213,10 @@ protected:
 	/// fill \a hRanks and \a hU01 matrices
 	void fill_ranks_etc();
 
-	/// creates objects for the 2D targets; called from the constructors
-	virtual void setup_2d_targets();
+	/// creates objects for the 2D targets
+	void setup_2d_targets();
 
+protected:
 	/// incomplete constructor, only for derived classes
 	CopInfoData(DimT const N, bool const hasCdf = false)
 	: CopInfoBy2D(N, hasCdf) {}
@@ -225,8 +225,16 @@ protected:
 	//void init_with_hist_data(MatrixD const & hDataMat);
 
 public:
-	/// constructor with the target data as input (matrix is [nVar * nPts])
-	CopInfoData(MatrixD const & hDataMat);
+	/// constructor with the target data as input
+	/**
+		\param[in] hDataMat  matrix with the target data [nVar * nPts]
+		\param[in] runSetup  whether to call setup_2d_targets()
+
+		\note The second parameter has to be set to 'false' when calling
+		      this as a base class from a constructor that needs to setup
+		      the 2D targets in its own way.
+	**/
+	CopInfoData(MatrixD const & hDataMat, bool const runSetup = true);
 
 	/// constructor with file name of the target distribution
 	CopInfoData(std::string const & tgFName);
@@ -256,6 +264,8 @@ MatrixI & cop_info_data_ranks(CopInfoData & copInfo);
 /// normal copula, i.e. a collection of bivariate normal copulas
 class CopInfoNormal : public CopInfoBy2D {
 private:
+	/// creates objects for the 2D targets; called from the constructors
+	void setup_2d_targets();
 
 protected:
 	ublas::symmetric_matrix<double> correlMat; ///< correlation matrix
@@ -263,9 +273,6 @@ protected:
 	/// read the correlation matrix from a file
 	/// \note remember to enclose this in a try{} block!
 	void read_correl_mat(std::string const & tgFName);
-
-	/// creates objects for the 2D targets; called from the constructors
-	virtual void setup_2d_targets();
 
 	/// default constructor - needed from derived classes
 	/*
@@ -283,13 +290,29 @@ protected:
 
 public:
 	/// constructor with the target data as input
-	CopInfoNormal(MatrixD const & correls);
+	/**
+		\param[in]  correls  the correlation matrix
+		\param[in] runSetup  whether to call setup_2d_targets()
+
+		\note The second parameter has to be set to 'false' when calling
+		      this as a base class from a constructor that needs to setup
+		      the 2D targets in its own way.
+	**/
+	CopInfoNormal(MatrixD const & correls, bool const runSetup = true);
 
 	/// constructor with an open input stream
 	//CopInfoNormal(istream & is);
 
 	/// constructor with file name of the target distribution
-	CopInfoNormal(std::string const & tgFName);
+	/**
+		\param[in]  tgFName  file name with the specifications
+		\param[in] runSetup  whether to call setup_2d_targets()
+
+		\note The second parameter has to be set to 'false' when calling
+		      this as a base class from a constructor that needs to setup
+		      the 2D targets in its own way.
+	**/
+	CopInfoNormal(std::string const & tgFName, bool const runSetup = true);
 
 	virtual ~CopInfoNormal() {}
 
@@ -308,10 +331,10 @@ class CopInfoStudent : public CopInfoNormal {
 private:
 	unsigned dof;                              ///< degree of freedom
 
-protected:
 	/// creates objects for the 2D targets; called from the constructors
-	void setup_2d_targets() override;
+	void setup_2d_targets();
 
+protected:
 	/// read the parameters (dof and correlation matrix) from a file
 	/// \note remember to enclose this in a try{} block!
 	void get_params_from_file(std::string const & tgFName);

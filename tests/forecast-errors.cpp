@@ -38,13 +38,20 @@ TEST(ForecastErrorsGen, InputData) {
 			forecast(t, i) = histData(t, (T+1) * i);
 	//DISPLAY_NL(forecast);
 
+	// get the forecast errors
+	MatrixD histFcErr;
+	FcErr_Gen::process_hist_data(histData, histFcErr, N,
+	                             FcErr_Gen::HistDataFormat::standard);
+	EXPECT_EQ(histFcErr.size1(), N * T) << "checking dim. of the error matrix";
+	EXPECT_EQ(histFcErr.size2(), D - T) << "checking dim. of the error matrix";
+
 	// parameters for the generation of 2D copulas
 	int perVarDt = 1;
 	int intVarDt = 0;
 
 	auto p2tgCop
 		= boost::make_shared<FcErr_Gen::CopInfoForecastErrors>(
-			N, histData, perVarDt, intVarDt);
+			N, histFcErr, perVarDt, intVarDt);
 	EXPECT_EQ(p2tgCop->dim(), N * T) << "checking dimension of the target cop.";
 	EXPECT_EQ(p2tgCop->get_nmb_2d_copulas(), N*(T-1) + N*(N-1)/2*T)
 		<< "checking the number of 2D targets"; // for perVarDt=1, intVarDt=0
