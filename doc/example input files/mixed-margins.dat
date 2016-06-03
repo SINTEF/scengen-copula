@@ -1,10 +1,11 @@
-17
-sample file.dat 	// sample from file.dat; the file includes a vector
-sample file.dat 2 	// sample from 2nd col. of file.dat (a matrix); 
-data   file.dat 1   // 'data' is synonymous to 'sample'
+18
+sample hist-data_1D.dat	// sample from file.dat (a vector)
+sample hist-data.dat 2	// sample from 2nd col. of file.dat (a matrix)
+data   hist-data.dat 3	// 'data' is synonymous to 'sample'
 normal 0 1      	// normal distribution [mean, std.dev.]
 n 1 2           	// 'n' is a shortcut for 'normal'
 moments 0 1 0 3 	// 4 moments [mean, std.dev., skew, kurt]
+moments 0 1 1 1 1	// 4 moments, using spreadsheet formulas (format=1)
 m 1 2 1 4       	// 'm' is a shortcut for 'moments'
 triang 2 5 3    	// triang. distrib. [min, max, mode]9
 triang 2 5 3 x  	// triang. distrib. with values at the extremes

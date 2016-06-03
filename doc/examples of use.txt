@@ -1,42 +1,42 @@
 1. Generate 100 scenarios from normal copula with correlations from file
-   normal_3-vars_corrs.txt, with output to file normal_3d_cop.out
-   >copula-gen --cop-type normal --input normal_3d_corrs.txt --output normal_3d_cop.out 100
-   >copula-gen -c normal -i normal_3d_corrs.txt -o normal_3d_cop.out 100
+   normal_3-vars_corrs.dat, with output to file normal_3d_cop.out
+   >scen-gen_cop --cop-type normal --input normal_3d_corrs.dat --output normal_3d_cop.out 100
+   >scen-gen_cop -c normal -i normal_3d_corrs.dat -o normal_3d_cop.out 100
 
 2. Generate 100 scenarios from normal distribution with correlations from file
-   normal_3-vars_corrs.txt and means and variances from normal_3-vars_moms.txt,
+   normal_3-vars_corrs.dat and means and variances from normal_3-vars_moms.dat,
    with output to file normal_3d_val.out
-   >copula-gen --cop-type normal --input normal_3d_corrs.txt --marg-type normal --marg-par normal_3d_moms.txt --output normal_3d_val.out 100
-   >copula-gen -c normal -i normal_3d_corrs.txt -m normal -d normal_3d_moms.txt -o normal_3d_val.out 100
+   >scen-gen_cop --cop-type normal --input normal_3d_corrs.dat --marg-type normal --marg-par normal_3d_moms.dat --output normal_3d_val.out 100
+   >scen-gen_cop -c normal -i normal_3d_corrs.dat -m normal -d normal_3d_moms.dat -o normal_3d_val.out 100
 
 3. Like 2., but output also the copula, to file normal_3d_cop.out
-   >copula-gen --cop-type normal --input normal_3d_corrs.txt --marg-type normal --marg-par normal_3d_moms.txt --output normal_3d_val.out --cop-output normal_3d_cop.out 100
-   >copula-gen -c normal -i normal_3d_corrs.txt -m normal -d normal_3d_moms.txt -o normal_3d_val.out --cop-output normal_3d_cop.out 100
+   >scen-gen_cop --cop-type normal --input normal_3d_corrs.dat --marg-type normal --marg-par normal_3d_moms.dat --output normal_3d_val.out --cop-output normal_3d_cop.out 100
+   >scen-gen_cop -c normal -i normal_3d_corrs.dat -m normal -d normal_3d_moms.dat -o normal_3d_val.out --cop-output normal_3d_cop.out 100
 
 
-4. Generate 100 scenarios of copula from file hist_data.txt, to file test_cop.out
-   >copula-gen --cop-type sample --input hist_data.txt --output test_cop.out 100
-   >copula-gen -c sample -i hist_data.txt -o test_cop.out 100
+4. Generate 100 scenarios of copula from file hist-data.dat, to file test_cop.out
+   >scen-gen_cop --cop-type sample --input hist-data.dat --output test_cop.out 100
+   >scen-gen_cop -c sample -i hist-data.dat -o test_cop.out 100
 
-5. Like 4., but use also margins from hist_data.txt and output to test_val.out
-   >copula-gen --cop-type sample --input hist_data.txt --marg-type sample --output test_val.out 100
-   >copula-gen -c sample -i hist_data.txt -m sample -o test_val.out 100
+5. Like 4., but use also margins from hist-data.dat and output to test_val.out
+   >scen-gen_cop --cop-type sample --input hist-data.dat --marg-type sample --output test_val.out 100
+   >scen-gen_cop -c sample -i hist-data.dat -m sample -o test_val.out 100
 
-6. Generate 100 scenarios with copula from hist_data.txt and normal margins with
-   moments from normal_3d_moms.txt, with output to test-normal_val.out
-   >copula-gen --cop-type sample --input hist_data.txt --marg-type normal --marg-par normal_3d_moms.txt --output test-normal_val.out 100
-   >copula-gen -c sample -i hist_data.txt -m normal -d normal_3d_moms.txt -o test-normal_val.out 100
+6. Generate 100 scenarios with copula from hist-data.dat and normal margins with
+   moments from normal_3d_moms.dat, with output to test-normal_val.out
+   >scen-gen_cop --cop-type sample --input hist-data.dat --marg-type normal --marg-par normal_3d_moms.dat --output test-normal_val.out 100
+   >scen-gen_cop -c sample -i hist-data.dat -m normal -d normal_3d_moms.dat -o test-normal_val.out 100
 
-7. Generate 100 scenarios of three independent margins with moments from tg_moms.txt,
-   with moments compatible with spreadsheet formulas
-   >copula-gen --cop-type indep --dim 3 --marg-type moments --marg-par tg_moms.txt --form-of-moms 1 100
-   >copula-gen -c indep --dim 3 -m moments -d tg_moms.txt -f 1 100
+7. Generate 100 scenarios of three independent margins with moments from tg_moms.dat,
+   with moments compatible with spreadsheet formulas, where tg_moms.dat uses a matrix-style format
+   >scen-gen_cop --cop-type indep --dim 3 --marg-type moments --marg-par tg_moms.dat --mat-file-fmt --form-of-moms 1 100
+   >scen-gen_cop -c indep --dim 3 -m moments -d tg_moms.dat --mat-file-fmt -f 1 100
 
 8. Simulating the old moment-matching heuristic (except that the correlations are approximate):
-   generate 100 scenarios from normal copula with correlations from normal_3d_corrs.txt and
-   moments from tg_moms.txt, using the matrix input format
-   >copula-gen --cop-type normal --input normal_3d_corrs.txt --marg-type moments --marg-par tg_moms.txt --mat-file-fmt 100
-   >copula-gen -c normal -i normal_3d_corrs.txt -m moments -d tg_moms.txt --mat-file-fmt 100
+   generate 100 scenarios from normal copula with correlations from normal_3d_corrs.dat and
+   moments from tg_moms.dat, using the matrix input format
+   >scen-gen_cop --cop-type normal --input normal_3d_corrs.dat --marg-type moments --marg-par tg_moms.dat --mat-file-fmt 100
+   >scen-gen_cop -c normal -i normal_3d_corrs.dat -m moments -d tg_moms.dat --mat-file-fmt 100
 
 X. Generating scenarios with normal copula and margins from a sample is not yet implemented!!!
-   >copula-gen --cop-type normal --input normal_3d_corrs.txt -m sample -d hist_data.txt --output normal-test_val.out 100
+   >scen-gen_cop --cop-type normal --input normal_3d_corrs.dat -m sample -d hist-data.dat --output normal-test_val.out 100
