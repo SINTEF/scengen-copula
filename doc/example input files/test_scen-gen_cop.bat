@@ -6,7 +6,8 @@ set nFailed=0
 set LOG_F=".\test_main.log"
 
 :: ----------------------------------------------------------------------------
-:: testing the main generator
+echo Testing the main generator
+echo ==========================
 set SG_BIN=".\scen-gen_cop"
 set PARAMS_MAIN=(^
 	"--cop-type normal --input normal_3d_corrs.dat --output normal_3d_cop.out 100"^
@@ -45,7 +46,9 @@ for %%p in %PARAMS_MAIN% do (
 )
 
 :: ----------------------------------------------------------------------------
-:: testing the forecast-error-based generator
+echo.
+echo Testing the forecast-error-based generator
+echo ==========================================
 set SG_BIN=".\scen-gen_cop_fc-err"
 set PARAMS_MAIN=(^
 	"--hist-data hist-fcasts.dat --forecast forecast.dat --scens 6"^

@@ -1,0 +1,21 @@
+This code is dual-licensed under the following two licenses:
+- Eclipse Public License (http://opensource.org/licenses/eclipse-1.0.php)
+- LGPL license version 2.1 or later (http://opensource.org/licenses/lgpl-license).
+As a recipient of this code, you may choose which license to receive the code under. 
+
+
+The distributed source code includes the following third-party files:
+ - ranker.h
+   - home: https://sites.google.com/site/jivsoft/
+   - license: BSD 
+
+
+The distributed binary files include, in addition, the following libraries:
+- Boost 
+  - home: http://www.boost.org/
+  - license info: http://www.boost.org/users/license.html
+  - license: Boost Software License (http://opensource.org/licenses/BSL-1.0)
+- QuantLib
+  - home: http://quantlib.org/
+  - license info: http://quantlib.org/license.shtml
+  - license: modified (2-clause) BSD License (http://opensource.org/licenses/bsd-license.html)

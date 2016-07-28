@@ -12,7 +12,7 @@
 				<Option object_output=".obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="--cop-type indep --dim 2 --marg-type moments --marg-par tg_moms.txt --mat-file-fmt 100" />
+				<Option parameters="--hist-data hist-fcasts.dat --forecast forecast.dat --branching 4,3,2,1" />
 				<Compiler>
 					<Add option="-g" />
 					<Add option="-DHAS_QUANTLIB" />
@@ -195,7 +195,7 @@
 				<Option object_output=".obj/Debug/fc-err" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="--hist-data hist_fcasts.dat --forecast forecast.dat --scens 5" />
+				<Option parameters="--hist-data hist-fcasts.dat --forecast forecast.dat --scens 5" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
@@ -229,7 +229,7 @@
 				<Option working_dir="bin/Release" />
 				<Option object_output=".obj/Release-32/" />
 				<Option type="1" />
-				<Option compiler="gcc" />
+				<Option compiler="copy_of_gnu_gcc_w-32_compiler" />
 				<Option projectLibDirsRelation="2" />
 				<Compiler>
 					<Add option="-fexpensive-optimizations" />
@@ -254,14 +254,16 @@
 				<Option working_dir="bin/Release" />
 				<Option object_output=".obj/Release-32/fc-err" />
 				<Option type="1" />
-				<Option compiler="gcc" />
+				<Option compiler="copy_of_gnu_gcc_w-32_compiler" />
 				<Option projectLibDirsRelation="2" />
 				<Compiler>
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
+					<Add option="-m32" />
 					<Add option="-DNDEBUG" />
 				</Compiler>
 				<Linker>
+					<Add option="-m32" />
 					<Add library="boost_program_options" />
 					<Add directory="C:/Users/mkaut/Apps/programming/MinGW-w64/local/lib32" />
 				</Linker>
@@ -274,7 +276,6 @@
 			<Add option="-std=c++11" />
 			<Add option="-Wall" />
 			<Add option="-pedantic" />
-
 			<Add option="-Wno-unused-local-typedefs" />
 			<Add option="-ftemplate-backtrace-limit=0" />
 			<Add directory="external" />

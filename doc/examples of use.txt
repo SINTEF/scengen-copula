@@ -40,3 +40,5 @@
 
 X. Generating scenarios with normal copula and margins from a sample is not yet implemented!!!
    >scen-gen_cop --cop-type normal --input normal_3d_corrs.dat -m sample -d hist-data.dat --output normal-test_val.out 100
+
+See also the test script test_scen-gen_cop.bat or test_scen-gen_cop.sh.
