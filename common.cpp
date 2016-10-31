@@ -24,6 +24,13 @@ std::istream & operator>> (std::istream & is, ublas::vector<T> & v)
 	typename ublas::vector<T>::iterator it;
 	for (it = v.begin(); it != v.end(); ++it) {
 		is >> *it;
+		if (is.fail()) {
+			// stream is in a failed state _before_ the read!
+			is.clear();       // reset the state
+			string nonNumber;
+			is >> nonNumber;  // read the offending string
+			*it = std::numeric_limits<T>::signaling_NaN();
+		}
 	}
 	return is;
 }
@@ -43,6 +50,13 @@ std::istream & operator>> (std::istream & is, ublas::matrix<T> & M)
 	for (it1 = M.begin1(); it1 != M.end1(); ++it1) {
 		for (it2 = it1.begin(); it2 != it1.end(); ++it2) {
 			is >> *it2;
+			if (is.fail()) {
+				// stream is in a failed state _before_ the read!
+				is.clear();       // reset the state
+				string nonNumber;
+				is >> nonNumber;  // read the offending string
+				*it2 = std::numeric_limits<T>::signaling_NaN();
+			}
 		}
 	}
 	return is;

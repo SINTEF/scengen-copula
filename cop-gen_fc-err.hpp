@@ -45,6 +45,14 @@ enum class HistDataFormat {
 
 	Note that the variables we send to \a CopInfoData should be sorted
 	by length of the forecast, so we can later extend this to multi-stage trees.
+
+	\todo If the forecast length varies a lot, we might want to use more recent
+	      data for the shortest forecasts. To achieve this, we would need to
+	      have another class derived from CopInfoBy2D with bivariate 2D
+	      copulas - this would allow us to have different lengths.
+	      For the input file, the matrix-reading code now handles 'NaN'
+	      in the input, which is converted to signaling_NaN. All we need to do
+	      is to check for NaN when reading the matrix.
 **/
 class CopInfoForecastErrors : public CopulaDef::CopInfoData {
 private:
