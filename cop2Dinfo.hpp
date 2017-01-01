@@ -289,7 +289,7 @@ public:
 class Cop2DFrank : public Cop2DComp {
 private:
 	double th; ///< parameter theta of the copula; th in R - {0}
-	double C;  ///< exp(-th)
+	double C;  ///< exp(-th) - 1
 
 	double calc_cdf(const double u, const double v) const;
 

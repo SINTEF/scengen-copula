@@ -510,11 +510,11 @@ void Cop2DSample::cdf_dist_of_row(int const j, VectorD const &prevRowCdf,
 		if (i == 0) {
 			for (ii = 0; ii < N; ii++) {
 				// point/link (0, j) -> Cdf(ii,j) = prevRowRCdf(ii) + prob[j]
-				dist += cdfDist(prevRowCdf[ii] + probRow, tgCdfOfCol(ii));
 				TRACE (TrDetail3, "Cop2DSample::cdf_dist_of_row(" << j
 				       << "): i=0; ii=" << ii << "; prevRowCdf[" << ii << "]="
 				       << prevRowCdf[ii] << ", tg-cdf(" << ii << "," << j << ")="
 				       << tgCdfOfCol(ii));
+				dist += cdfDist(prevRowCdf[ii] + probRow, tgCdfOfCol(ii));
 			}
 		} else {
 			// using the recursive formula shown above

@@ -448,9 +448,7 @@ double Cop2DGumbel::calc_cdf(const double u, double const v) const
 Cop2DFrank::Cop2DFrank(double const theta)
 : Cop2DComp(), th(theta), C(exp(-theta) - 1)
 {
-	if (th < -1) {
-		throw std::out_of_range("Frank copula: parameter theta must be >= -1");
-	}
+    // allow all values of theta - see the CDF
 }
 
 Cop2DFrank::Cop2DFrank(istream & paramStr)
@@ -461,9 +459,7 @@ Cop2DFrank::Cop2DFrank(istream & paramStr)
 		throw std::runtime_error
 			("error while reading parameters for the Frank copula");
 	}
-	if (th < -1) {
-		throw std::out_of_range("Frank copula: parameter theta must be >= -1");
-	}
+	C = exp(-th) - 1;
 }
 
 
@@ -534,7 +530,7 @@ Cop2DNelsen18::Cop2DNelsen18(istream & paramStr)
 // copula 4.2.21 from Nelsen, pp. 118
 
 Cop2DNelsen21::Cop2DNelsen21(double const theta)
-: Cop2DComp(), th(theta)
+: Cop2DComp(), th(theta), iTh(1.0 / theta)
 {
 	if (th < 1) {
 		throw std::out_of_range("Nelsen-18 copula: parameter theta must be >= 1");
