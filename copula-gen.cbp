@@ -12,7 +12,7 @@
 				<Option object_output=".obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="-c mixed -i cop_mix.txt -m mixed -d marg_mix_7.txt 50" />
+				<Option parameters="-c mixed -i cop_mixed_6d.dat -m mixed -d marg_mixed_6d.dat 25" />
 				<Compiler>
 					<Add option="-g" />
 					<Add option="-DHAS_QUANTLIB" />

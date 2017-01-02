@@ -203,11 +203,27 @@ CopInfoGen2D::CopInfoGen2D(std::string const & tgFName)
 	while (! tgFStr.eof()) {
 		DimT i, j;
 		tgFStr >> i >> j;
+		if (! tgFStr.good()) {
+			if (n2Dcops == 0)
+				throw std::runtime_error("data file for mixed copulas should"
+				                         "start with 3 numbers: dimension and "
+				                         "the margins of the first 2D-copula");
+			else
+				break; // stop reading
+		}
+		if (i < 1 || i > nVars)
+			throw std::runtime_error("invalid 1st margin for 2D-copula no. "
+			                         + std::to_string(n2Dcops + 1));
+		if (j < 1 || j > nVars)
+			throw std::runtime_error("invalid 2nd margin for 2D-copula no. "
+			                         + std::to_string(n2Dcops + 1));
 		--i; --j; // assume the inputs count from 1, not from zero
 		std::string copType;
 		tgFStr >> copType;
 		if (! tgFStr.good())
-			continue;
+			throw std::runtime_error("wrong input format for 2D-copula "
+			                         + std::to_string(n2Dcops + 1)
+			                         + ": expected copula type (string)");
 
 		// NEW - NOT YET FINISHED!
 		std::string paramsAsString;
@@ -283,8 +299,8 @@ CopInfoGen2D::CopInfoGen2D(std::string const & tgFName)
 */
 		}
 		catch(std::exception& e) {
-			cerr << "Error: There was some problem initializing bivariate copulas!"
-			     << endl << "       The error message was: " << e.what() << endl;
+			cerr << "\nERROR in initialization of 2D copula no. " << n2Dcops + 1
+			     << '\n' << "The error message was: " << e.what() << '\n';
 			exit(1);
 		}
 		attach_2d_target(p2tgCop, i, j);
