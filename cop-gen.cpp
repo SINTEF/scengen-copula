@@ -304,7 +304,7 @@ int main(int argc, char *argv[]) {
 		}
 		break;
 	case CopTypeID::mixed: // generic mixed of 2D copulas
-		cout << "copula of type 'mixed 2D copulas'" << endl;
+		MSG (TrInfo, "copula of type 'mixed 2D copulas'");
 		// create a new object of the specific class
 		p2tgCop = boost::make_shared<CopInfoGen2D>(copParamsF);
 		break;
