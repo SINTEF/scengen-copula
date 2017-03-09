@@ -22,8 +22,129 @@ using namespace FcErr_Gen;
 #endif
 OutputLevel outLvl = defOutLvl; // can be changed later
 
+struct BrInfo {
+	int fromSc;
+	int brTime;
+};
+
+class SC {
+private:
+	VectorI nOffspring;
+	int nextSc;
+
+	void count_offspring () {
+		int T = branching.size();
+		nOffspring.resize(T + 1);
+		nOffspring(T) = 0;
+		nOffspring(T - 1) = branching(T - 1);
+		for (int t = T - 2; t >= 0; --t)
+			nOffspring(t) = nOffspring(t + 1) * branching(t);
+	}
+
+public:
+	VectorI branching;
+
+	std::vector<BrInfo> get_struct_smps() {
+		count_offspring();
+		int nSc = nOffspring(0);
+		auto brInfo = std::vector<BrInfo>(nSc);
+
+		nextSc = 0;
+		smps(0, 0, 0, 0, brInfo);
+
+		return brInfo;
+	}
+
+	void smps(int curT, int curSc, int brT, int fromSc, std::vector<BrInfo> & brInfo) {
+		if (nOffspring(curT) <= 1) {
+			// no branching after this node
+			brInfo[curSc].fromSc = fromSc;
+			brInfo[curSc].brTime = brT;
+		} else {
+			// node has more than one offspring
+			// first child - the same scenario
+			smps(curT + 1, curSc, brT, fromSc, brInfo);
+			// now other child (if any) - these are new scenarios
+			for (int ch = 1; ch < branching(curT); ++ch) {
+				nextSc++;
+				smps(curT + 1, nextSc, curT + 1, curSc, brInfo);
+			}
+		}
+	}
+
+	std::vector<std::vector<BrInfo>> get_struct_txy() {
+		count_offspring();
+		int nSc = nOffspring(0);
+		auto brInfo = std::vector<std::vector<BrInfo>>(nSc);
+
+		nextSc = 0;
+		int T = branching.size();
+		VectorI curPath = ublas::zero_vector<int>(T+1);
+		std::vector<VectorI> pathSc(nSc);
+		txy_struct(0, curPath, pathSc);
+		BrInfo branch;
+
+		for (int sc = 0; sc < nSc; ++sc) {
+			std::cout << "scenario " << sc << " : " << pathSc[sc] << '\n';
+			branch.brTime = 0;
+			branch.fromSc = pathSc[sc](0);
+			brInfo[sc].push_back(branch);
+			std::cout << brInfo[sc].size() << '\n';
+			std::cout << brInfo[sc][0].brTime << "," << brInfo[sc][0].fromSc << '\n';
+			for (int t = 1; t <= T; ++t) {
+				if (pathSc[sc](t) != pathSc[sc](t-1)) {
+					branch.brTime = t;
+					branch.fromSc = pathSc[sc](t);
+					brInfo[sc].push_back(branch);
+				}
+			}
+		}
+		return brInfo;
+	}
+
+	void txy_struct(int curT, VectorI & curPath, std::vector<VectorI> & pathSc) {
+		if (nOffspring(curT) <= 1) {
+			// no branching after this node
+			int curSc = curPath(curPath.size() - 1);
+			pathSc[curSc] = curPath;
+		} else {
+			// node had more than one offspring
+			// first child - the same scenario
+			txy_struct(curT + 1, curPath, pathSc);
+			// now other child (if any) - these are new scenarios
+			for (int ch = 1; ch < branching(curT); ++ch) {
+				nextSc++;
+				for (unsigned t = curT + 1; t < curPath.size(); ++t)
+					curPath(t) = nextSc;
+				txy_struct(curT + 1, curPath, pathSc);
+			}
+		}
+	}
+};
 
 int main(int argc, char *argv[]) {
+
+	SC scenTree;
+
+	scenTree.branching.resize(8);
+	scenTree.branching <<= 1, 1, 1, 3, 1, 1, 2, 1;
+
+	auto treeStruct = scenTree.get_struct_smps();
+	for (unsigned sc = 0; sc < treeStruct.size(); ++sc)
+		std::cout << "scenario " << sc + 1 << " branches from "
+		          << treeStruct[sc].fromSc + 1 << " at time "
+		          << treeStruct[sc].brTime << "." << '\n';
+
+	std::vector<std::vector<BrInfo>> treeStructTxy = scenTree.get_struct_txy();
+	for (unsigned sc = 0; sc < treeStruct.size(); ++sc) {
+		std::cout << "scenario " << sc + 1 << '\n';
+		for (unsigned br = 0; br < treeStructTxy[sc].size(); ++br) {
+			std::cout << " : " << treeStructTxy[sc][br].brTime << " -> "
+			          <<treeStructTxy[sc][br].fromSc + 1 << '\n';
+		}
+	}
+
+/*
 	ECHO ("Example 1: simple 2-stage tree, built manually");
 	{
 		DimT N; // number of variables
@@ -186,6 +307,7 @@ int main(int argc, char *argv[]) {
 		std::cout << std::endl;
 		scTree.display_per_var();
 	}
+*/
 
 	return 0;
 }

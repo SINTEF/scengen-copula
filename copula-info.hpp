@@ -7,6 +7,7 @@
 #include <boost/numeric/ublas/symmetric.hpp>  // for correlation matrices
 #include <boost/numeric/ublas/triangular.hpp> // pts. to target 2D copulas
 #include <map>
+#include <list>
 
 
 namespace CopulaDef {
@@ -228,13 +229,13 @@ public:
 	/// constructor with the target data as input
 	/**
 		\param[in] hDataMat  matrix with the target data [nVar * nPts]
-		\param[in] runSetup  whether to call setup_2d_targets()
+		\param[in] all2DCop  create all 2D copulas (using setup_2d_targets())
 
 		\note The second parameter has to be set to 'false' when calling
 		      this as a base class from a constructor that needs to setup
 		      the 2D targets in its own way.
 	**/
-	CopInfoData(MatrixD const & hDataMat, bool const runSetup = true);
+	CopInfoData(MatrixD const & hDataMat, bool const all2DCop = true);
 
 	/// constructor with file name of the target distribution
 	CopInfoData(std::string const & tgFName);
@@ -243,6 +244,9 @@ public:
 	//CopInfoData(TMatrixI & ranksMat, bool const fillU01Data = true);
 
 	virtual ~CopInfoData() {}
+
+	/// creates target 2D copulas for given variable pairs
+	void setup_2d_targets(std::list<std::pair<DimT, DimT>> const & copVars);
 
 	MatrixD & data_vals() { return hData; }
 	MatrixI & data_ranks() { return hRanks; }

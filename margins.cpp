@@ -48,6 +48,12 @@ void MarginsInfo::get_margin_distr(MatrixI const & ranks, MatrixD & values)
 	}
 }
 
+void MarginsInfo::fixMeans(double const tgMean)
+{
+	for (auto it = p2margins.begin(); it != p2margins.end(); ++it)
+		(*it)->fixMean(tgMean);
+}
+
 
 // ----------------------------------------------------------------------------
 // class MixedMargins

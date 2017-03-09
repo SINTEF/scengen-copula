@@ -42,6 +42,13 @@ public:
 	/// get dimension
 	DimT dim() const { return nM; }
 
+	/// add post-processing that fixes means to all margins to a given value
+	/**
+		used for generation of scenarios for an error term, to ensure
+		that the mean is exactly zero
+	**/
+	void fixMeans(double const tgMean);
+
 	typedef boost::shared_ptr<MarginsInfo> Ptr;
 };
 

@@ -459,7 +459,7 @@ int main(int argc, char *argv[]) {
 			oFile.close();
 		}
 		catch(exception & e) {
-			cerr << "Error while writing the output to file " << outputFName;
+			cerr << "Error while writing the output to file " << outputFName << ".\n";
 			throw; // re-throw the exception
 		}
 	}

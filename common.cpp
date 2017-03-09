@@ -184,7 +184,7 @@ double vec_mean(ublas::vector<T> const & v)
 {
 	double mu = 0.0;
 	for (auto it = v.begin(); it != v.end(); ++it)
-		mu += v(*it);
+		mu += *it;
 	return mu / v.size();
 }
 template double vec_mean(VectorD const &); // compile this for VectorD
@@ -197,7 +197,7 @@ double vec_std_dev(ublas::vector<T> const & v, double const mean,
 	DimT N = v.size();
 	double stD = 0.0;
 	for (auto it = v.begin(); it != v.end(); ++it)
-		stD += pow(v(*it), 2);
+		stD += pow(*it, 2);
 	stD /= N;            // std = E[X^2]
 	stD -= pow(mean, 2); // std = E[X^2] - (EX)^2 = Var(X)
 	if (stD < 0)

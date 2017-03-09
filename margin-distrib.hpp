@@ -141,6 +141,12 @@ public:
 	static UnivarMargin * make_new(std::string const & margName,
 	                               std::istream & paramStr, DimT const nSc);
 
+	/// add post-processing that fixes the mean to a given value
+	/**
+		At some situations, it is better to add this after construction...
+	**/
+	void fixMean(double const tgMean);
+
 	typedef boost::shared_ptr<UnivarMargin> Ptr;
 };
 

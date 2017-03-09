@@ -136,6 +136,12 @@ void UnivarMargin::inv_cdf(VectorI const & ranks, VectorD & values)
 	}
 }
 
+void UnivarMargin::fixMean(double const tgMean)
+{
+	fixEV = true;
+	mean = tgMean;
+}
+
 // initialize the map - required!
 UnivMargNameMapT UnivarMargin::nameMap;
 
