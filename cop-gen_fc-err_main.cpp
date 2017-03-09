@@ -319,7 +319,9 @@ int main(int argc, char *argv[]) {
 	DBGSHOW(TrDetail, nPer);
 	DBGSHOW(TrDetail, nSc);
 
-	FcErrTreeGen scenGen(nVar, histData, hDataFmt, useRelError, perVarDt, intVarDt);
+	FcErrTreeGen scenGen(nVar, histData, hDataFmt,
+	                     useRelError ? FcErrorType::relDiff : FcErrorType::linDiff,
+	                     perVarDt, intVarDt);
 	ScenTree scTree;
 
 	if (hasForecast)
