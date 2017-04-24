@@ -350,14 +350,14 @@ CopInfoForecastErrors::CopInfoForecastErrors(DimT const nmbVars,
 	                                         int perVarDt, int intVarDt)
 : CopInfoForecastErrors(nmbVars, histFErr)
 {
-	std::cout << "CopInfoForecastErrors constructor with perVarDt and intVarDt\n";
+	TRACE(TrDetail, "CopInfoForecastErrors constructor with perVarDt and intVarDt");
 
 	// setup the matrix of dts
 	ublas::symmetric_matrix<int> maxDts(N);
 
 	for (DimT i = 0; i < N; ++i) {
 		maxDts(i, i) = perVarDt;
-		for (DimT j = 0; j < i; ++i)
+		for (DimT j = 0; j < i; ++j)
 			maxDts(i, j) = intVarDt;
 	}
 	DBGSHOW_NL(TrInfo2, maxDts);
