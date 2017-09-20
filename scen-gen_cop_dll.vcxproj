@@ -121,12 +121,28 @@
       <AdditionalIncludeDirectories>external</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BUILDING_DLL;HAS_QUANTLIB;HAS_HKW;HKW_NO_DLL_DEFS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <PostBuildEvent>
+      <Command>cp $(OutDir)$(TargetName).* "$(SolutionDir)PriceScenarioService\scen-gen_cop\$(Platform)\$(Configuration)"
+cp $(OutDir)$(TargetFileName) "$(SolutionDir)PriceScenServiceTest\bin\$(Platform)\$(Configuration)"
+</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>copy the produced files for use in the PriceScenarioService and  PriceScenServiceTest projects</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>external</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BUILDING_DLL;HAS_QUANTLIB;HAS_HKW;HKW_NO_DLL_DEFS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <PostBuildEvent>
+      <Command>cp $(OutDir)$(TargetName).* "$(SolutionDir)PriceScenarioService\scen-gen_cop\$(Platform)\$(Configuration)"
+cp $(OutDir)$(TargetFileName) "$(SolutionDir)PriceScenServiceTest\bin\$(Platform)\$(Configuration)"
+</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>copy the produced files for use in the PriceScenarioService and  PriceScenServiceTest projects</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="common.cpp" />
