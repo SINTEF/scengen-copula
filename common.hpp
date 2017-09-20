@@ -243,7 +243,7 @@ enum OutputLevel {
 extern OutputLevel outLvl;
 // Note that the definitions do not end with ";", so we need one when used!
 // 'internal' macro, used by the others
-#define ECHO(message) std::cout << message << std::endl; std::cout.flush()
+#define ECHO(message) std::cout << message << '\n'; std::cout.flush()
 // this will produce message in all profiles (debug and release)
 #define MSG(lvl, txt) if (lvl <= outLvl) { ECHO(txt); }
 // specialized versions for different output levels

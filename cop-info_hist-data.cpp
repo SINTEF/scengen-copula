@@ -12,13 +12,13 @@ using namespace std;
 using namespace CopulaDef;
 
 
-CopInfoData::CopInfoData(MatrixD const & hDataMat, bool const runSetup)
+CopInfoData::CopInfoData(MatrixD const & hDataMat, bool const all2DCop)
 : CopInfoBy2D(hDataMat.size1(), true),
   nPts(hDataMat.size2()),
   hData(hDataMat), hRanks(nVars, nPts), hU01(nVars, nPts)
 {
 	fill_ranks_etc();   // fills hRanks and hU01
-	if (runSetup)
+	if (all2DCop)
 		setup_2d_targets(); // create the matrix of bivariate copula objects
 }
 
@@ -186,6 +186,25 @@ void CopInfoData::setup_2d_targets()
 		for (j = i+1; j < nVars; j++) {
 			attach_2d_target(new Copula2D::Cop2DData(hData, i, j, this), i, j);
 		}
+	}
+}
+
+// creates target 2D copulas for given variable pairs
+void CopInfoData::setup_2d_targets(std::list<std::pair<DimT, DimT>> const & copVars)
+{
+	assert (nVars > 0 && "must have a known dimension by now");
+	if (p2Info2D.size1() != nVars || p2Info2D.size2() != nVars) {
+		if (p2Info2D.size1() * p2Info2D.size2() > 0) {
+			cerr << "Warning: resizing the matrix of 2D-copula objects!" << endl;
+		}
+		p2Info2D.resize(nVars, nVars);
+	}
+
+	for (auto&& cop : copVars) {
+		TRACE(TrInfo2, "attaching target 2d-copula for variable pair ("
+		                << cop.first << "," << cop.second << ")");
+		attach_2d_target(new Copula2D::Cop2DData(hData, cop.first, cop.second, this),
+		                 cop.first, cop.second);
 	}
 }
 

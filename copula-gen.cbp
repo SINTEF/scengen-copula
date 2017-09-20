@@ -273,9 +273,9 @@
 			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-std=c++11" />
-			<Add option="-Wall" />
 			<Add option="-pedantic" />
+			<Add option="-Wall" />
+			<Add option="-std=c++14" />
 			<Add option="-Wno-unused-local-typedefs" />
 			<Add option="-ftemplate-backtrace-limit=0" />
 			<Add directory="external" />
