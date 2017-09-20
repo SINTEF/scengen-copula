@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <cctype> 
 
 using namespace MarginDistrib;
 using std::cout;

@@ -4,6 +4,7 @@
 #endif // HAS_QUANTLIB
 
 #include <iostream>
+#include <cctype>
 //#include <fstream>
 //#include <cmath>
 //#include <algorithm>

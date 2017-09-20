@@ -1,0 +1,217 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{1D868D0D-2B5E-450A-87F1-120CDC23691A}</ProjectGuid>
+    <Keyword>ManagedCProj</Keyword>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <ProjectName>scen-gen_cop dll</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CLRSupport>true</CLRSupport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CLRSupport>true</CLRSupport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>scen-gen_cop</TargetName>
+    <TargetExt>.dll</TargetExt>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);c:\Users\mkaut\Apps\TDM-GCC-64\local\include</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>scen-gen_cop</TargetName>
+    <TargetExt>.dll</TargetExt>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);c:\Users\mkaut\Apps\TDM-GCC-64\local\include</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SCENGEN_COP_DLL_EXPORTS;BUILDING_DLL;HAS_QUANTLIB;HAS_HKW;HKW_NO_DLL_DEFS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>c:\Users\mkaut\Apps\TDM-GCC-64\local;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SCENGEN_COP_DLL_EXPORTS;BUILDING_DLL;HAS_QUANTLIB;HAS_HKW;HKW_NO_DLL_DEFS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>c:\Users\mkaut\Apps\TDM-GCC-64\local;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>external</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BUILDING_DLL;HAS_QUANTLIB;HAS_HKW;HKW_NO_DLL_DEFS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>external</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>BUILDING_DLL;HAS_QUANTLIB;HAS_HKW;HKW_NO_DLL_DEFS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="common.cpp" />
+    <ClCompile Include="cop-gen_lib.cpp" />
+    <ClCompile Include="cop-info_hist-data.cpp" />
+    <ClCompile Include="cop-info_normal.cpp" />
+    <ClCompile Include="cop-info_student.cpp" />
+    <ClCompile Include="cop2D-info_student.cpp" />
+    <ClCompile Include="cop2Dinfo.cpp" />
+    <ClCompile Include="cop2Dinfo_w-quantlib.cpp" />
+    <ClCompile Include="cop2Dsample.cpp" />
+    <ClCompile Include="copula-info.cpp" />
+    <ClCompile Include="copula-sample.cpp" />
+    <ClCompile Include="external\quantlib\errors.cpp" />
+    <ClCompile Include="external\quantlib\math\beta.cpp" />
+    <ClCompile Include="external\quantlib\math\distributions\bivariatenormaldistribution.cpp" />
+    <ClCompile Include="external\quantlib\math\distributions\bivariatestudenttdistribution.cpp" />
+    <ClCompile Include="external\quantlib\math\distributions\gammadistribution.cpp" />
+    <ClCompile Include="external\quantlib\math\distributions\normaldistribution.cpp" />
+    <ClCompile Include="external\quantlib\math\distributions\studenttdistribution.cpp" />
+    <ClCompile Include="external\quantlib\math\errorfunction.cpp" />
+    <ClCompile Include="external\quantlib\math\integrals\gaussianorthogonalpolynomial.cpp" />
+    <ClCompile Include="external\quantlib\math\integrals\gaussianquadratures.cpp" />
+    <ClCompile Include="external\quantlib\math\matrix.cpp" />
+    <ClCompile Include="external\quantlib\math\matrixutilities\symmetricschurdecomposition.cpp" />
+    <ClCompile Include="external\quantlib\math\matrixutilities\tqreigendecomposition.cpp" />
+    <ClCompile Include="external\scen-gen_hkw\HKW_cubic.c" />
+    <ClCompile Include="external\scen-gen_hkw\HKW_sg.c" />
+    <ClCompile Include="external\scen-gen_hkw\matrix.c" />
+    <ClCompile Include="external\scen-gen_hkw\sg_functions.c" />
+    <ClCompile Include="margin-distrib.cpp" />
+    <ClCompile Include="margin-distrib_moments.cpp" />
+    <ClCompile Include="margins.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="doc\html_doc.html" />
+    <None Include="external\quantlib\license.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="common.hpp" />
+    <ClInclude Include="cop-gen_lib.hpp" />
+    <ClInclude Include="cop2Dinfo.hpp" />
+    <ClInclude Include="cop2Dinfo_w-quantlib.hpp" />
+    <ClInclude Include="cop2Dsample.hpp" />
+    <ClInclude Include="copula-info.hpp" />
+    <ClInclude Include="copula-sample.hpp" />
+    <ClInclude Include="dll_export_def.h" />
+    <ClInclude Include="external\quantlib\config.ansi.hpp" />
+    <ClInclude Include="external\quantlib\config.mingw.hpp" />
+    <ClInclude Include="external\quantlib\config.msvc.hpp" />
+    <ClInclude Include="external\quantlib\config.sun.hpp" />
+    <ClInclude Include="external\quantlib\errors.hpp" />
+    <ClInclude Include="external\quantlib\mathconstants.hpp" />
+    <ClInclude Include="external\quantlib\math\array.hpp" />
+    <ClInclude Include="external\quantlib\math\beta.hpp" />
+    <ClInclude Include="external\quantlib\math\comparison.hpp" />
+    <ClInclude Include="external\quantlib\math\distributions\bivariatenormaldistribution.hpp" />
+    <ClInclude Include="external\quantlib\math\distributions\bivariatestudenttdistribution.hpp" />
+    <ClInclude Include="external\quantlib\math\distributions\gammadistribution.hpp" />
+    <ClInclude Include="external\quantlib\math\distributions\normaldistribution.hpp" />
+    <ClInclude Include="external\quantlib\math\distributions\studenttdistribution.hpp" />
+    <ClInclude Include="external\quantlib\math\errorfunction.hpp" />
+    <ClInclude Include="external\quantlib\math\integrals\gaussianorthogonalpolynomial.hpp" />
+    <ClInclude Include="external\quantlib\math\integrals\gaussianquadratures.hpp" />
+    <ClInclude Include="external\quantlib\math\matrix.hpp" />
+    <ClInclude Include="external\quantlib\math\matrixutilities\symmetricschurdecomposition.hpp" />
+    <ClInclude Include="external\quantlib\math\matrixutilities\tqreigendecomposition.hpp" />
+    <ClInclude Include="external\quantlib\qldefines.hpp" />
+    <ClInclude Include="external\quantlib\types.hpp" />
+    <ClInclude Include="external\quantlib\userconfig.hpp" />
+    <ClInclude Include="external\quantlib\utilities\disposable.hpp" />
+    <ClInclude Include="external\quantlib\utilities\null.hpp" />
+    <ClInclude Include="external\quantlib\utilities\steppingiterator.hpp" />
+    <ClInclude Include="external\ranker.h" />
+    <ClInclude Include="external\scen-gen_hkw\dll_export_def.h" />
+    <ClInclude Include="external\scen-gen_hkw\HKW_cubic.h" />
+    <ClInclude Include="external\scen-gen_hkw\HKW_sg.h" />
+    <ClInclude Include="external\scen-gen_hkw\matrix.h" />
+    <ClInclude Include="external\scen-gen_hkw\misc_macros.h" />
+    <ClInclude Include="external\scen-gen_hkw\sg_functions.h" />
+    <ClInclude Include="margin-distrib.hpp" />
+    <ClInclude Include="margin-distrib_moments.hpp" />
+    <ClInclude Include="margins.hpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

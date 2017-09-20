@@ -229,7 +229,7 @@
 				<Option working_dir="bin/Release" />
 				<Option object_output=".obj/Release-32/" />
 				<Option type="1" />
-				<Option compiler="copy_of_gnu_gcc_w-32_compiler" />
+				<Option compiler="gcc" />
 				<Option projectLibDirsRelation="2" />
 				<Compiler>
 					<Add option="-fexpensive-optimizations" />
@@ -254,7 +254,7 @@
 				<Option working_dir="bin/Release" />
 				<Option object_output=".obj/Release-32/fc-err" />
 				<Option type="1" />
-				<Option compiler="copy_of_gnu_gcc_w-32_compiler" />
+				<Option compiler="gcc" />
 				<Option projectLibDirsRelation="2" />
 				<Compiler>
 					<Add option="-fexpensive-optimizations" />
