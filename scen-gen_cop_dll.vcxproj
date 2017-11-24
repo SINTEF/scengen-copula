@@ -133,7 +133,8 @@ cp $(OutDir)$(TargetFileName) "$(SolutionDir)PriceScenServiceTest\bin\$(Platform
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>external</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>BUILDING_DLL;HAS_QUANTLIB;HAS_HKW;HKW_NO_DLL_DEFS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BUILDING_DLL;HAS_QUANTLIB;HAS_HKW;HKW_NO_DLL_DEFS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <PostBuildEvent>
       <Command>cp $(OutDir)$(TargetName).* "$(SolutionDir)PriceScenarioService\scen-gen_cop\$(Platform)\$(Configuration)"
