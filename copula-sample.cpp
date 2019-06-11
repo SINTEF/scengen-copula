@@ -212,8 +212,8 @@ double CopulaSample::gen_sample()
 		haveSc4Marg[marg] = true;
 	}
 
-	MSG (TrInfo, "Starting copula generation.")
-	for (marg = 1; marg < nVar; marg++) {
+	MSG (TrInfo, "Starting copula generation.");
+ 	for (marg = 1; marg < nVar; marg++) {
 		if (haveSc4Marg[marg]) {
 			MSG (TrInfo, " - skipping fixed margin " << marg + 1 << " of " << nVar);
 		} else {
@@ -221,7 +221,7 @@ double CopulaSample::gen_sample()
 			totDist += gen_new_margin(marg);
 		}
 	}
-	MSG (TrInfo, "Finished generating the copula.")
+	MSG (TrInfo, "Finished generating the copula.");
 
 	return totDist;
 }
