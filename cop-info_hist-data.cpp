@@ -29,7 +29,7 @@ CopInfoData::CopInfoData(std::string const & tgFName)
 	try {
 		read_tg_file(tgFName); // fills hData
 	}
-	catch(exception& e) {
+	catch(exception&) {
 		cerr << "Error: while reading target file `" << tgFName << "'!" << endl;
 		//cerr << "       The error message was: " << e.what() << endl;
 		throw; // re-throw the exception
@@ -181,10 +181,9 @@ void CopInfoData::setup_2d_targets()
 		p2Info2D.resize(nVars, nVars);
 	}
 
-	DimT i, j;
-	for (i = 0; i < nVars; i++) {
-		for (j = i+1; j < nVars; j++) {
-			attach_2d_target(new Copula2D::Cop2DData(hData, i, j, this), i, j);
+	for (DimT i = 0; i < nVars; i++) {
+		for (DimT j = i+1; j < nVars; j++) {
+			attach_2d_target(new Copula2D::Cop2DData(hData, (int) i, (int) j, this), i, j);
 		}
 	}
 }
@@ -203,7 +202,7 @@ void CopInfoData::setup_2d_targets(std::list<std::pair<DimT, DimT>> const & copV
 	for (auto&& cop : copVars) {
 		TRACE(TrInfo2, "attaching target 2d-copula for variable pair ("
 		                << cop.first << "," << cop.second << ")");
-		attach_2d_target(new Copula2D::Cop2DData(hData, cop.first, cop.second, this),
+		attach_2d_target(new Copula2D::Cop2DData(hData, (int) cop.first, (int) cop.second, this),
 		                 cop.first, cop.second);
 	}
 }

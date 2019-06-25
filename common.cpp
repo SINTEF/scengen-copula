@@ -109,7 +109,7 @@ void get_ranks(const std::vector<double> &inputVect, std::vector<int> &ranks) {
 	// - random  - rank of equal values is not equal (depends on order?)
 	//! \todo do we always want the tie-resolving variant ("random")?
 	rank(inputVect, ranks, "random");
-	unsigned len = ranks.size();
+	auto len = ranks.size();
 	for (unsigned i = 0; i < len; i++) {
 		ranks[i]--;
 	}
@@ -118,8 +118,8 @@ void get_ranks(const std::vector<double> &inputVect, std::vector<int> &ranks) {
 
 void get_ranks_or_rows(std::vector<VectorD> const & valMat, MatrixI & rankMat)
 {
-	unsigned nR = valMat.size();
-	unsigned nC = valMat[0].size(); // valMat is a vector of vectors, not a matrix!
+	auto nR = valMat.size();
+	auto nC = valMat[0].size(); // valMat is a vector of vectors, not a matrix!
 
 	// resize rankMat if needed; complain if resizing non-empty matrix
 	if (rankMat.size1() != nR || rankMat.size2() != nC) {
@@ -130,18 +130,16 @@ void get_ranks_or_rows(std::vector<VectorD> const & valMat, MatrixI & rankMat)
 		}
 	}
 
-	unsigned r, c;
-
 	std::vector<double> valV(nC);
 	std::vector<int> rankV(nC);
-	for (r = 0; r < nR; ++r) {
+	for (auto r = 0; r < nR; ++r) {
 		// make a temp. copy of the row
-		for (c = 0; c < nC; ++c) {
+		for (auto c = 0; c < nC; ++c) {
 			valV[c] = valMat[r](c);
 		}
 		rank (valV, rankV); // this computes the ranks - needs std::vector<>!
 		// copy to the target matrix; subtract 1 to get ranks from zero
-		for (c = 0; c < nC; ++c) {
+		for (auto c = 0; c < nC; ++c) {
 			rankMat(r,c) = rankV[c] - 1;
 		}
 	}
@@ -159,20 +157,19 @@ void get_ranks_or_rows(MatrixD const & valMat, MatrixI & rankMat)
 		rankMat.resize(valMat.size1(), valMat.size2());
 	}
 
-	int nR = valMat.size1();
-	int nC = valMat.size2();
-	int r, c;
+	auto nR = valMat.size1();
+	auto nC = valMat.size2();
 
 	std::vector<double> valV(nC);
 	std::vector<int> rankV(nC);
-	for (r = 0; r < nR; ++r) {
+	for (auto r = 0; r < nR; ++r) {
 		// make a temp. copy of the row
-		for (c = 0; c < nC; ++c) {
+		for (auto c = 0; c < nC; ++c) {
 			valV[c] = valMat(r,c);
 		}
 		rank (valV, rankV); // this computes the ranks - needs std::vector<>!
 		// copy to the target matrix; subtract 1 to get ranks from zero
-		for (c = 0; c < nC; ++c) {
+		for (auto c = 0; c < nC; ++c) {
 			rankMat(r,c) = rankV[c] - 1;
 		}
 	}

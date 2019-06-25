@@ -19,12 +19,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{5A67E939-F187-4156-BB6A-4BBEE1CD9BD7}</ProjectGuid>
+    <ProjectGuid>{5A67E939-F187-4156-BB6A-4BBEE1DE0CE8}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v140</PlatformToolset>
-    <ProjectName>scen-gen_cop dll</ProjectName>
+    <ProjectName>scen-gen_cop exe</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
@@ -50,12 +50,11 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <PreprocessorDefinitions>BUILDING_DLL;HAS_QUANTLIB;HAS_HKW;HKW_NO_DLL_DEFS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CONSOLE;HAS_QUANTLIB;HAS_HKW;HKW_NO_DLL_DEFS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
-      <ObjectFileName>$(IntDir)%(RelativeDir)\</ObjectFileName>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
@@ -88,7 +87,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="common.cpp" />
-    <ClCompile Include="cop-gen_lib.cpp" />
+    <ClCompile Include="cop-gen.cpp" />
     <ClCompile Include="cop-info_hist-data.cpp" />
     <ClCompile Include="cop-info_normal.cpp" />
     <ClCompile Include="cop-info_student.cpp" />
@@ -122,13 +121,11 @@
   <ItemGroup>
     <ClInclude Include="common.hpp" />
     <ClInclude Include="cop-gen_fc-err.hpp" />
-    <ClInclude Include="cop-gen_lib.hpp" />
     <ClInclude Include="cop2Dinfo.hpp" />
     <ClInclude Include="cop2Dinfo_w-quantlib.hpp" />
     <ClInclude Include="cop2Dsample.hpp" />
     <ClInclude Include="copula-info.hpp" />
     <ClInclude Include="copula-sample.hpp" />
-    <ClInclude Include="dll_export_def.h" />
     <ClInclude Include="external\bitmask_operators.hpp" />
     <ClInclude Include="external\quantlib\config.ansi.hpp" />
     <ClInclude Include="external\quantlib\config.mingw.hpp" />

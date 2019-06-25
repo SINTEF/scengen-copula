@@ -106,7 +106,7 @@ MixedMargins::MixedMargins(std::string const & tgFName, DimT const nScens,
 			                         + distrID + "'");
 		}
 		*/
-		MSG (TrInfo, "margin " << std::setw(floor(log10(nM)) + 1) << i+1
+		MSG (TrInfo, "margin " << std::setw((int) floor(log10(nM)) + 1) << i+1
 		             << " of type '" << distrID << "'");
 
 		// distribution type is OK -> it is safe to use distrNameMap[distrID]

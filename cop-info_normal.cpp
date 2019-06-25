@@ -24,7 +24,7 @@ CopInfoNormal::CopInfoNormal(std::string const & tgFName, bool const runSetup)
 	try {
 		read_correl_mat(tgFName);
 	}
-	catch(std::exception& e) {
+	catch(std::exception&) {
 		cerr << "Error: while reading data file `" << tgFName << "'!" << endl;
 		//cerr << "       The error message was: " << e.what() << endl;
 		throw; // re-throw the exception

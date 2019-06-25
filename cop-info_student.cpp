@@ -32,7 +32,7 @@ CopInfoStudent::CopInfoStudent(std::string const & tgFName)
 	try {
 		get_params_from_file(tgFName);
 	}
-	catch(std::exception& e) {
+	catch(std::exception&) {
 		cerr << "Error: while reading data file `" << tgFName << "'!" << endl;
 		//cerr << "       The error message was: " << e.what() << endl;
 		throw; // re-throw the exception

@@ -262,7 +262,7 @@ void Cop2DGrid::set_grid_size()
 		// too many scenarios -> use interpolated grid
 		exactGrid = false;
 		// first, check if we can get a grid that is a divisor of nScens
-		DimT gridRatio = ceil((double) nSc / MaxGridSize);
+		DimT gridRatio = (DimT) ceil((double) nSc / MaxGridSize);
 		DimT gridN = OptIntGridSize;
 		while (nSc % gridRatio != 0 || nSc / gridRatio > MinIntGridSize)
 			++gridRatio;
@@ -323,8 +323,8 @@ double Cop2DGrid::cdfR(DimT const i, DimT const j) const
 	double iF = gridMult * (i + 1); // grid is shifted by 1!
 	double jF = gridMult * (j + 1);
 	// (iG,jG) is the lower-left grid position for the interpolation
-	DimT iG = floor(iF);
-	DimT jG = floor(jF);
+	DimT iG = (DimT) floor(iF);
+	DimT jG = (DimT) floor(jF);
 	assert (iG < gridN && jG < gridN && "grid bound check");
 	// (u,v) is the actual position
 	double u = iF / gridN;

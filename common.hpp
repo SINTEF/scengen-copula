@@ -26,6 +26,7 @@ typedef ublas::matrix<int> MatrixI;
 typedef ublas::matrix<float> MatrixF; // for really big matrices, saves 50% ram
 typedef boost::shared_ptr<MatrixI> MatrixIPtr;
 typedef VectorD::size_type DimT;
+typedef ublas::vector<DimT> VectorUI;
 DimT const MaxVecLen = std::numeric_limits<VectorD::size_type>::max();
 
 /// \name input-output routines for ublas objects
@@ -193,7 +194,7 @@ void get_ranks_or_rows(MatrixD const & valMat, MatrixI & rankMat);
 	\return value between zero and one (including the two points)
 	For compatibility with \c u012Rank(), we allow r = -1, which returns 0.0 !
 **/
-inline double rank2U01(double const r, int const N) {
+inline double rank2U01(double const r, DimT const N) {
 	return (r + 1.0) / (double) N;
 }
 
