@@ -38,9 +38,6 @@ CopulaSample::CopulaSample(CopulaDef::CopInfoBy2D::Ptr p2tg, DimT const S,
 
 double CopulaSample::gen_new_margin(DimT const marg)
 {
-	//DimT i, j, s;
-	//DimT tg, iR;
-
 	if (haveSc4Marg[marg])
 		throw std::logic_error("trying to generate an existing margin");
 
@@ -56,7 +53,7 @@ double CopulaSample::gen_new_margin(DimT const marg)
 
 	// find the copulas to be matched
 	// for the moment, assume that the new variable is the second index!!!
-	for (int i = 0; i < nVar; i++) {
+	for (DimT i = 0; i < nVar; i++) {
 		if (i != marg && haveSc4Marg[i] && p2tgInfo(i, marg)) {
 			// store the margin in the list of copulas (i, marg) to match
 			oldMargins.push_back(i);
@@ -113,9 +110,9 @@ double CopulaSample::gen_new_margin(DimT const marg)
 	maxMinDist *= nSc;
 
 	// loop over ranks of the newly added margin
-	for (int iR = 0; iR < nSc; iR++) {
+	for (DimT iR = 0; iR < nSc; iR++) {
 		DimT s;
-		
+
 		// init minDist & clean the bestRows array
 		minDist = maxMinDist;
 		candScens.clear();
@@ -201,15 +198,15 @@ double CopulaSample::gen_sample()
 	marg = 0;
 	if (!haveSc4Marg[marg]) {
 		// initialize the first margin
-		for (int s = 0; s < nSc; s++) {
+		for (DimT s = 0; s < nSc; s++) {
 			/// \todo Once this works, test it with $nSc - s$ or random numbers.
 			/// \todo Make this work with random order, to add the possibility
 			///       to shuffle scenarios. An alternative is to shuffle the
 			///       output, but it is not so easy as we store the results in
 			///       the wrong order (by margin, not by scenario).
 			/// \note For now, the values are shuffled at the end,
+			sample[marg][s] = (int) s; // alternative is to use random numbers
 			///       using CopulaSample::shuffle_results().
-			sample[marg][s] = s; // alternative is to use random numbers
 		}
 		haveSc4Marg[marg] = true;
 	}

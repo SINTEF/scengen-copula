@@ -20,7 +20,7 @@
 					<Add option="-DHKW_NO_DLL_DEFS" />
 				</Compiler>
 				<Linker>
-					<Add library="boost_program_options" />
+					<Add library="boost_program_options-mt" />
 				</Linker>
 				<Environment>
 					<Variable name="TG_TYPE" value="Debug" />
@@ -41,7 +41,7 @@
 					<Add option="-DHKW_NO_DLL_DEFS" />
 				</Compiler>
 				<Linker>
-					<Add library="boost_program_options" />
+					<Add library="boost_program_options-mt" />
 				</Linker>
 				<Environment>
 					<Variable name="TG_TYPE" value="Release" />
@@ -200,7 +200,7 @@
 					<Add option="-g" />
 				</Compiler>
 				<Linker>
-					<Add library="boost_program_options" />
+					<Add library="boost_program_options-mt" />
 				</Linker>
 				<Environment>
 					<Variable name="TG_TYPE" value="Debug" />
@@ -218,7 +218,7 @@
 					<Add option="-DNDEBUG" />
 				</Compiler>
 				<Linker>
-					<Add library="boost_program_options" />
+					<Add library="boost_program_options-mt" />
 				</Linker>
 				<Environment>
 					<Variable name="TG_TYPE" value="Release" />
@@ -242,7 +242,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-m32" />
-					<Add library="boost_program_options" />
+					<Add library="boost_program_options-mt" />
 					<Add directory="C:/Users/mkaut/Apps/programming/MinGW-w64/local/lib32" />
 				</Linker>
 				<Environment>
@@ -264,7 +264,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-m32" />
-					<Add library="boost_program_options" />
+					<Add library="boost_program_options-mt" />
 					<Add directory="C:/Users/mkaut/Apps/programming/MinGW-w64/local/lib32" />
 				</Linker>
 				<Environment>
@@ -1046,6 +1046,7 @@
 				<doxyfile_dot />
 				<general />
 			</DoxyBlocks>
+			<fortran_project />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>
