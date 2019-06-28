@@ -20,7 +20,7 @@
 					<Add option="-DHKW_NO_DLL_DEFS" />
 				</Compiler>
 				<Linker>
-					<Add library="boost_program_options" />
+					<Add library="boost_program_options$(BOOST_LIBS_SUFFIX)" />
 				</Linker>
 				<Environment>
 					<Variable name="TG_TYPE" value="Debug" />
@@ -41,7 +41,7 @@
 					<Add option="-DHKW_NO_DLL_DEFS" />
 				</Compiler>
 				<Linker>
-					<Add library="boost_program_options" />
+					<Add library="boost_program_options$(BOOST_LIBS_SUFFIX)" />
 				</Linker>
 				<Environment>
 					<Variable name="TG_TYPE" value="Release" />
@@ -200,7 +200,7 @@
 					<Add option="-g" />
 				</Compiler>
 				<Linker>
-					<Add library="boost_program_options" />
+					<Add library="boost_program_options$(BOOST_LIBS_SUFFIX)" />
 				</Linker>
 				<Environment>
 					<Variable name="TG_TYPE" value="Debug" />
@@ -218,7 +218,7 @@
 					<Add option="-DNDEBUG" />
 				</Compiler>
 				<Linker>
-					<Add library="boost_program_options" />
+					<Add library="boost_program_options$(BOOST_LIBS_SUFFIX)" />
 				</Linker>
 				<Environment>
 					<Variable name="TG_TYPE" value="Release" />
@@ -242,7 +242,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-m32" />
-					<Add library="boost_program_options" />
+					<Add library="boost_program_options$(BOOST_LIBS_SUFFIX)" />
 					<Add directory="C:/Users/mkaut/Apps/programming/MinGW-w64/local/lib32" />
 				</Linker>
 				<Environment>
@@ -264,13 +264,16 @@
 				</Compiler>
 				<Linker>
 					<Add option="-m32" />
-					<Add library="boost_program_options" />
+					<Add library="boost_program_options$(BOOST_LIBS_SUFFIX)" />
 					<Add directory="C:/Users/mkaut/Apps/programming/MinGW-w64/local/lib32" />
 				</Linker>
 				<Environment>
 					<Variable name="TG_TYPE" value="Release" />
 				</Environment>
 			</Target>
+			<Environment>
+				<Variable name="BOOST_LIBS_SUFFIX" value="-mt" />
+			</Environment>
 		</Build>
 		<Compiler>
 			<Add option="-pedantic" />
@@ -1046,6 +1049,7 @@
 				<doxyfile_dot />
 				<general />
 			</DoxyBlocks>
+			<fortran_project />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

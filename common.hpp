@@ -26,6 +26,7 @@ typedef ublas::matrix<int> MatrixI;
 typedef ublas::matrix<float> MatrixF; // for really big matrices, saves 50% ram
 typedef boost::shared_ptr<MatrixI> MatrixIPtr;
 typedef VectorD::size_type DimT;
+typedef ublas::vector<DimT> VectorUI;
 DimT const MaxVecLen = std::numeric_limits<VectorD::size_type>::max();
 
 /// \name input-output routines for ublas objects
@@ -193,7 +194,7 @@ void get_ranks_or_rows(MatrixD const & valMat, MatrixI & rankMat);
 	\return value between zero and one (including the two points)
 	For compatibility with \c u012Rank(), we allow r = -1, which returns 0.0 !
 **/
-inline double rank2U01(double const r, int const N) {
+inline double rank2U01(double const r, DimT const N) {
 	return (r + 1.0) / (double) N;
 }
 
@@ -243,16 +244,19 @@ enum OutputLevel {
 extern OutputLevel outLvl;
 // Note that the definitions do not end with ";", so we need one when used!
 // 'internal' macro, used by the others
-#define ECHO(message) std::cout << message << '\n'; std::cout.flush()
+// - using the comma operator to allow multiple statements and yet still
+//   require semicolon at the end (unlike puting it inside {})
+//   (see https://pzemtsov.github.io/2014/05/05/do-macro.html)
+#define ECHO(message) (std::cout << message << '\n', std::cout.flush())
 // this will produce message in all profiles (debug and release)
-#define MSG(lvl, txt) if (lvl <= outLvl) { ECHO(txt); }
+#define MSG(lvl, txt) if (lvl <= outLvl) ECHO(txt)
 // specialized versions for different output levels
 #define WARNING(txt) MSG(TrWarn, "Warning: " << txt)
 #define INFO(txt) MSG(TrInfo, "Info: " << txt)
 // this will produce message only in debug profiles -> can be used in parts
 // where we do not waste time for checking outLvl in the release versions
 #ifndef NDEBUG
-	#define TRACE(lvl, txt) if (lvl <= outLvl) { ECHO(txt); }
+	#define TRACE(lvl, txt) if (lvl <= outLvl) ECHO(txt)
 #else
 	#define TRACE(lvl, txt)
 #endif

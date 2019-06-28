@@ -1,9 +1,22 @@
 syntax: glob
+
+# CodeBlocks files
 copula-gen.depend
 copula-gen.layout
 bin/*
 .obj/*
 copula-gen.cscope_file_list
+
+# Visual Studio
+.vs/*
+*.VC.db
+*.vcxproj.user
+*.vcxproj.filters
+build/*
+
+# documentation
 doc/html/*
 doc/latex/*
+
+# other
 *.orig

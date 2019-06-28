@@ -38,9 +38,6 @@ CopulaSample::CopulaSample(CopulaDef::CopInfoBy2D::Ptr p2tg, DimT const S,
 
 double CopulaSample::gen_new_margin(DimT const marg)
 {
-	DimT i, j, s;
-	DimT tg, iR;
-
 	if (haveSc4Marg[marg])
 		throw std::logic_error("trying to generate an existing margin");
 
@@ -56,7 +53,7 @@ double CopulaSample::gen_new_margin(DimT const marg)
 
 	// find the copulas to be matched
 	// for the moment, assume that the new variable is the second index!!!
-	for (i = 0; i < nVar; i++) {
+	for (DimT i = 0; i < nVar; i++) {
 		if (i != marg && haveSc4Marg[i] && p2tgInfo(i, marg)) {
 			// store the margin in the list of copulas (i, marg) to match
 			oldMargins.push_back(i);
@@ -64,7 +61,7 @@ double CopulaSample::gen_new_margin(DimT const marg)
 			// create a new copula-2D-sample object
 			stringstream cop2DId; // using stringstream to get simple conversions
 			cop2DId << "sample_" << i << "_" << marg;
-			p2sample2D(i, marg) = new Cop2DSample(nSc, p2tgInfo(i, marg).get(),
+			p2sample2D(i, marg) = new Cop2DSample((int) nSc, p2tgInfo(i, marg).get(),
 			                                      cop2DId.str());
 			TRACE (TrDetail2, "Created new Cop2DSample with id = "
 			       << cop2DId.str());
@@ -100,25 +97,27 @@ double CopulaSample::gen_new_margin(DimT const marg)
 
 	std::vector<VectorD> prevRowCdf(nTg2Dcops); // cdf of the previous row
 	std::vector<VectorD> colCdfDist(nTg2Dcops); // dist. of using the columns
-	for (tg = 0; tg < nTg2Dcops; tg++) {
+	for (DimT tg = 0; tg < nTg2Dcops; tg++) {
 		prevRowCdf[tg] = ublas::zero_vector<double>(nSc);//Vector(nSc, 0);
 		colCdfDist[tg] = VectorD(nSc);
 	}
 
 	// compute a safe upper bound for the distance:
 	double maxMinDist = 0.0;
-	for (tg = 0; tg < nTg2Dcops; tg++) {
+	for (DimT tg = 0; tg < nTg2Dcops; tg++) {
 		maxMinDist += p2sample2D(oldMargins[tg], marg)->cdfDist(0.0, 1.0);
 	}
 	maxMinDist *= nSc;
 
 	// loop over ranks of the newly added margin
-	for (iR = 0; iR < nSc; iR++) {
+	for (DimT iR = 0; iR < nSc; iR++) {
+		DimT s;
+
 		// init minDist & clean the bestRows array
 		minDist = maxMinDist;
 		candScens.clear();
 
-		for (tg = 0; tg < nTg2Dcops; tg++) {
+		for (DimT tg = 0; tg < nTg2Dcops; tg++) {
 			// get the dist for the rows
 			/// \todo check this!
 			p2sample2D(oldMargins[tg], marg)->cdf_dist_of_row(iR, prevRowCdf[tg],
@@ -130,11 +129,11 @@ double CopulaSample::gen_new_margin(DimT const marg)
 			// compute the distance for putting rank iR into scenario s
 			if (!scenUsed[s]) {
 				dist = 0.0;
-				for (tg = 0; tg < nTg2Dcops; tg++) {
+				for (DimT tg = 0; tg < nTg2Dcops; tg++) {
 					int rankInTgMargin = sample[oldMargins[tg]][s]; // CHECK!
 					dist += colCdfDist[tg][rankInTgMargin];
 				}
-				candScens.insert_cand(s, dist);
+				candScens.insert_cand((int) s, dist);
 			}
 		}
 		// now we should have a couple..
@@ -153,9 +152,9 @@ double CopulaSample::gen_new_margin(DimT const marg)
 		scenUsed[s] = true;
 
 		/// \todo Check!
-		for (tg = 0; tg < nTg2Dcops; tg++) {
-			i = oldMargins[tg];
-			j = sample[i][s]; // the row-rank for the given target copula
+		for (DimT tg = 0; tg < nTg2Dcops; tg++) {
+			int i = oldMargins[tg];
+			int j = sample[i][s]; // the row-rank for the given target copula
 
 			// update prevRowCdf:
 			for (DimT jj = j; jj < nSc; jj++) {
@@ -171,8 +170,8 @@ double CopulaSample::gen_new_margin(DimT const marg)
 	haveSc4Marg[marg] = true;
 
 	// cleaning
-	for (i = 0; i < nVar; ++i) {
-		for (j = 0; j < nVar; ++j) {
+	for (DimT i = 0; i < nVar; ++i) {
+		for (DimT j = 0; j < nVar; ++j) {
 			if (p2sample2D(i, marg) != nullptr) {
 				delete p2sample2D(i, marg);
 				p2sample2D(i, marg) = nullptr;
@@ -193,27 +192,27 @@ double CopulaSample::gen_new_margin(DimT const marg)
 // the main routine; returns the KS-like-distance
 double CopulaSample::gen_sample()
 {
-	DimT s, marg;
+	DimT marg;
 	double totDist = 0.0;
 
 	marg = 0;
 	if (!haveSc4Marg[marg]) {
 		// initialize the first margin
-		for (s = 0; s < nSc; s++) {
+		for (DimT s = 0; s < nSc; s++) {
 			/// \todo Once this works, test it with $nSc - s$ or random numbers.
 			/// \todo Make this work with random order, to add the possibility
 			///       to shuffle scenarios. An alternative is to shuffle the
 			///       output, but it is not so easy as we store the results in
 			///       the wrong order (by margin, not by scenario).
 			/// \note For now, the values are shuffled at the end,
+			sample[marg][s] = (int) s; // alternative is to use random numbers
 			///       using CopulaSample::shuffle_results().
-			sample[marg][s] = s; // alternative is to use random numbers
 		}
 		haveSc4Marg[marg] = true;
 	}
 
-	MSG (TrInfo, "Starting copula generation.")
-	for (marg = 1; marg < nVar; marg++) {
+	MSG (TrInfo, "Starting copula generation.");
+ 	for (marg = 1; marg < nVar; marg++) {
 		if (haveSc4Marg[marg]) {
 			MSG (TrInfo, " - skipping fixed margin " << marg + 1 << " of " << nVar);
 		} else {
@@ -221,7 +220,7 @@ double CopulaSample::gen_sample()
 			totDist += gen_new_margin(marg);
 		}
 	}
-	MSG (TrInfo, "Finished generating the copula.")
+	MSG (TrInfo, "Finished generating the copula.");
 
 	return totDist;
 }
@@ -343,21 +342,20 @@ void CopulaSample::write_gmp_data(string const fName)
 void CopulaSample::shuffle_results()
 {
 	// note: sample is 'std::vector<VectorI>' with dimensions [nVar x nSc]
-	DimT i, s;
 
 	// create the vector of shuffled ranks
-	VectorI rankOrder(nSc); // 'rankOrder(s) = k' means scen. s gets rank k
-	for (s = 0; s < nSc; ++s)
+	VectorUI rankOrder(nSc); // 'rankOrder(s) = k' means scen. s gets rank k
+	for (DimT s = 0; s < nSc; ++s)
 		rankOrder(s) = s;
 	std::random_shuffle (rankOrder.begin(), rankOrder.end());
 
 	// we shuffle out-of-place, since it is much easier and less error-prone
 	VectorI tmpV;
 
-	for (i = 0; i < nVar; ++i) {
+	for (DimT i = 0; i < nVar; ++i) {
 		tmpV = sample[i]; // copy the values
 		VectorI & margS = sample[i]; // just a shortcut
-		for (s = 0; s < nSc; ++s)
+		for (DimT s = 0; s < nSc; ++s)
 			margS(s) = tmpV(rankOrder(s));
 	}
 }

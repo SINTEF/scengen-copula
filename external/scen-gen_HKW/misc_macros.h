@@ -30,18 +30,18 @@
    - These are defined in MSVC, as long as __STDC__ is undefined
    - With GCC, we can use a special formulation that uses
      GNU C extensions and that avoids double evaluation of f(x)
-     in case we cal min(x,f(x)). Note that these will cause
-     warnign if compiled with the -pedantic option.
+     in case we cal min(x,f(x)). The `__extension__' keyword
+     supresses ISO-C-incompatibility warning with -pedantic.
    - In other cases, we use the standard definitions
 */
 #if defined(_MSC_VER) && !defined(__STDC__)
 	// defined by compiler -> nothing here
 #elif defined(__GNUC__)
 	// using GCC extensions
-	#define min(X, Y)                     \
+	#define min(X, Y) __extension__       \
 	({ typeof (X) __x = (X), __y = (Y);   \
 	  (__x < __y) ? __x : __y; })
-	#define max(X, Y)                     \
+	#define max(X, Y) __extension__       \
 	({ typeof (X) __x = (X), __y = (Y);   \
 	  (__x > __y) ? __x : __y; })
 #else

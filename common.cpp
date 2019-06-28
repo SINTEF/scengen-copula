@@ -109,7 +109,7 @@ void get_ranks(const std::vector<double> &inputVect, std::vector<int> &ranks) {
 	// - random  - rank of equal values is not equal (depends on order?)
 	//! \todo do we always want the tie-resolving variant ("random")?
 	rank(inputVect, ranks, "random");
-	unsigned len = ranks.size();
+	auto len = ranks.size();
 	for (unsigned i = 0; i < len; i++) {
 		ranks[i]--;
 	}
@@ -118,8 +118,9 @@ void get_ranks(const std::vector<double> &inputVect, std::vector<int> &ranks) {
 
 void get_ranks_or_rows(std::vector<VectorD> const & valMat, MatrixI & rankMat)
 {
-	unsigned nR = valMat.size();
-	unsigned nC = valMat[0].size(); // valMat is a vector of vectors, not a matrix!
+	DimT nR = valMat.size();
+	DimT nC = valMat[0].size(); // valMat is a vector of vectors, not a matrix!
+	DimT r, c;
 
 	// resize rankMat if needed; complain if resizing non-empty matrix
 	if (rankMat.size1() != nR || rankMat.size2() != nC) {
@@ -129,8 +130,6 @@ void get_ranks_or_rows(std::vector<VectorD> const & valMat, MatrixI & rankMat)
 			rankMat.resize(valMat.size(), valMat[0].size());
 		}
 	}
-
-	unsigned r, c;
 
 	std::vector<double> valV(nC);
 	std::vector<int> rankV(nC);
@@ -159,9 +158,9 @@ void get_ranks_or_rows(MatrixD const & valMat, MatrixI & rankMat)
 		rankMat.resize(valMat.size1(), valMat.size2());
 	}
 
-	int nR = valMat.size1();
-	int nC = valMat.size2();
-	int r, c;
+	DimT nR = valMat.size1();
+	DimT nC = valMat.size2();
+	DimT r, c;
 
 	std::vector<double> valV(nC);
 	std::vector<int> rankV(nC);

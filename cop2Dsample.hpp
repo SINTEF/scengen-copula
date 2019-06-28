@@ -223,9 +223,9 @@ public:
 
 				void insert_cand(int const index, double const error);
 
-				int get_num_cand() const { return list.size(); }
+				auto get_num_cand() const { return list.size(); }
 
-				int get_rand_cand_index() const {
+				auto get_rand_cand_index() const {
 					assert (list.size() > 0 && "needs some values in the list!");
 					return list[irand(list.size())].index;
 				}
@@ -237,7 +237,7 @@ public:
 					val = list[i].value;
 				}
 
-				int get_best_cand_index() const {
+				auto get_best_cand_index() const {
 					assert (list.size() > 0 && "needs some values in the list!");
 					return list.front().index;
 				}

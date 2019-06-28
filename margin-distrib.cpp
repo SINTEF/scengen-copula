@@ -255,7 +255,7 @@ boost::optional<double> MarginSample::inv_cdf(double const p) const
 	if (p < 0.5 / nPts) {
 		i0 = 0;
 	} else {
-		i0 = floor(p * nPts - 0.5);
+		i0 = (DimT) floor(p * nPts - 0.5);
 	}
 	if (i0 == nPts - 1)
 		i0--;
