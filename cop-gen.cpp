@@ -61,6 +61,7 @@ int main(int argc, char *argv[]) {
 	string copParamsF = "";     // file with copula parameters
 	string margType = "";       // type of the margins
 	string margParamsF = "";    // file with parameters for the margins
+	string copPairsF = "";      // file with the list of copula pairs (if sparse)
 	string outputFName = "";    // output file name
 	bool transfMargins = false; // transform margins to target distrib.?
 	bool outputCopula = false;  // output copula, in addition to the distrib.?
@@ -99,6 +100,9 @@ int main(int argc, char *argv[]) {
 			;
 
 		// main options - allowed from both command line and config. file
+		// TODO: the constructor of options_description can set the width,
+		//       but for this we need to find the width of the terminal!
+		//       see https://stackoverflow.com/a/16936237/842693
 		prOpt::options_description confOpt("Main options");
 		confOpt.add_options()
 			("output,o", prOpt::value<string>(&outputFName)
@@ -127,6 +131,8 @@ int main(int argc, char *argv[]) {
 			                "type of the marginal distributions")
 			("marg-par,d", prOpt::value<string>(&margParamsF),
 			               "input file: params of marg. distrib.")
+			("pair-list,p", prOpt::value<string>(&copPairsF),
+			               "input file: copula pairs (if sparse)")
 			("dim", prOpt::value<int>(&dim),
 			        "dimension (for independent copula)")
 			("form-of-moms,f", prOpt::value<int>(&formatOfMoments),
@@ -258,7 +264,7 @@ int main(int argc, char *argv[]) {
 	switch (copNameMap[copType]) {
 	case CopTypeID::sample: // "sample"
 		MSG (TrInfo, "copula of type 'sample'");
-		p2tgCop = boost::make_shared<CopInfoData>(copParamsF);
+		p2tgCop = boost::make_shared<CopInfoData>(copParamsF, copPairsF);
 		if (margType == "") {
 			margType = "sample"; // default for sample cop. is sample margins
 		}

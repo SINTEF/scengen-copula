@@ -181,6 +181,45 @@ DimT CopInfoBy2D::get_nmb_2d_copulas()
 }
 
 
+// read the list of copula pairs from a file
+std::list<std::pair<DimT, DimT>> CopInfoBy2D::read_pair_list(std::string const & fName)
+{
+	std::ifstream inFStream(fName.c_str());
+	if (!inFStream) {
+		throw std::ios_base::failure("Could not open input file `" + fName + "'!");
+	}
+	std::list<std::pair<DimT, DimT>> list;
+	std::string line;
+	while (std::getline(inFStream, line)) {
+		if (line[0] == '#') {
+			TRACE(TrInfo3, "skipping comment line in the copula-pairs file");
+			continue;
+		}
+		std::stringstream lineStream(line);
+		DimT i, j;
+		lineStream >> i;
+		lineStream >> j;
+		// NB: margins should be indexed from 1 in the file
+		if (i < 1 || j < 1) {
+			throw std::domain_error("margin numbers in the copula pairs list must be indexed from 1!");
+		}
+		i--;
+		j--;
+		if (i == j) {
+			throw std::invalid_argument("cannot create a copula of a margin with itself!");
+		}
+		if (i < j) {
+			list.emplace_back(i, j);
+		}
+		else {
+			list.emplace_back(j, i);
+		}
+	}
+	
+	return list;
+}
+
+
 // ---------------------------------------------------------------------------
 // class CopInfoGen2D
 

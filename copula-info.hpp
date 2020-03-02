@@ -94,9 +94,16 @@ public:
 protected:
 	int n2Dcops; ///< number of bivariate copulas
 
-	/// matrix of pointers to the 2D copula specifications
+	/// matrix of pointers to the 2D copula specifications; only for i < j!
 	Cop2DInfoPtMatrix p2Info2D;
-	//boost::multi_array<Copula2D::Cop2DInfo::Ptr, 2> p2Info2D;
+
+	// TODO: implement this in all derived classes and then move setup_2d_targets() to this class!
+	/// create a new Cop2DInfo object for margin pair (i, j);
+	//virtual Copula2D::Cop2DInfo::Ptr make_2d_cop_info(DimT i, DimT j) = 0;
+
+	/// read the list of copula pairs from a file
+	/// \note remember to enclose this in a try{} block!
+	std::list<std::pair<DimT, DimT>> read_pair_list(std::string const & fName);
 
 public:
 	CopInfoBy2D(DimT const N, bool const hasCdf = false)
@@ -238,7 +245,10 @@ public:
 	CopInfoData(MatrixD const & hDataMat, bool const all2DCop = true);
 
 	/// constructor with file name of the target distribution
-	CopInfoData(std::string const & tgFName);
+	//CopInfoData(std::string const & tgFName);
+
+	/// constructor with file names of the target distribution and the list of pairs
+	CopInfoData(std::string const & tgFName, std::string const & pairsFName = "");
 
 	/// constructor with the matrix of ranks as input
 	//CopInfoData(TMatrixI & ranksMat, bool const fillU01Data = true);

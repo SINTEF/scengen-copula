@@ -23,7 +23,7 @@ CopInfoData::CopInfoData(MatrixD const & hDataMat, bool const all2DCop)
 }
 
 
-CopInfoData::CopInfoData(std::string const & tgFName)
+CopInfoData::CopInfoData(std::string const & tgFName, std::string const & pairsFName)
 : CopInfoBy2D(0, true)
 {
 	try {
@@ -36,8 +36,26 @@ CopInfoData::CopInfoData(std::string const & tgFName)
 	}
 
 	fill_ranks_etc();   // fills hRanks and hU01
-	setup_2d_targets(); // create the matrix of bivariate copula objects
+
+	// create the matrix of bivariate copula objects
+	if (pairsFName.length() > 0) {
+		// sparse structure with a given list of pairs
+		try {
+			auto pairList = read_pair_list(pairsFName);
+			setup_2d_targets(pairList);
+		}
+		catch (exception&) {
+			cerr << "Error: while reading target file `" << tgFName << "'!" << endl;
+			//cerr << "       The error message was: " << e.what() << endl;
+			throw; // re-throw the exception
+		}
+	}
+	else {
+		// make all pairs
+		setup_2d_targets();
+	}
 }
+
 
 /*
 // set the target data (for use with the incomplete constructor)

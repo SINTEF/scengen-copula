@@ -56,7 +56,7 @@ double CopulaSample::gen_new_margin(DimT const marg)
 	for (DimT i = 0; i < nVar; i++) {
 		if (i != marg && haveSc4Marg[i] && p2tgInfo(i, marg)) {
 			// store the margin in the list of copulas (i, marg) to match
-			oldMargins.push_back(i);
+			oldMargins.push_back((int) i);
 			tg2Dcopulas.push_back(p2tgInfo(i, marg).get());
 			// create a new copula-2D-sample object
 			stringstream cop2DId; // using stringstream to get simple conversions
@@ -120,8 +120,7 @@ double CopulaSample::gen_new_margin(DimT const marg)
 		for (DimT tg = 0; tg < nTg2Dcops; tg++) {
 			// get the dist for the rows
 			/// \todo check this!
-			p2sample2D(oldMargins[tg], marg)->cdf_dist_of_row(iR, prevRowCdf[tg],
-			                                                  colCdfDist[tg]);
+			p2sample2D(oldMargins[tg], marg)->cdf_dist_of_row((int) iR, prevRowCdf[tg], colCdfDist[tg]);
 		}
 
 		// brute-force approach - this will be SLOW
@@ -148,7 +147,7 @@ double CopulaSample::gen_new_margin(DimT const marg)
 
 		scProb = (p2prob == nullptr ? 1.0 / nSc : p2prob[s]);
 		totDist += scProb * minDist;
-		sample[marg][s] = iR;
+		sample[marg][s] = (int) iR;
 		scenUsed[s] = true;
 
 		/// \todo Check!
@@ -162,7 +161,7 @@ double CopulaSample::gen_new_margin(DimT const marg)
 			}
 
 			// update p2sample2D
-			p2sample2D(i, marg)->add_link(j, iR);
+			p2sample2D(i, marg)->add_link(j, (int) iR);
 
 			// update also the [marg][i] copula sample? !!!
 		}
