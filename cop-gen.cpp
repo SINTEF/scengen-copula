@@ -67,6 +67,8 @@ int main(int argc, char *argv[]) {
 	bool outputCopula = false;  // output copula, in addition to the distrib.?
 	string outCopFName = "";    // output file name for the copula
 	bool copAsRanks = false;    // output copula in terms of ranks?
+	bool ppFixMeans = false;    // fix means during post-process?
+	bool ppFixStDevs = false;   // fix standard deviations? (implies ppFixMeans!)
 	int numCandPts = 1;         // minimal number of candidate scenarios
 	bool sorted1stMarg = false; // should the first margin be sorted?
 	int randSeed;               // random seed
@@ -135,6 +137,10 @@ int main(int argc, char *argv[]) {
 			               "input file: copula pairs (if sparse)")
 			("dim", prOpt::value<int>(&dim),
 			        "dimension (for independent copula)")
+			("fix-means", prOpt::bool_switch(&ppFixMeans),
+			              "fix scenario means")
+			("fix-stdevs", prOpt::bool_switch(&ppFixStDevs),
+			             "fix std. deviations; implies fix-means!")
 			("form-of-moms,f", prOpt::value<int>(&formatOfMoments),
 			                   "format of moments (for margins)")
 			("mat-file-fmt", prOpt::bool_switch(&matFileFmt),
@@ -249,6 +255,11 @@ int main(int argc, char *argv[]) {
 	CopNameMapT copNameMap;    ///< convert copula name to type
 	MargNameMapT margNameMap;  ///< convert margins name to type
 
+	// get post-process
+	auto postP = ppFixStDevs ? UnivarMargin::SamplePP::PP_fixBoth
+	                         : (ppFixMeans ? UnivarMargin::SamplePP::PP_fixMean
+	                                       : UnivarMargin::SamplePP::PP_None);
+
 	// first check if the given copula type exists
 	make_cop_name_map(copNameMap);
 	if (copNameMap.count(copType) == 0) {
@@ -271,9 +282,8 @@ int main(int argc, char *argv[]) {
 		if (margType == "sample") {
 			// for this, we need CopInfoData::data_vals(), which is specific to
 			// this class, i.e. does not exist in CopInfoBy2D -> use casting
-			//! using default for the second param -> no post-processing!
 			CopInfoData * p2tgCopData = static_cast<CopInfoData *> (p2tgCop.get());
-			p2tgMargins = boost::make_shared<SampleMargins>(p2tgCopData->data_vals());
+			p2tgMargins = boost::make_shared<SampleMargins>(p2tgCopData->data_vals(), postP);
 		}
 		break;
 	case CopTypeID::normal: // "normal"
@@ -352,16 +362,14 @@ int main(int argc, char *argv[]) {
 				{
 					// for this, we need CopInfoData::data_vals(), which is specific to
 					// this class, i.e. does not exist in CopInfoBy2D -> use casting
-					//! using default for the second param -> no post-processing!
 					CopInfoData * p2tgCopData = static_cast<CopInfoData *> (p2tgCop.get());
-					p2tgMargins = boost::make_shared<SampleMargins>(p2tgCopData->data_vals());
+					p2tgMargins = boost::make_shared<SampleMargins>(p2tgCopData->data_vals(), postP);
 				}
 				break;
 			case MargTypeID::normal: // "normal"
 				MSG (TrInfo, "margins of type 'normal'");
 				try {
-					//! !using default for the second param -> no post-processing!
-					p2tgMargins = boost::make_shared<NormalMargins>(margParamsF);
+					p2tgMargins = boost::make_shared<NormalMargins>(margParamsF, postP);
 				}
 				catch(exception & ) {
 					cerr << "Error while reading the target means and std. devs "
@@ -371,6 +379,8 @@ int main(int argc, char *argv[]) {
 				break;
 			case MargTypeID::moments: // margins using moment matching
 				MSG (TrInfo, "margins of type 'four moments'");
+				if (postP != UnivarMargin::SamplePP::PP_None)
+					WARNING("--fix-means and --fix-stdevs is ignored for margins given by moments.");
 				// create a new object of the specific class
 				p2tgMargins = boost::make_shared<MarginsByMoments>(margParamsF, nSc,
 				                                                   formatOfMoments,
@@ -378,11 +388,15 @@ int main(int argc, char *argv[]) {
 				break;
 			case MargTypeID::fixed: // generic mixed of 2D copulas
 				MSG (TrInfo, "margins of type 'fixed'");
+				if (postP != UnivarMargin::SamplePP::PP_None)
+					WARNING("--fix-means and --fix-stdevs is ignored for fixed margins.");
 				// create a new object of the specific class
 				throw std::logic_error("not yet implemented");
 				break;
 			case MargTypeID::mixed: // generic mixed of 2D copulas
 				MSG (TrInfo, "margins of type 'mixed'");
+				if (postP != UnivarMargin::SamplePP::PP_None)
+					WARNING("--fix-means and --fix-stdevs not yet implemented for mixed margins.");
 				// create a new object of the specific class
 				p2tgMargins = boost::make_shared<MixedMargins>(margParamsF, nSc,
 				                                               p2tgCop->dim());

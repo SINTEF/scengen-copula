@@ -44,7 +44,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Label="CommonDefinitions">
     <OutDir>$(ProjectDir)build\$(Platform)\$(Configuration)\bin\</OutDir>
-    <IntDir>$(ProjectDir)build\$(Platform)\$(Configuration)\obj\</IntDir>
+    <IntDir>$(ProjectDir)build\$(Platform)\$(Configuration)\obj_$(ProjectName)\</IntDir>
     <IncludePath>external;$(IncludePath)</IncludePath>
     <TargetName>scen-gen_cop</TargetName>
   </PropertyGroup>
