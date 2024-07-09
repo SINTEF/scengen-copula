@@ -77,7 +77,8 @@ int CreateTargetMoments(int const nVar, int const nSc, unsigned short Format,
 	           otherwise generate random numbers
 	\warning assumes \a x has been allocated - no control!
 **/
-void ArrayOfN01(double x[], int const nVal, int const UseDiscretizing);
+void ArrayOfN01(double x[], int const nVal, int const UseDiscretizing,
+                int const RandDiscrOrder);
 
 
 /// transform vector to zero mean and a variance of one (in-place)
@@ -90,4 +91,4 @@ void ArrayOfN01(double x[], int const nVal, int const UseDiscretizing);
 void NormalizeVector(int const size, double vector[], double prob_vec[]);
 
 
-#endif
+#endif // header guard

@@ -1,3 +1,5 @@
+# OBS: does NOT work at the moment, use the platform-specific files instead!
+
 # project parameters
 BASENAME = cop-gen_heur
 OBJDIR = .obj

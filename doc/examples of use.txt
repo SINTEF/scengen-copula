@@ -38,6 +38,10 @@
    >scen-gen_cop --cop-type normal --input normal_3d_corrs.dat --marg-type moments --marg-par tg_moms.dat --mat-file-fmt 100
    >scen-gen_cop -c normal -i normal_3d_corrs.dat -m moments -d tg_moms.dat --mat-file-fmt 100
 
+9. Generate 100 scenarios with with 4 margins with individually specified margins and bivariate copuls:
+	>scen-gen_cop --cop-type mixed --input cop_mixed_4d.dat --marg-type mixed --marg-par marg_mixed_4d.dat 100
+	>scen-gen_cop -c mixed -i cop_mixed_4d.dat -m mixed -d marg_mixed_4d.dat 100
+
 X. Generating scenarios with normal copula and margins from a sample is not yet implemented!!!
    >scen-gen_cop --cop-type normal --input normal_3d_corrs.dat -m sample -d hist-data.dat --output normal-test_val.out 100
 

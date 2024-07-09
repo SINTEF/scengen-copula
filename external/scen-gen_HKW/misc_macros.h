@@ -26,28 +26,30 @@
 // ----------------------------------------------------------------
 // gen. mathematical macros
 
-/* min() and max() functions
-   - These are defined in MSVC, as long as __STDC__ is undefined
-   - With GCC, we can use a special formulation that uses
-     GNU C extensions and that avoids double evaluation of f(x)
-     in case we cal min(x,f(x)). The `__extension__' keyword
-     supresses ISO-C-incompatibility warning with -pedantic.
-   - In other cases, we use the standard definitions
+/* min() and max() macros
+   With the 'standard definitions' (see below),
+   min(x,f(x)) will cause f(x) to be computed twice.
+   This can be avoided using GNU C extensions:
 */
-#if defined(_MSC_VER) && !defined(__STDC__)
-	// defined by compiler -> nothing here
-#elif defined(__GNUC__)
-	// using GCC extensions
-	#define min(X, Y) __extension__       \
-	({ typeof (X) __x = (X), __y = (Y);   \
-	  (__x < __y) ? __x : __y; })
-	#define max(X, Y) __extension__       \
-	({ typeof (X) __x = (X), __y = (Y);   \
-	  (__x > __y) ? __x : __y; })
+#ifdef __GNUC__
+	#define min(X, Y)            \
+	({                           \
+		__typeof__ (X) _x = (X); \
+		__typeof__ (Y) _y = (Y); \
+		_x < _y ? _x : _y;       \
+	})
+	#define max(X, Y)            \
+	({                           \
+		__typeof__ (X) _x = (X); \
+		__typeof__ (Y) _y = (Y); \
+		_x > _y ? _x : _y;       \
+	})
 #else
-	// standard definition
-	#define min(X, Y)  ((X) < (Y) ? (X) : (Y))
-	#define max(X, Y)  ((X) > (Y) ? (X) : (Y))
+	// Standard definitions:
+	#ifndef min
+		#define min(X, Y)  ((X) < (Y) ? (X) : (Y))
+		#define max(X, Y)  ((X) > (Y) ? (X) : (Y))
+	#endif
 #endif
 
 // use this for comparing two float numbers
@@ -59,4 +61,4 @@
 
 #define allocate(var, type, size) if ((var = (type *) malloc(size * sizeof(type))) == NULL) { printf("\nNOT ENOUGH MEMORY!\n\n");	exit(1); }
 
-#endif
+#endif // header guard

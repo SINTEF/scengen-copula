@@ -5,18 +5,12 @@
 /***                                                               ***/
 /*********************************************************************/
 
-/* The data are as such:
-	 InMom[0..12] ... input moments + InMom[0]:=1
-	 TgMom[0..3]  ... target moments
-	 moment[0..4][0..6] ... 'momF(i,j)' used inside the code
-	 */
-
-#include "HKW_cubic.h"
-#include "misc_macros.h"
-
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
+
+#include "HKW_cubic.h"
+#include "misc_macros.h"
 
 void momF1(double value[7],double *xk);
 void momF2(double value[7],double *xk);
@@ -30,7 +24,13 @@ void nextstep(double invhk[N][N],double gk[N],double xk[N]);
 double norminf(double vecteur[N]);
 int spofa(double mat[N][N]);
 
-double moment[5][7]={{0}};
+double moment[5][7]={{0}};  // current set of moments
+
+// defining the moment arrays (declared as 'extern' in other files)
+// - input data, must be specified before calling cubic_solve()!
+double InMom[13]; /// Input moments: 12 moments + InMom[0]:=1
+double TgMom[4];  /// Target moments
+
 
 // function that implements the newton method
 double cubic_solve(double *xk){

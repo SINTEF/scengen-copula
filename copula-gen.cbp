@@ -1036,10 +1036,6 @@
 			<Option target="UnitTest-Dbg" />
 		</Unit>
 		<Extensions>
-			<envvars />
-			<code_completion />
-			<debugger />
-			<lib_finder disable_auto="1" />
 			<DoxyBlocks>
 				<comment_style block="0" line="2" />
 				<doxyfile_project />
@@ -1049,7 +1045,7 @@
 				<doxyfile_dot />
 				<general />
 			</DoxyBlocks>
-			<fortran_project />
+			<lib_finder disable_auto="1" />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

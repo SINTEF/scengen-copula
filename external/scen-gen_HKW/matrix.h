@@ -7,6 +7,9 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /// a simple structure representing a vector of doubles
 typedef struct {
@@ -183,4 +186,8 @@ int Mat_LowTriangInverse(TMatrix const * const p_L, TMatrix * const p_invL);
 int Mat_Cholesky(TMatrix const * const p_R, TMatrix * const p_CholR,
                  int const TestLevel);
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif // header guard

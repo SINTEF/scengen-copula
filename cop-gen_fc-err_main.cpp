@@ -272,7 +272,7 @@ int main(int argc, char *argv[]) {
 				// specified number of periods - has to have enough data
 				if (brVector.size() < nPer) {
 					WARNING("not enough periods in the branching list .. "
-					        "filling with 1s.")
+					        "filling with 1s.");
 					brVector.resize(nPer, 1);  // resize and fill with 1s
 				}
 			} else  {

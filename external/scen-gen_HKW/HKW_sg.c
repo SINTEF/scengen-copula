@@ -4,20 +4,25 @@
 /***  author: Michal Kaut                                          ***/
 /*********************************************************************/
 
-#include "HKW_sg.h"
-#include "HKW_cubic.h"    // cubic transformation
-#include "misc_macros.h"  // misc. C macros used here (like frand)
-#include "sg_functions.h" // general functions needed for SG
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 
+#include "HKW_sg.h"
+#include "HKW_cubic.h"    // cubic transformation
+#include "misc_macros.h"  // misc. C macros used here (like frand)
+#include "sg_functions.h" // general functions needed for SG
+
 
 #define StartWithCubic 1 /// Start with the cubic distribution
 #define MaxStartTrial 5  /// Max number of starting points per marginal
 #define MaxCubIter 2     /// Max number of cubic transf. per HKW iteration
+
+
+// input and target moments - defined in HKW_cubic.c
+extern double InMom[13]; // Input moments + In[0]:=1
+extern double TgMom[4];  // Target moments
 
 
 /* MAIN GENERATION FUNCTION
@@ -101,7 +106,27 @@ int HKW_ScenGen(int const FormatOfMoms, TMatrix const * const p_TarMoms,
 	Mat_Init(&TrsfMat, nVar,nVar);  // matrix of the linear transformation
 	Mat_InitAsBigAs(&TmpOutMat, p_OutMat);  // temporary outcome matrix
 
-
+	// TEMP - find a more elegant/permanent solution
+	// (a function that returns whether we can do this or not)!
+	// TO DO - fix mean and variance to zero and one!!!
+	if (nVar == 1 && fabs(TgMoms.val[2][0]) < EPS &&
+	                 fabs(TgMoms.val[3][0] - 3) < EPS && nScen <= 6) {
+		if (TestLevel > 0)
+			printf("Too few scenarios for moment matching of N(0,1) -> "
+					 "using fixed discretization!\n");
+		ArrayOfN01(p_OutMat->val[0], nScen, 1, 0);
+		// Compute properties and errors
+		ComputeProperties(nVar, nScen, p_OutMat->val, p_Probs->val,
+		                  OutMoms.val, OutCorrs.val);
+		errMom = ErrorMoments(nVar, OutMoms.val, TgMoms.val);
+		errCorr = ErrorCorrs(nVar, OutCorrs.val, p_TgCorrs->val);
+		iter = 0;
+		if (TestLevel > 2)
+			printf("  Error in moments is %.4f:\n", errMom);
+		if (TestLevel > 1)
+			printf("Distance after dicretization = %9.6f\n", errMom + errCorr);
+		errMom = MaxErrMom / 2; // TMP .. to avoid further error messages
+	} else
 	// TRIALS
 	do {
 
@@ -124,7 +149,7 @@ int HKW_ScenGen(int const FormatOfMoms, TMatrix const * const p_TarMoms,
 				if (!StartWithCubic) {
 					// NOT starting with cubic -> first is the matrix transformation!
 					// Start with N(0,1) values, discretizing (FIXED values)
-					ArrayOfN01(p_OutMat->val[i], nScen, 1);
+					ArrayOfN01(p_OutMat->val[i], nScen, 1, 1);
 				}
 				else {
 					// Start with cubic
@@ -151,7 +176,7 @@ int HKW_ScenGen(int const FormatOfMoms, TMatrix const * const p_TarMoms,
 						switch (start_trial) {
 							case 1:
 								// Start with N(0,1) values, discretizing (FIXED values)
-								ArrayOfN01(TmpOutMat.val[i], nScen, 1);
+								ArrayOfN01(TmpOutMat.val[i], nScen, 1, 1);
 								break;
 							case MaxStartTrial:
 								// Last trial - try uniform instead of N(0,1)!
@@ -160,7 +185,7 @@ int HKW_ScenGen(int const FormatOfMoms, TMatrix const * const p_TarMoms,
 								break;
 							default:
 								// Start with N(0,1) values, RANDOM
-								ArrayOfN01(TmpOutMat.val[i], nScen, 0);
+								ArrayOfN01(TmpOutMat.val[i], nScen, 0, 1);
 								break;
 						}
 

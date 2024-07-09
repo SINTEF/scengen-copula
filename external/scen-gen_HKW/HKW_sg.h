@@ -10,6 +10,9 @@
 #include "matrix.h"
 #include "dll_export_def.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /// main scenario-generation procedure
 /**
@@ -54,7 +57,7 @@
 	- 8	if both errors < max, report the results (we have convergence),
 		otherwise report failure and return the best scenarios found
 **/
-HKW_DLL_EX int HKW_ScenGen(int const FormatOfMoms,
+DLL_PUBLIC int HKW_ScenGen(int const FormatOfMoms,
                            TMatrix const * const p_TarMoms,
                            TMatrix const * const p_TgCorrs,
                            TVector const * const p_Probs,
@@ -77,17 +80,22 @@ HKW_DLL_EX int HKW_ScenGen(int const FormatOfMoms,
 	we would not be able to access the scenario values. If we wanted to allow
 	it, we would have to pass a pointer to the array, i.e. double***).
 **/
-HKW_DLL_EX int scengen_HKW(double ** const tgMoms, int const FormatOfMoms,
+DLL_PUBLIC int scengen_HKW(double ** const tgMoms, int const FormatOfMoms,
                            double ** const tgCorrs, double * const probs,
                            int const nVar, int const nScen,
-                           double ** outSc,
+                           double ** const outSc,
                            double const MaxErrMom, double const MaxErrCorr,
                            int const TestLevel, int const MaxTrial,
                            int const MaxIter, int const UseStartValues,
                            double * p_errMom, double * p_errCorr,
                            int * p_nmbTrial, int * p_nmbIter);
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif  // header guard
+
 
 /** \page Moment-matching scenario generation heuristic
 
@@ -101,11 +109,11 @@ HKW_DLL_EX int scengen_HKW(double ** const tgMoms, int const FormatOfMoms,
 
 	\section License
 	The code is freely distributed under the
-	<a href="http://www.eclipse.org/legal/epl-v10.html">
-	Eclipse Public License</a>. For information about the license, including
+	<a href="https://www.mozilla.org/en-US/MPL/2.0/">
+	Mozilla Public License</a>. For information about the license, including
 	compatibility with other licenses, see the official
-	<a href="http://www.eclipse.org/legal/eplfaq.php">FAQ</a> or its
-	<a href="http://en.wikipedia.org/wiki/Eclipse_Public_License">Wikipedia</a>
+	<a href="https://www.mozilla.org/en-US/MPL/2.0/FAQ/">FAQ</a> or its
+	<a href="https://en.wikipedia.org/wiki/Mozilla_Public_License">Wikipedia</a>
 	entry.
 
 **/

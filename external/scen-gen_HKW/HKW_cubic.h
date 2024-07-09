@@ -5,6 +5,10 @@
 
 #include "dll_export_def.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define N 4           /// number of moments
 #define NBITMAX 1000
 #define EPSILON 1E-12 /// desired precision on the gradient's infinite norm
@@ -16,10 +20,14 @@
 #define IDENT4 0
 
 /// the main routine that finds the coefficients and puts them to xk
-HKW_DLL_EX double cubic_solve(double *xk);
+DLL_PUBLIC double cubic_solve(double *xk);
 
 // input data
-HKW_DLL_EX double InMom[13]; /// Input moments: 12 moments + InMom[0]:=1
-HKW_DLL_EX double TgMom[4];  /// Target moments
+DLL_PUBLIC extern double InMom[13]; /// Input moments: 12 moments + InMom[0]:=1
+DLL_PUBLIC extern double TgMom[4];  /// Target moments
 
+#ifdef __cplusplus
+}
 #endif
+
+#endif // header guard
