@@ -145,3 +145,19 @@ License
 
 The code is licensed under the [Mozilla Public License, version 2.0](https://www.mozilla.org/en-US/MPL/2.0/).
 For more information, see the [official FAQ](https://www.mozilla.org/en-US/MPL/2.0/FAQ/) or the [Wikipedia article](https://en.wikipedia.org/wiki/Mozilla_Public_License) about the license.
+
+### Third-party files and libraries included in the distribution
+- `ranker.h`
+	- home: [https://sites.google.com/site/jivsoft/]
+	- license: BSD 
+- `QuantLib`
+  - home: [https://www.quantlib.org/]
+  - license info: [https://www.quantlib.org/license.shtml]
+  - license: modified (2-clause) [BSD License](https://opensource.org/license/BSD-2-Clause)
+  - the code includes only a small subset of the library
+
+### Additional libraries included in the distributed binary files:
+- `Boost`
+  - home: [https://www.boost.org/]
+  - license info: [https://www.boost.org/users/license.html]
+  - license: Boost Software License [https://opensource.org/license/BSL-1.0]
