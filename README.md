@@ -129,8 +129,8 @@ The repository includes project files for Visual Studio, but they do not work at
 The code is currently being built with GCC on the following platforms
 
 - [MSYS2](https://www.msys2.org/) tools with the (default) UCRT64 environment.
-    - install from [https://www.msys2.org] or with `winget install MSYS2.MSYS2`
-	- if the install fails, try to disable some Windows security as described in [https://github.com/appveyor/ci/issues/3777] and [https://github.com/msys2/msys2.github.io/issues/303] - the security can be re-activated after installation
+    - install from <https://www.msys2.org> or with `winget install MSYS2.MSYS2`
+	- if the install fails, try to disable some Windows security as described in <https://github.com/appveyor/ci/issues/3777> and <https://github.com/msys2/msys2.github.io/issues/303> - the security can be re-activated after installation
     - install the following packages (using `pacman -S <PACKAGE>`):
         - `mingw-w64-ucrt-x86_64-toolchain`
         - `mingw-w64-ucrt-x86_64-boost`
@@ -148,16 +148,16 @@ For more information, see the [official FAQ](https://www.mozilla.org/en-US/MPL/2
 
 ### Third-party files and libraries included in the distribution
 - `ranker.h`
-	- home: [https://sites.google.com/site/jivsoft/]
+	- home: <https://sites.google.com/site/jivsoft/>
 	- license: BSD 
 - `QuantLib`
-  - home: [https://www.quantlib.org/]
-  - license info: [https://www.quantlib.org/license.shtml]
-  - license: modified (2-clause) [BSD License](https://opensource.org/license/BSD-2-Clause)
+  - home: <https://www.quantlib.org/>
+  - license info: <https://www.quantlib.org/license.shtml>
+  - license: [modified (2-clause) BSD License](https://opensource.org/license/BSD-2-Clause)
   - the code includes only a small subset of the library
 
 ### Additional libraries included in the distributed binary files:
 - `Boost`
-  - home: [https://www.boost.org/]
-  - license info: [https://www.boost.org/users/license.html]
-  - license: Boost Software License [https://opensource.org/license/BSL-1.0]
+  - home: <https://www.boost.org/>
+  - license info: <https://www.boost.org/users/license.html>
+  - license: [Boost Software License 1.0](https://opensource.org/license/BSL-1.0)
